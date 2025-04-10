@@ -34,11 +34,6 @@ ghc-options:
 
 library:
   source-dirs: src
-  dependencies:
-    - name: automerge-pandoc
-      path: ../automerge-pandoc
-    - name: pandoc-diff
-      path: ../pandoc-diff
 
 executables:
   v2-hs-lib-exe:
@@ -50,6 +45,13 @@ executables:
       - -with-rtsopts=-N
     dependencies:
       - v2-hs-lib
+      - name: automerge-pandoc
+        path: ../automerge-pandoc
+      - name: pandoc-diff
+        path: ../pandoc-diff
+      - text >= 2.1.1
+      - pandoc >= 3.5
+      - optparse-applicative >= 0.18.1.0
 
 tests:
   v2-hs-lib-test:

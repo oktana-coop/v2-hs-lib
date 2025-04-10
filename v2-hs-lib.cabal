@@ -31,20 +31,24 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      automerge-pandoc
-    , base >=4.7 && <5
-    , pandoc-diff
+      base >=4.7 && <5
   default-language: Haskell2010
 
 executable v2-hs-lib-exe
   main-is: Main.hs
   other-modules:
+      Cli
       Paths_v2_hs_lib
   hs-source-dirs:
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      automerge-pandoc
+    , base >=4.7 && <5
+    , optparse-applicative >=0.18.1.0
+    , pandoc >=3.5
+    , pandoc-diff
+    , text >=2.1.1
     , v2-hs-lib
   default-language: Haskell2010
 
