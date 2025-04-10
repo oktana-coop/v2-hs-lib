@@ -1,0 +1,60 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.37.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           v2-hs-lib
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/oktana-coop/v2-hs-lib#readme>
+homepage:       https://github.com/oktana-coop/v2-hs-lib#readme
+bug-reports:    https://github.com/oktana-coop/v2-hs-lib/issues
+author:         Aris Goudouras
+maintainer:     aris.gk@gmail.com
+copyright:      2025 Aris Goudouras
+license:        GPL-3.0
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/oktana-coop/v2-hs-lib
+
+library
+  exposed-modules:
+      Lib
+  other-modules:
+      Paths_v2_hs_lib
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  build-depends:
+      base >=4.7 && <5
+  default-language: Haskell2010
+
+executable v2-hs-lib-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_v2_hs_lib
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , v2-hs-lib
+  default-language: Haskell2010
+
+test-suite v2-hs-lib-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_v2_hs_lib
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , v2-hs-lib
+  default-language: Haskell2010
