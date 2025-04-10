@@ -31,7 +31,9 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      base >=4.7 && <5
+      automerge-pandoc
+    , base >=4.7 && <5
+    , pandoc-diff
   default-language: Haskell2010
 
 executable v2-hs-lib-exe

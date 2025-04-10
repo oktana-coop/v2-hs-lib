@@ -34,6 +34,11 @@ ghc-options:
 
 library:
   source-dirs: src
+  dependencies:
+    - name: automerge-pandoc
+      path: ../automerge-pandoc
+    - name: pandoc-diff
+      path: ../pandoc-diff
 
 executables:
   v2-hs-lib-exe:
