@@ -5,6 +5,7 @@ import Cli (Command (..), Format (..), readInputCommand)
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
+import Diff.RichText (getAnnotatedTree)
 import PandocReader as AutomergePandoc.PandocReader (toPandoc)
 import PandocWriter as AutomergePandoc.PandocWriter (writeAutomergeSpans)
 import Text.Pandoc (Pandoc, PandocIO, PandocMonad, ReaderOptions, WriterOptions, def, readHtml, readJSON, readMarkdown, readNative)
@@ -46,9 +47,18 @@ convertToAutomerge format input = do
   rst <- handleError result
   TIO.putStrLn rst
 
+produceProseMirrorDiff :: Format -> String -> String -> IO ()
+produceProseMirrorDiff format doc1Str doc2Str = do
+  eitherDoc1 <- runIO $ readFrom format def (T.pack doc1Str)
+  doc1 <- handleError eitherDoc1
+  eitherDoc2 <- runIO $ readFrom format def (T.pack doc2Str)
+  doc2 <- handleError eitherDoc2
+  TIO.putStrLn $ T.pack $ show $ getAnnotatedTree doc1 doc2
+
 main :: IO ()
 main = do
   command <- readInputCommand
   case command of
     ConvertFromAutomerge format jsonString -> convertFromAutomerge format jsonString
     ConvertToAutomerge format markdownString -> convertToAutomerge format markdownString
+    ProseMirrorDiff format str1 str2 -> produceProseMirrorDiff format str1 str2

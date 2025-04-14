@@ -5,6 +5,7 @@ import Options.Applicative (Parser, ReadM, argument, command, eitherReader, exec
 data Command
   = ConvertFromAutomerge Format String
   | ConvertToAutomerge Format String
+  | ProseMirrorDiff Format String String
   deriving (Show)
 
 data Format = Pandoc | Markdown | Html | Json deriving (Show)
@@ -27,8 +28,24 @@ readFormat = eitherReader $ \arg ->
 commandParser :: Parser Command
 commandParser =
   subparser
-    ( command "fromAutomerge" (info (ConvertFromAutomerge <$> outputFormatParser <*> argument str (metavar "AUTOMERGE_SPANS_JSON")) (progDesc "Convert from Automerge Spans JSON to the output format"))
-        <> command "toAutomerge" (info (ConvertToAutomerge <$> inputFormatParser <*> argument str (metavar "INPUT_DATA")) (progDesc "Convert from the input format to Automerge Spans JSON"))
+    ( command
+        "fromAutomerge"
+        ( info
+            (ConvertFromAutomerge <$> outputFormatParser <*> argument str (metavar "AUTOMERGE_SPANS_JSON"))
+            (progDesc "Convert from Automerge Spans JSON to the output format")
+        )
+        <> command
+          "toAutomerge"
+          ( info
+              (ConvertToAutomerge <$> inputFormatParser <*> argument str (metavar "INPUT_DATA"))
+              (progDesc "Convert from the input format to Automerge Spans JSON")
+          )
+        <> command
+          "proseMirrorDiff"
+          ( info
+              (ProseMirrorDiff <$> inputFormatParser <*> argument str (metavar "DOC_1") <*> argument str (metavar "DOC_2"))
+              (progDesc "Produce a ProseMirror document with the diff decorations given two input strings of the specified format")
+          )
     )
 
 readInputCommand :: IO Command
