@@ -39,12 +39,15 @@ library:
       path: ../pandoc-diff
     - name: pandoc-tree
       path: ../pandoc-tree
+    - aeson >= 2.2.3.0
     - containers >= 0.7
     - pandoc >= 3.5
     - pandoc-types >= 1.23.1
     - text >= 2.1.1
   exposed-modules:
     - ProseMirror.Diff
+  other-modules:
+    - ProseMirror.PMJson
 
 executables:
   v2-hs-lib-exe:

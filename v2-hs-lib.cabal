@@ -26,13 +26,13 @@ library
   exposed-modules:
       ProseMirror.Diff
   other-modules:
-      Lib
-      Paths_v2_hs_lib
+      ProseMirror.PMJson
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      base >=4.7 && <5
+      aeson >=2.2.3.0
+    , base >=4.7 && <5
     , containers >=0.7
     , pandoc >=3.5
     , pandoc-diff
