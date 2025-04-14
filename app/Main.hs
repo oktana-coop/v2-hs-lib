@@ -8,6 +8,7 @@ import qualified Data.Text.IO as TIO
 import Diff.RichText (getAnnotatedTree)
 import PandocReader as AutomergePandoc.PandocReader (toPandoc)
 import PandocWriter as AutomergePandoc.PandocWriter (writeAutomergeSpans)
+import ProseMirror.Diff (proseMirrorDocWithDiffDecorations)
 import Text.Pandoc (Pandoc, PandocIO, PandocMonad, ReaderOptions, WriterOptions, def, readHtml, readJSON, readMarkdown, readNative)
 import Text.Pandoc.Class (runIO)
 import Text.Pandoc.Error (handleError)
@@ -53,7 +54,7 @@ produceProseMirrorDiff format doc1Str doc2Str = do
   doc1 <- handleError eitherDoc1
   eitherDoc2 <- runIO $ readFrom format def (T.pack doc2Str)
   doc2 <- handleError eitherDoc2
-  TIO.putStrLn $ T.pack $ show $ getAnnotatedTree doc1 doc2
+  TIO.putStrLn $ T.pack $ show $ proseMirrorDocWithDiffDecorations $ getAnnotatedTree doc1 doc2
 
 main :: IO ()
 main = do

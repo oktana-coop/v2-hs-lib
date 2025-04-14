@@ -24,11 +24,10 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      ProseMirror.Diff
   other-modules:
-      DocTree.Common
-      DocTree.GroupedInlines
-      DocTree.LeafTextSpans
+      Lib
+      Paths_v2_hs_lib
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
@@ -36,6 +35,8 @@ library
       base >=4.7 && <5
     , containers >=0.7
     , pandoc >=3.5
+    , pandoc-diff
+    , pandoc-tree
     , pandoc-types >=1.23.1
     , text >=2.1.1
   default-language: Haskell2010
