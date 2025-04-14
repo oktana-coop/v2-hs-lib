@@ -49,6 +49,7 @@ executables:
         path: ../automerge-pandoc
       - name: pandoc-diff
         path: ../pandoc-diff
+      - bytestring >= 0.12.1.0
       - text >= 2.1.1
       - pandoc >= 3.5
       - optparse-applicative >= 0.18.1.0

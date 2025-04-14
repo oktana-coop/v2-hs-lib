@@ -45,6 +45,7 @@ executable v2-hs-lib-exe
   build-depends:
       automerge-pandoc
     , base >=4.7 && <5
+    , bytestring >=0.12.1.0
     , optparse-applicative >=0.18.1.0
     , pandoc >=3.5
     , pandoc-diff
