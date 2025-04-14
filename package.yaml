@@ -34,6 +34,15 @@ ghc-options:
 
 library:
   source-dirs: src
+  dependencies:
+    - containers >= 0.7
+    - pandoc >= 3.5
+    - pandoc-types >= 1.23.1
+    - text >= 2.1.1
+  other-modules:
+    - DocTree.Common
+    - DocTree.GroupedInlines
+    - DocTree.LeafTextSpans
 
 executables:
   v2-hs-lib-exe:

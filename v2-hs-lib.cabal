@@ -26,12 +26,18 @@ library
   exposed-modules:
       Lib
   other-modules:
-      Paths_v2_hs_lib
+      DocTree.Common
+      DocTree.GroupedInlines
+      DocTree.LeafTextSpans
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.7 && <5
+    , containers >=0.7
+    , pandoc >=3.5
+    , pandoc-types >=1.23.1
+    , text >=2.1.1
   default-language: Haskell2010
 
 executable v2-hs-lib-exe
