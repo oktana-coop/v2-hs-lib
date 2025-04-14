@@ -5,10 +5,10 @@ import Cli (Command (..), Format (..), readInputCommand)
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-import Diff.RichText (getAnnotatedTree)
 import PandocReader as AutomergePandoc.PandocReader (toPandoc)
 import PandocWriter as AutomergePandoc.PandocWriter (writeAutomergeSpans)
 import ProseMirror.Diff (proseMirrorDocWithDiffDecorations)
+import RichTextDiff (getAnnotatedTree)
 import Text.Pandoc (Pandoc, PandocIO, PandocMonad, ReaderOptions, WriterOptions, def, readHtml, readJSON, readMarkdown, readNative)
 import Text.Pandoc.Class (runIO)
 import Text.Pandoc.Error (handleError)
