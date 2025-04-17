@@ -1,10 +1,15 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
-module ProseMirror.Diff (proseMirrorDocWithDiffDecorations) where
+module ProseMirror.Diff (proseMirrorJSONDocWithDiffDecorations) where
 
 import Control.Monad.State (State, evalState, get, modify)
+import Data.Aeson (ToJSON, encode, toJSON)
+import qualified Data.ByteString.Lazy.Char8 as BSL8
 import qualified Data.Text as T
+import Data.Text.Encoding (decodeUtf8)
 import Data.Tree (Tree (..))
 import DocTree.Common (BlockNode, TextSpan (..))
 import DocTree.LeafTextSpans (DocNode (..), TreeNode (..))
@@ -23,10 +28,21 @@ data PMTreeNode = PMNode PM.Node | WrapperInlineNode
 
 type DecoratedPMTree = Tree (Either PMTreeNode (Decoration PMTreeNode))
 
+data DecoratedPMDoc = DecoratedPMDoc {doc :: BlockNode, decorations :: Decoration PM.Node} deriving (Show, Eq)
+
+instance ToJSON DecoratedPMDoc where
+  toJSON pmDoc = undefined
+
 type PMIndex = Int
 
-proseMirrorDocWithDiffDecorations :: Tree (RichTextDiffOp DocNode) -> DecoratedPMTree
-proseMirrorDocWithDiffDecorations diffTree = evalState (walkDiffTree diffTree) 0
+proseMirrorJSONDocWithDiffDecorations :: Tree (RichTextDiffOp DocNode) -> T.Text
+proseMirrorJSONDocWithDiffDecorations = decodeUtf8 . BSL8.toStrict . encode . pmDocFromPMTree . toProseMirrorTreeWithDiffDecorations
+
+pmDocFromPMTree :: DecoratedPMTree -> DecoratedPMDoc
+pmDocFromPMTree = undefined
+
+toProseMirrorTreeWithDiffDecorations :: Tree (RichTextDiffOp DocNode) -> DecoratedPMTree
+toProseMirrorTreeWithDiffDecorations diffTree = evalState (walkDiffTree diffTree) 0
 
 walkDiffTree :: Tree (RichTextDiffOp DocNode) -> State PMIndex DecoratedPMTree
 walkDiffTree (Node nodeWithDiff subTrees) = do
