@@ -3,19 +3,19 @@
 
 module ProseMirror.Diff (proseMirrorDocWithDiffDecorations) where
 
-import Control.Monad.State (State, evalState, modify)
+import Control.Monad.State (State, evalState, get, modify)
 import qualified Data.Text as T
 import Data.Tree (Tree (..))
 import DocTree.Common (BlockNode, TextSpan (..))
 import DocTree.LeafTextSpans (DocNode (..), TreeNode (..))
-import qualified ProseMirror.PMJson as PM (BlockNode (..), Node (..), TextNode)
+import qualified ProseMirror.PMJson as PM (BlockNode (..), Node (..), TextNode (..))
 import RichTextDiffOp (RichTextDiffOp (..))
 
 data DecorationAttrs = DecorationAttrs {nodeName :: Maybe T.Text, cssClass :: Maybe T.Text, style :: Maybe T.Text} deriving (Show, Eq)
 
-data InlineDecoration a = PMInlineDecoration {from :: Int, to :: Int, attrs :: DecorationAttrs} deriving (Show, Eq)
+data InlineDecoration a = PMInlineDecoration {from :: Int, to :: Int, attrs :: DecorationAttrs, decoratedInline :: a} deriving (Show, Eq)
 
-data WidgetDecoration a = PMWidgetDecoration {pos :: Int} deriving (Show, Eq)
+data WidgetDecoration a = PMWidgetDecoration {pos :: Int, decoratedNode :: a} deriving (Show, Eq)
 
 data Decoration a = InlineDecoration (InlineDecoration a) | WidgetDecoration (WidgetDecoration a) deriving (Show, Eq)
 
@@ -40,27 +40,45 @@ walkDiffTree (Node nodeWithDiff subTrees) = do
   pure $ Node {rootLabel = pmNode, subForest = pmSubForest}
 
 walkDiffTreeNode :: RichTextDiffOp DocNode -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
-walkDiffTreeNode (Copy node) = do
-  pmNode <- docNodeToPMNode node
+walkDiffTreeNode (Copy (TreeNode (InlineContent textSpan))) = do
+  modify (+ textLength)
   pure $ Left pmNode
+  where
+    pmTextNode = treeTextSpanNodeToPMTextNode textSpan
+    pmNode = PMNode $ PM.TextNode $ pmTextNode
+    textLength = T.length $ PM.text pmTextNode
+-- Just transform non-text nodes to their PM equivalent (without decoration). For block nodes, increasing the index is handled in another function (`walkDiffTree`).
+walkDiffTreeNode (Copy node) = pure $ Left $ docNodeToPMNode node
+walkDiffTreeNode (Insert (TreeNode (InlineContent textSpan))) = do
+  startIndex <- get
+  modify (+ textLength)
+  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex (startIndex + textLength) "insert"
+  where
+    pmTextNode = treeTextSpanNodeToPMTextNode textSpan
+    pmNode = PMNode $ PM.TextNode $ pmTextNode
+    textLength = T.length $ PM.text pmTextNode
+walkDiffTreeNode (Insert node) = pure $ Left $ docNodeToPMNode node
 walkDiffTreeNode _ = undefined
 
-docNodeToPMNode :: DocNode -> State PMIndex PMTreeNode
-docNodeToPMNode Root = pure $ PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "doc", PM.content = Nothing, PM.attrs = Nothing}
-docNodeToPMNode (TreeNode (BlockNode node)) = (pure . PMNode . PM.BlockNode) pmNode
-  where
-    pmNode = treeBlockNodeToPMBlockNode node
-docNodeToPMNode (TreeNode (InlineNode)) = pure $ WrapperInlineNode
-docNodeToPMNode (TreeNode (InlineContent textSpan)) = do
-  modify (+ len)
-  (pure . PMNode . PM.TextNode) pmTextNode
-  where
-    (pmTextNode, len) = treeTextSpanNodeToPMTextNode textSpan
+wrapInInlineDecoration :: PMTreeNode -> PMIndex -> PMIndex -> T.Text -> InlineDecoration PMTreeNode
+wrapInInlineDecoration pmNode startIndex endIndex cssClassName =
+  PMInlineDecoration
+    { from = startIndex,
+      to = endIndex,
+      attrs = DecorationAttrs {nodeName = Nothing, cssClass = Just cssClassName, style = Nothing},
+      decoratedInline = pmNode
+    }
+
+docNodeToPMNode :: DocNode -> PMTreeNode
+docNodeToPMNode Root = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "doc", PM.content = Nothing, PM.attrs = Nothing}
+docNodeToPMNode (TreeNode (BlockNode node)) = PMNode $ PM.BlockNode $ treeBlockNodeToPMBlockNode node
+docNodeToPMNode (TreeNode (InlineNode)) = WrapperInlineNode
+docNodeToPMNode (TreeNode (InlineContent textSpan)) = PMNode $ PM.TextNode $ treeTextSpanNodeToPMTextNode textSpan
 
 treeBlockNodeToPMBlockNode :: BlockNode -> PM.BlockNode
 treeBlockNodeToPMBlockNode = undefined
 
-treeTextSpanNodeToPMTextNode :: TextSpan -> (PM.TextNode, Int)
+treeTextSpanNodeToPMTextNode :: TextSpan -> PM.TextNode
 treeTextSpanNodeToPMTextNode = undefined
 
 isNotDeletedPMBlockNode :: Either PMTreeNode (Decoration PMTreeNode) -> Bool
