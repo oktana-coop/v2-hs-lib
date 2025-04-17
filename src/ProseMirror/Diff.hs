@@ -10,7 +10,7 @@ import Data.Aeson (ToJSON, encode, toJSON)
 import qualified Data.ByteString.Lazy.Char8 as BSL8
 import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8)
-import Data.Tree (Tree (..))
+import Data.Tree (Tree (..), foldTree)
 import DocTree.Common (BlockNode, TextSpan (..))
 import DocTree.LeafTextSpans (DocNode (..), TreeNode (..))
 import qualified ProseMirror.PMJson as PM (BlockNode (..), Node (..), TextNode (..))
@@ -28,7 +28,7 @@ data PMTreeNode = PMNode PM.Node | WrapperInlineNode
 
 type DecoratedPMTree = Tree (Either PMTreeNode (Decoration PMTreeNode))
 
-data DecoratedPMDoc = DecoratedPMDoc {doc :: BlockNode, decorations :: Decoration PM.Node} deriving (Show, Eq)
+data DecoratedPMDoc = DecoratedPMDoc {doc :: PM.BlockNode, decorations :: [Decoration PM.Node]} deriving (Show, Eq)
 
 instance ToJSON DecoratedPMDoc where
   toJSON pmDoc = undefined
@@ -39,7 +39,17 @@ proseMirrorJSONDocWithDiffDecorations :: Tree (RichTextDiffOp DocNode) -> T.Text
 proseMirrorJSONDocWithDiffDecorations = decodeUtf8 . BSL8.toStrict . encode . pmDocFromPMTree . toProseMirrorTreeWithDiffDecorations
 
 pmDocFromPMTree :: DecoratedPMTree -> DecoratedPMDoc
-pmDocFromPMTree = undefined
+pmDocFromPMTree pmTree = DecoratedPMDoc {doc = pmDoc, decorations = pmDecorations}
+  where
+    (pmDoc, pmDecorations) = assertRootNodeIsBlock $ foldTree pmTreeNodeFolder pmTree
+
+    assertRootNodeIsBlock :: (PM.Node, [Decoration PM.Node]) -> (PM.BlockNode, [Decoration PM.Node])
+    assertRootNodeIsBlock ((PM.BlockNode rootNode), decs) = (rootNode, decs)
+    -- TODO: Fail gracefully
+    assertRootNodeIsBlock _ = undefined
+
+pmTreeNodeFolder :: Either PMTreeNode (Decoration PMTreeNode) -> [(PM.Node, [Decoration PM.Node])] -> (PM.Node, [Decoration PM.Node])
+pmTreeNodeFolder = undefined
 
 toProseMirrorTreeWithDiffDecorations :: Tree (RichTextDiffOp DocNode) -> DecoratedPMTree
 toProseMirrorTreeWithDiffDecorations diffTree = evalState (walkDiffTree diffTree) 0
