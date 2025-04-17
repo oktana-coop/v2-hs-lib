@@ -52,13 +52,30 @@ walkDiffTreeNode (Copy node) = pure $ Left $ docNodeToPMNode node
 walkDiffTreeNode (Insert (TreeNode (InlineContent textSpan))) = do
   startIndex <- get
   modify (+ textLength)
-  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex (startIndex + textLength) "insert"
+  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex (startIndex + textLength) "diff-insert"
   where
     pmTextNode = treeTextSpanNodeToPMTextNode textSpan
     pmNode = PMNode $ PM.TextNode $ pmTextNode
     textLength = T.length $ PM.text pmTextNode
 walkDiffTreeNode (Insert node) = pure $ Left $ docNodeToPMNode node
-walkDiffTreeNode _ = undefined
+walkDiffTreeNode (Delete node) = do
+  position <- get
+  pure $ Right $ WidgetDecoration $ wrapInWidgetDecoration pmNode position
+  where
+    pmNode = docNodeToPMNode node
+walkDiffTreeNode (UpdateMarks _ (TreeNode (InlineContent textSpan))) = do
+  startIndex <- get
+  modify (+ textLength)
+  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex (startIndex + textLength) "diff-modify"
+  where
+    pmTextNode = treeTextSpanNodeToPMTextNode textSpan
+    pmNode = PMNode $ PM.TextNode $ pmTextNode
+    textLength = T.length $ PM.text pmTextNode
+-- Just transform non-text nodes to their PM equivalent (without decoration).
+-- We shouldn't really get this diff op for block nodes. TODO: Express this in the type system.
+walkDiffTreeNode (UpdateMarks _ node) = pure $ Left $ docNodeToPMNode node
+-- TODO: Implement heading level updates properly
+walkDiffTreeNode (UpdateHeadingLevel _ node) = pure $ Left $ docNodeToPMNode node
 
 wrapInInlineDecoration :: PMTreeNode -> PMIndex -> PMIndex -> T.Text -> InlineDecoration PMTreeNode
 wrapInInlineDecoration pmNode startIndex endIndex cssClassName =
@@ -67,6 +84,13 @@ wrapInInlineDecoration pmNode startIndex endIndex cssClassName =
       to = endIndex,
       attrs = DecorationAttrs {nodeName = Nothing, cssClass = Just cssClassName, style = Nothing},
       decoratedInline = pmNode
+    }
+
+wrapInWidgetDecoration :: PMTreeNode -> PMIndex -> WidgetDecoration PMTreeNode
+wrapInWidgetDecoration pmNode position =
+  PMWidgetDecoration
+    { pos = position,
+      decoratedNode = pmNode
     }
 
 docNodeToPMNode :: DocNode -> PMTreeNode
