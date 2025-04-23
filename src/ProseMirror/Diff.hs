@@ -57,9 +57,16 @@ pmTreeNodeFolder :: Either PMTreeNode (Decoration PMTreeNode) -> [([PM.Node], [D
 pmTreeNodeFolder (Left (PMNode pmNode@(PM.TextNode _))) _ = ([pmNode], [])
 -- Undecorated (wrapper) inline node
 pmTreeNodeFolder (Left (WrapperInlineNode)) childNodesWithDecorations = splitNodesAndDecorations childNodesWithDecorations
+-- Undecorated block node
 pmTreeNodeFolder (Left (PMNode (PM.BlockNode blockNode))) childNodesWithDecorations = ([PM.BlockNode $ wrapChildrenToBlock blockNode childNodes], childDecorations)
   where
     (childNodes, childDecorations) = splitNodesAndDecorations childNodesWithDecorations
+-- Inline decoration for text node.
+-- TODO: See if making decoration a functor makes this case easier to write because in the second slot of the tuple we just want to map over the decoration structure.
+pmTreeNodeFolder (Right (InlineDecoration (PMInlineDecoration decFrom decTo decAttrs (PMNode pmNode@(PM.TextNode _))))) _ =
+  ([pmNode], [InlineDecoration $ PMInlineDecoration decFrom decTo decAttrs pmNode])
+-- There are cases like inline decorations wrapping block nodes that are really failure cases.
+-- So we must handle them more gracefully here and ideally guard against them using more specific & accurate types.
 pmTreeNodeFolder _ _ = undefined
 
 wrapChildrenToBlock :: PM.BlockNode -> [PM.Node] -> PM.BlockNode
