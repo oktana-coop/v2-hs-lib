@@ -65,8 +65,20 @@ pmTreeNodeFolder (Left (PMNode (PM.BlockNode blockNode))) childNodesWithDecorati
 -- TODO: See if making decoration a functor makes this case easier to write because in the second slot of the tuple we just want to map over the decoration structure.
 pmTreeNodeFolder (Right (InlineDecoration (PMInlineDecoration decFrom decTo decAttrs (PMNode pmNode@(PM.TextNode _))))) _ =
   ([pmNode], [InlineDecoration $ PMInlineDecoration decFrom decTo decAttrs pmNode])
--- There are cases like inline decorations wrapping block nodes that are really failure cases.
--- So we must handle them more gracefully here and ideally guard against them using more specific & accurate types.
+-- Widget decoration for text node.
+pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration decPos (PMNode pmNode@(PM.TextNode _))))) _ =
+  ([pmNode], [WidgetDecoration $ PMWidgetDecoration decPos pmNode])
+-- Widget decoration for wrapper inline node. Just return the children nodes and decorations (they will contain the decoration themselves)
+pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration _ (WrapperInlineNode)))) childNodesWithDecorations = splitNodesAndDecorations childNodesWithDecorations
+-- Widget decoration for block node. Append the block decoration to the accumulated list of decorations.
+-- TODO: See if making decoration a functor makes this case easier to write.
+pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration decPos (PMNode pmNode@(PM.BlockNode blockNode))))) childNodesWithDecorations =
+  ([PM.BlockNode $ wrapChildrenToBlock blockNode childNodes], [blockDecoration] <> childDecorations)
+  where
+    blockDecoration = WidgetDecoration $ PMWidgetDecoration decPos pmNode
+    (childNodes, childDecorations) = splitNodesAndDecorations childNodesWithDecorations
+-- TODO: There are cases we didn't handle, like an inline decoration wrapping blocks.
+-- These are failure cases and we should guard against them, ideally in the type system (with more accurate/specific types).
 pmTreeNodeFolder _ _ = undefined
 
 wrapChildrenToBlock :: PM.BlockNode -> [PM.Node] -> PM.BlockNode
