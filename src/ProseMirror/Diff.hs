@@ -8,6 +8,7 @@ module ProseMirror.Diff (proseMirrorJSONDocWithDiffDecorations) where
 import Control.Monad.State (State, evalState, get, modify)
 import Data.Aeson (ToJSON, encode, toJSON)
 import qualified Data.ByteString.Lazy.Char8 as BSL8
+import Data.Maybe (listToMaybe)
 import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8)
 import Data.Tree (Tree (..), foldTree)
@@ -41,15 +42,31 @@ proseMirrorJSONDocWithDiffDecorations = decodeUtf8 . BSL8.toStrict . encode . pm
 pmDocFromPMTree :: DecoratedPMTree -> DecoratedPMDoc
 pmDocFromPMTree pmTree = DecoratedPMDoc {doc = pmDoc, decorations = pmDecorations}
   where
-    (pmDoc, pmDecorations) = assertRootNodeIsBlock $ foldTree pmTreeNodeFolder pmTree
+    (pmDoc, pmDecorations) = extractRootBlock $ foldTree pmTreeNodeFolder pmTree
 
-    assertRootNodeIsBlock :: (PM.Node, [Decoration PM.Node]) -> (PM.BlockNode, [Decoration PM.Node])
-    assertRootNodeIsBlock ((PM.BlockNode rootNode), decs) = (rootNode, decs)
+    extractRootBlock :: ([PM.Node], [Decoration PM.Node]) -> (PM.BlockNode, [Decoration PM.Node])
+    extractRootBlock (nodes, decs) = (assertRootNodeIsBlock $ listToMaybe nodes, decs)
+
+    assertRootNodeIsBlock :: Maybe PM.Node -> PM.BlockNode
+    assertRootNodeIsBlock (Just (PM.BlockNode rootNode)) = rootNode
     -- TODO: Fail gracefully
     assertRootNodeIsBlock _ = undefined
 
-pmTreeNodeFolder :: Either PMTreeNode (Decoration PMTreeNode) -> [(PM.Node, [Decoration PM.Node])] -> (PM.Node, [Decoration PM.Node])
-pmTreeNodeFolder = undefined
+pmTreeNodeFolder :: Either PMTreeNode (Decoration PMTreeNode) -> [([PM.Node], [Decoration PM.Node])] -> ([PM.Node], [Decoration PM.Node])
+-- Undecorated text node
+pmTreeNodeFolder (Left (PMNode pmNode@(PM.TextNode _))) _ = ([pmNode], [])
+-- Undecorated (wrapper) inline node
+pmTreeNodeFolder (Left (WrapperInlineNode)) childNodesWithDecorations = splitNodesAndDecorations childNodesWithDecorations
+pmTreeNodeFolder (Left (PMNode (PM.BlockNode blockNode))) childNodesWithDecorations = ([PM.BlockNode $ wrapChildrenToBlock blockNode childNodes], childDecorations)
+  where
+    (childNodes, childDecorations) = splitNodesAndDecorations childNodesWithDecorations
+pmTreeNodeFolder _ _ = undefined
+
+wrapChildrenToBlock :: PM.BlockNode -> [PM.Node] -> PM.BlockNode
+wrapChildrenToBlock (PM.PMBlock blockType _ blockAttrs) children = PM.PMBlock blockType (Just children) blockAttrs
+
+splitNodesAndDecorations :: [([PM.Node], [Decoration PM.Node])] -> ([PM.Node], [Decoration PM.Node])
+splitNodesAndDecorations nodesWithDecorations = (concatMap fst nodesWithDecorations, concatMap snd nodesWithDecorations)
 
 toProseMirrorTreeWithDiffDecorations :: Tree (RichTextDiffOp DocNode) -> DecoratedPMTree
 toProseMirrorTreeWithDiffDecorations diffTree = evalState (walkDiffTree diffTree) 0
