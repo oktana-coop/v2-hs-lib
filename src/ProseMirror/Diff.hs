@@ -7,14 +7,17 @@ module ProseMirror.Diff (proseMirrorJSONDocWithDiffDecorations) where
 
 import Control.Monad.State (State, evalState, get, modify)
 import Data.Aeson (ToJSON, encode, object, toJSON, (.=))
+import qualified Data.Aeson.KeyMap as KM
 import qualified Data.ByteString.Lazy.Char8 as BSL8
+import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (listToMaybe)
 import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8)
 import Data.Tree (Tree (..), foldTree)
-import DocTree.Common (BlockNode, TextSpan (..))
+import DocTree.Common as RichText (BlockNode, LinkMark (..), Mark (..), TextSpan (..))
 import DocTree.LeafTextSpans (DocNode (..), TreeNode (..))
-import qualified ProseMirror.PMJson as PM (BlockNode (..), Node (..), TextNode (..))
+import ProseMirror.PMJson (Mark (markAttrs))
+import qualified ProseMirror.PMJson as PM (BlockNode (..), Mark (..), Node (..), TextNode (..))
 import RichTextDiffOp (RichTextDiffOp (..))
 
 data DecorationAttrs = DecorationAttrs {nodeName :: Maybe T.Text, cssClass :: Maybe T.Text, style :: Maybe T.Text} deriving (Show, Eq)
@@ -178,7 +181,12 @@ treeBlockNodeToPMBlockNode :: BlockNode -> PM.BlockNode
 treeBlockNodeToPMBlockNode = undefined
 
 treeTextSpanNodeToPMTextNode :: TextSpan -> PM.TextNode
-treeTextSpanNodeToPMTextNode = undefined
+treeTextSpanNodeToPMTextNode textSpan = PM.PMText {PM.text = value textSpan, PM.marks = (fmap . fmap) toPMMark (nonEmpty $ marks textSpan)}
+  where
+    toPMMark :: RichText.Mark -> PM.Mark
+    toPMMark RichText.EmphMark = PM.PMMark {PM.markType = "em", markAttrs = Nothing}
+    toPMMark RichText.StrongMark = PM.PMMark {PM.markType = "strong", markAttrs = Nothing}
+    toPMMark (RichText.LinkMark (RichText.Link _ (linkUrl, linkTitle))) = PM.PMMark {PM.markType = "link", markAttrs = Just $ KM.fromList ["href" .= linkUrl, "title" .= linkTitle]}
 
 isNotDeletedPMBlockNode :: Either PMTreeNode (Decoration PMTreeNode) -> Bool
 isNotDeletedPMBlockNode (Left (PMNode (PM.BlockNode _))) = True
