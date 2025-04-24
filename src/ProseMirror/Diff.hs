@@ -6,7 +6,7 @@
 module ProseMirror.Diff (proseMirrorJSONDocWithDiffDecorations) where
 
 import Control.Monad.State (State, evalState, get, modify)
-import Data.Aeson (ToJSON, encode, toJSON)
+import Data.Aeson (ToJSON, encode, object, toJSON, (.=))
 import qualified Data.ByteString.Lazy.Char8 as BSL8
 import Data.Maybe (listToMaybe)
 import qualified Data.Text as T
@@ -19,11 +19,24 @@ import RichTextDiffOp (RichTextDiffOp (..))
 
 data DecorationAttrs = DecorationAttrs {nodeName :: Maybe T.Text, cssClass :: Maybe T.Text, style :: Maybe T.Text} deriving (Show, Eq)
 
+instance ToJSON DecorationAttrs where
+  toJSON decAttrs = object ["nodeName" .= nodeName decAttrs, "class" .= cssClass decAttrs, "style" .= style decAttrs]
+
 data InlineDecoration a = PMInlineDecoration {from :: Int, to :: Int, attrs :: DecorationAttrs, decoratedInline :: a} deriving (Show, Eq)
+
+instance ToJSON (InlineDecoration a) where
+  toJSON dec = object ["type" .= T.pack "inline", "from" .= from dec, "to" .= to dec, "attrs" .= attrs dec]
 
 data WidgetDecoration a = PMWidgetDecoration {pos :: Int, decoratedNode :: a} deriving (Show, Eq)
 
+instance (ToJSON a) => ToJSON (WidgetDecoration a) where
+  toJSON dec = object ["type" .= T.pack "widget", "pos" .= pos dec, "node" .= toJSON (decoratedNode dec)]
+
 data Decoration a = InlineDecoration (InlineDecoration a) | WidgetDecoration (WidgetDecoration a) deriving (Show, Eq)
+
+instance (ToJSON a) => ToJSON (Decoration a) where
+  toJSON (InlineDecoration inlineDec) = toJSON inlineDec
+  toJSON (WidgetDecoration widgetDec) = toJSON widgetDec
 
 data PMTreeNode = PMNode PM.Node | WrapperInlineNode
 
@@ -32,7 +45,7 @@ type DecoratedPMTree = Tree (Either PMTreeNode (Decoration PMTreeNode))
 data DecoratedPMDoc = DecoratedPMDoc {doc :: PM.BlockNode, decorations :: [Decoration PM.Node]} deriving (Show, Eq)
 
 instance ToJSON DecoratedPMDoc where
-  toJSON pmDoc = undefined
+  toJSON decoratedPMDoc = object ["doc" .= doc decoratedPMDoc, "decorations" .= decorations decoratedPMDoc]
 
 type PMIndex = Int
 
