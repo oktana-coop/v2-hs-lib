@@ -54,7 +54,7 @@ produceProseMirrorDiff format doc1Str doc2Str = do
   doc1 <- handleError eitherDoc1
   eitherDoc2 <- runIO $ readFrom format def (T.pack doc2Str)
   doc2 <- handleError eitherDoc2
-  TIO.putStrLn $ T.pack $ show $ proseMirrorJSONDocWithDiffDecorations $ getAnnotatedTree doc1 doc2
+  TIO.putStrLn $ proseMirrorJSONDocWithDiffDecorations $ getAnnotatedTree doc1 doc2
 
 main :: IO ()
 main = do
