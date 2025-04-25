@@ -133,7 +133,8 @@ walkDiffTreeNode (Copy node) = pure $ Left $ docNodeToPMNode node
 walkDiffTreeNode (Insert (TreeNode (InlineContent textSpan))) = do
   startIndex <- get
   modify (+ textLength)
-  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex (startIndex + textLength) "diff-insert"
+  -- TODO: Use parameters for decoration class
+  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex (startIndex + textLength) "bg-green-300"
   where
     pmTextNode = treeTextSpanNodeToPMTextNode textSpan
     pmNode = PMNode $ PM.TextNode $ pmTextNode
@@ -147,7 +148,8 @@ walkDiffTreeNode (Delete node) = do
 walkDiffTreeNode (UpdateMarks _ (TreeNode (InlineContent textSpan))) = do
   startIndex <- get
   modify (+ textLength)
-  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex (startIndex + textLength) "diff-modify"
+  -- TODO: Use parameters for decoration class
+  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex (startIndex + textLength) "bg-purple-100"
   where
     pmTextNode = treeTextSpanNodeToPMTextNode textSpan
     pmNode = PMNode $ PM.TextNode $ pmTextNode
