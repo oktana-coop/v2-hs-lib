@@ -1,7 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.PMJson (BlockNode (..), TextNode (..), Mark (..), Node (..)) where
+module ProseMirror.PMJson (BlockNode (..), TextNode (..), Mark (..), Node (..), isRootBlockNode) where
 
 import Data.Aeson (Object, ToJSON (..), object, (.=))
 import Data.List.NonEmpty (NonEmpty)
@@ -27,3 +27,6 @@ data BlockNode = PMBlock {nodeType :: T.Text, content :: Maybe [Node], attrs :: 
 
 instance ToJSON BlockNode where
   toJSON blockNode = object $ ["type" .= nodeType blockNode, "content" .= content blockNode, "attrs" .= attrs blockNode]
+
+isRootBlockNode :: BlockNode -> Bool
+isRootBlockNode blockNode = nodeType blockNode == "doc"

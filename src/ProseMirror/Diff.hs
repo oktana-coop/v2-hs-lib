@@ -17,7 +17,7 @@ import Data.Text.Encoding (decodeUtf8)
 import Data.Tree (Tree (..), foldTree)
 import DocTree.Common as RichText (BlockNode (..), LinkMark (..), Mark (..), TextSpan (..))
 import DocTree.LeafTextSpans (DocNode (..), TreeNode (..))
-import ProseMirror.PMJson (Mark (markAttrs))
+import ProseMirror.PMJson (Mark (markAttrs), isRootBlockNode)
 import qualified ProseMirror.PMJson as PM (BlockNode (..), Mark (..), Node (..), TextNode (..))
 import RichTextDiffOp (RichTextDiffOp (..))
 import Text.Pandoc.Definition as Pandoc (Block (..))
@@ -204,7 +204,7 @@ treeTextSpanNodeToPMTextNode textSpan = PM.PMText {PM.text = value textSpan, PM.
     toPMMark (RichText.LinkMark (RichText.Link _ (linkUrl, linkTitle))) = PM.PMMark {PM.markType = "link", markAttrs = Just $ KM.fromList [(K.fromText "href", String linkUrl), (K.fromText "title", String linkTitle)]}
 
 isNotDeletedPMBlockNode :: Either PMTreeNode (Decoration PMTreeNode) -> Bool
-isNotDeletedPMBlockNode (Left (PMNode (PM.BlockNode _))) = True
+isNotDeletedPMBlockNode (Left (PMNode (PM.BlockNode blockNode))) = not (isRootBlockNode blockNode)
 isNotDeletedPMBlockNode (Left _) = False
 -- Inline decorations wrap text nodes, not block nodes.
 -- TODO: Capture this properly in the type system.
