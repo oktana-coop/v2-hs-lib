@@ -61,6 +61,7 @@ executables:
         path: ../automerge-pandoc
       - name: pandoc-diff
         path: ../pandoc-diff
+      - aeson >= 2.2.3.0
       - bytestring >= 0.12.1.0
       - text >= 2.1.1
       - pandoc >= 3.5

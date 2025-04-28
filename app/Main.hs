@@ -1,15 +1,20 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main (main) where
 
 import Cli (Command (..), Format (..), readInputCommand)
+import Data.Aeson (encode)
+import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import PandocReader as AutomergePandoc.PandocReader (readAutomerge)
 import PandocWriter as AutomergePandoc.PandocWriter (writeAutomerge)
-import ProseMirror.Diff (proseMirrorJSONDocWithDiffDecorations)
+import ProseMirror.Diff (DecoratedPMDoc, toDecoratedPMDoc)
+import Response (ErrorOutput (..), Response (..))
 import RichTextDiff (getAnnotatedTree)
 import Text.Pandoc (Pandoc, PandocIO, PandocMonad, ReaderOptions, WriterOptions, def, readHtml, readJSON, readMarkdown, readNative)
 import Text.Pandoc.Class (runIO)
-import Text.Pandoc.Error (handleError)
+import Text.Pandoc.Error (PandocError, handleError, renderError)
 import Text.Pandoc.Writers (writeHtml5String, writeJSON, writeMarkdown, writeNative)
 
 writeTo :: (PandocMonad m) => Format -> WriterOptions -> Pandoc -> m T.Text
@@ -42,13 +47,24 @@ convertFromAutomerge outputFormat = convert Automerge outputFormat
 convertToAutomerge :: Format -> String -> IO ()
 convertToAutomerge inputFormat = convert inputFormat Automerge
 
+wrapToResponse :: Either PandocError a -> Response a
+wrapToResponse result = case result of
+  Left err -> Failure [ErrorMessage $ renderError err]
+  Right value -> Success value
+
+responseForErrorsList :: [PandocError] -> Response a
+responseForErrorsList pandocErrors = Failure $ map (ErrorMessage . renderError) pandocErrors
+
 produceProseMirrorDiff :: Format -> String -> String -> IO ()
 produceProseMirrorDiff format doc1Str doc2Str = do
   eitherDoc1 <- runIO $ readFrom format def (T.pack doc1Str)
-  doc1 <- handleError eitherDoc1
   eitherDoc2 <- runIO $ readFrom format def (T.pack doc2Str)
-  doc2 <- handleError eitherDoc2
-  TIO.putStrLn $ proseMirrorJSONDocWithDiffDecorations $ getAnnotatedTree doc1 doc2
+
+  case (eitherDoc1, eitherDoc2) of
+    (Right doc1, Right doc2) -> BL.putStrLn $ encode $ wrapToResponse $ pure $ toDecoratedPMDoc $ getAnnotatedTree doc1 doc2
+    (failedDoc@(Left _), Right _) -> BL.putStrLn $ encode $ wrapToResponse failedDoc
+    (Right _, failedDoc@(Left _)) -> BL.putStrLn $ encode $ wrapToResponse failedDoc
+    ((Left err1), (Left err2)) -> BL.putStrLn $ encode $ (responseForErrorsList [err1, err2] :: Response DecoratedPMDoc)
 
 main :: IO ()
 main = do

@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
-module ProseMirror.Diff (proseMirrorJSONDocWithDiffDecorations) where
+module ProseMirror.Diff (proseMirrorJSONDocWithDiffDecorations, toDecoratedPMDoc, DecoratedPMDoc) where
 
 import Control.Monad.State (State, evalState, get, modify)
 import Data.Aeson (ToJSON, Value (Number, String), encode, object, toJSON, (.=))
@@ -56,6 +56,9 @@ type PMIndex = Int
 
 proseMirrorJSONDocWithDiffDecorations :: Tree (RichTextDiffOp DocNode) -> T.Text
 proseMirrorJSONDocWithDiffDecorations = decodeUtf8 . BSL8.toStrict . encode . pmDocFromPMTree . toProseMirrorTreeWithDiffDecorations
+
+toDecoratedPMDoc :: Tree (RichTextDiffOp DocNode) -> DecoratedPMDoc
+toDecoratedPMDoc = pmDocFromPMTree . toProseMirrorTreeWithDiffDecorations
 
 pmDocFromPMTree :: DecoratedPMTree -> DecoratedPMDoc
 pmDocFromPMTree pmTree = DecoratedPMDoc {doc = pmDoc, decorations = pmDecorations}

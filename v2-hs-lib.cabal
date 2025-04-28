@@ -47,12 +47,14 @@ executable v2-hs-lib
   main-is: Main.hs
   other-modules:
       Cli
+      Response
       Paths_v2_hs_lib
   hs-source-dirs:
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      automerge-pandoc
+      aeson >=2.2.3.0
+    , automerge-pandoc
     , base >=4.7 && <5
     , bytestring >=0.12.1.0
     , optparse-applicative >=0.18.1.0
