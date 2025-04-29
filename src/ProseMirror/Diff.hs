@@ -14,7 +14,8 @@ import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (listToMaybe)
 import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8)
-import Data.Tree (Tree (..), foldTree)
+import Data.Tree (Tree (..), drawTree, foldTree)
+import qualified Debug.Trace
 import DocTree.Common as RichText (BlockNode (..), LinkMark (..), Mark (..), TextSpan (..))
 import DocTree.LeafTextSpans (DocNode (..), TreeNode (..))
 import ProseMirror.PMJson (Mark (markAttrs), isRootBlockNode)
@@ -43,7 +44,7 @@ instance (ToJSON a) => ToJSON (Decoration a) where
   toJSON (InlineDecoration inlineDec) = toJSON inlineDec
   toJSON (WidgetDecoration widgetDec) = toJSON widgetDec
 
-data PMTreeNode = PMNode PM.Node | WrapperInlineNode | WrapperBlockNode
+data PMTreeNode = PMNode PM.Node | WrapperInlineNode | WrapperBlockNode deriving (Show)
 
 type DecoratedPMTree = Tree (Either PMTreeNode (Decoration PMTreeNode))
 
@@ -58,7 +59,7 @@ proseMirrorJSONDocWithDiffDecorations :: Tree (RichTextDiffOp DocNode) -> T.Text
 proseMirrorJSONDocWithDiffDecorations = decodeUtf8 . BSL8.toStrict . encode . pmDocFromPMTree . toProseMirrorTreeWithDiffDecorations
 
 toDecoratedPMDoc :: Tree (RichTextDiffOp DocNode) -> DecoratedPMDoc
-toDecoratedPMDoc = pmDocFromPMTree . toProseMirrorTreeWithDiffDecorations
+toDecoratedPMDoc = pmDocFromPMTree . traceTree . toProseMirrorTreeWithDiffDecorations
 
 pmDocFromPMTree :: DecoratedPMTree -> DecoratedPMDoc
 pmDocFromPMTree pmTree = DecoratedPMDoc {doc = pmDoc, decorations = pmDecorations}
@@ -88,9 +89,9 @@ pmTreeNodeFolder (Left (PMNode (PM.BlockNode blockNode))) childNodesWithDecorati
 -- TODO: See if making decoration a functor makes this case easier to write because in the second slot of the tuple we just want to map over the decoration structure.
 pmTreeNodeFolder (Right (InlineDecoration (PMInlineDecoration decFrom decTo decAttrs (PMNode pmNode@(PM.TextNode _))))) _ =
   ([pmNode], [InlineDecoration $ PMInlineDecoration decFrom decTo decAttrs pmNode])
--- Widget decoration for text node.
+-- Widget decoration for text node. Don't add the content as a node (the content has been deleted), just add the widget decoration.
 pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration decPos (PMNode pmNode@(PM.TextNode _))))) _ =
-  ([pmNode], [WidgetDecoration $ PMWidgetDecoration decPos pmNode])
+  ([], [WidgetDecoration $ PMWidgetDecoration decPos pmNode])
 -- Widget decoration for wrapper inline node. Just return the children nodes and decorations (they will contain the decoration themselves)
 pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration _ (WrapperInlineNode)))) childNodesWithDecorations = splitNodesAndDecorations childNodesWithDecorations
 -- Widget decoration for wrapper block node. Just return the children nodes and decorations (they will contain the decoration themselves)
@@ -112,6 +113,9 @@ wrapChildrenToBlock (PM.PMBlock blockType (Just existingChildren) blockAttrs) ne
 
 splitNodesAndDecorations :: [([PM.Node], [Decoration PM.Node])] -> ([PM.Node], [Decoration PM.Node])
 splitNodesAndDecorations nodesWithDecorations = (concatMap fst nodesWithDecorations, concatMap snd nodesWithDecorations)
+
+traceTree :: (Show a) => Tree a -> Tree a
+traceTree tree = Debug.Trace.trace (drawTree $ fmap show tree) tree
 
 toProseMirrorTreeWithDiffDecorations :: Tree (RichTextDiffOp DocNode) -> DecoratedPMTree
 toProseMirrorTreeWithDiffDecorations diffTree = evalState (walkDiffTree diffTree) 0
