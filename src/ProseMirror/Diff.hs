@@ -28,24 +28,31 @@ data DecorationAttrs = DecorationAttrs {nodeName :: Maybe T.Text, cssClass :: Ma
 instance ToJSON DecorationAttrs where
   toJSON decAttrs = object ["nodeName" .= nodeName decAttrs, "class" .= cssClass decAttrs, "style" .= style decAttrs]
 
-data InlineDecoration a = PMInlineDecoration {from :: Int, to :: Int, attrs :: DecorationAttrs, decoratedInline :: a} deriving (Show, Eq)
+data InlineDecoration a = PMInlineDecoration {inlineDecFrom :: Int, inlineDecTo :: Int, inlineDecAttrs :: DecorationAttrs, inlineDecContent :: a} deriving (Show, Eq)
 
 instance ToJSON (InlineDecoration a) where
-  toJSON dec = object ["type" .= T.pack "inline", "from" .= from dec, "to" .= to dec, "attrs" .= attrs dec]
+  toJSON dec = object ["type" .= T.pack "inline", "from" .= inlineDecFrom dec, "to" .= inlineDecTo dec, "attrs" .= inlineDecAttrs dec]
 
-data WidgetDecoration a = PMWidgetDecoration {pos :: Int, decoratedNode :: a} deriving (Show, Eq)
+data NodeDecoration a = PMNodeDecoration {nodeDecFrom :: Int, nodeDecTo :: Int, nodeDecAttrs :: DecorationAttrs, nodeDecContent :: a} deriving (Show, Eq)
+
+instance ToJSON (NodeDecoration a) where
+  toJSON dec = object ["type" .= T.pack "inline", "from" .= nodeDecFrom dec, "to" .= nodeDecTo dec, "attrs" .= nodeDecAttrs dec]
+
+data WidgetDecoration a = PMWidgetDecoration {pos :: Int, widgetDecContent :: a} deriving (Show, Eq)
 
 instance (ToJSON a) => ToJSON (WidgetDecoration a) where
-  toJSON dec = object ["type" .= T.pack "widget", "pos" .= pos dec, "node" .= toJSON (decoratedNode dec)]
+  toJSON dec = object ["type" .= T.pack "widget", "pos" .= pos dec, "node" .= toJSON (widgetDecContent dec)]
 
-data Decoration a = InlineDecoration (InlineDecoration a) | WidgetDecoration (WidgetDecoration a) deriving (Show, Eq)
+data Decoration a = InlineDecoration (InlineDecoration a) | NodeDecoration (NodeDecoration a) | WidgetDecoration (WidgetDecoration a) deriving (Show, Eq)
 
 undecorate :: Decoration a -> a
-undecorate (InlineDecoration dec) = decoratedInline dec
-undecorate (WidgetDecoration dec) = decoratedNode dec
+undecorate (InlineDecoration dec) = inlineDecContent dec
+undecorate (NodeDecoration dec) = nodeDecContent dec
+undecorate (WidgetDecoration dec) = widgetDecContent dec
 
 instance (ToJSON a) => ToJSON (Decoration a) where
   toJSON (InlineDecoration inlineDec) = toJSON inlineDec
+  toJSON (NodeDecoration nodeDec) = toJSON nodeDec
   toJSON (WidgetDecoration widgetDec) = toJSON widgetDec
 
 data PMTreeNode = PMNode PM.Node | WrapperInlineNode | WrapperBlockNode deriving (Show)
@@ -108,6 +115,12 @@ pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration decPos (PMNode (PM
     blockDecoration = WidgetDecoration $ PMWidgetDecoration decPos blockNodeWithChildren
     blockNodeWithChildren = PM.BlockNode $ wrapChildrenToBlock blockNode $ map undecorate decoratedChildNodes
     (_, decoratedChildNodes) = splitNodesAndDecorations childNodesWithDecorations
+-- Node decoration
+pmTreeNodeFolder (Right (NodeDecoration (PMNodeDecoration decFrom decTo decAttrs (PMNode (PM.BlockNode blockNode))))) childNodesWithDecorations =
+  ([pmNode], [NodeDecoration $ PMNodeDecoration decFrom decTo decAttrs pmNode])
+  where
+    pmNode = PM.BlockNode $ wrapChildrenToBlock blockNode childNodes
+    (childNodes, _) = splitNodesAndDecorations childNodesWithDecorations
 -- TODO: There are cases we didn't handle, like an inline decoration wrapping blocks.
 -- These are failure cases and we should guard against them, ideally in the type system (with more accurate/specific types).
 pmTreeNodeFolder _ _ = undefined
@@ -131,10 +144,26 @@ walkDiffTree (Node nodeWithDiff subTrees) = do
   notDeletedBlockNode <- pure $ isNotDeletedPMBlockNode pmNode
   -- This is ugly. Unfortunately, ProseMirror indexing increases by 1 at the end of block nodes (after processing the subtrees),
   -- so I wasn't able to think of a good way to avoid it. The else case is a noop.
+  beforeNodeIndex <- get
   if notDeletedBlockNode then modify (+ 1) else pure ()
   pmSubForest <- mapM (walkDiffTree) subTrees
   if notDeletedBlockNode then modify (+ 1) else pure ()
-  pure $ Node {rootLabel = pmNode, subForest = pmSubForest}
+  afterNodeIndex <- get
+  case pmNode of
+    Left n ->
+      if mustWrapToNodeDecoration nodeWithDiff
+        then pure $ Node {rootLabel = Right $ wrapWithNodeDecoration n beforeNodeIndex afterNodeIndex nodeWithDiff, subForest = pmSubForest}
+        else pure $ Node {rootLabel = pmNode, subForest = pmSubForest}
+    Right _ -> pure $ Node {rootLabel = pmNode, subForest = pmSubForest}
+
+mustWrapToNodeDecoration :: RichTextDiffOp DocNode -> Bool
+mustWrapToNodeDecoration (UpdateHeadingLevel _ _) = True
+mustWrapToNodeDecoration _ = False
+
+wrapWithNodeDecoration :: PMTreeNode -> PMIndex -> PMIndex -> RichTextDiffOp DocNode -> Decoration PMTreeNode
+wrapWithNodeDecoration pmNode beforeNodeIndex afterNodeIndex (UpdateHeadingLevel _ (TreeNode (BlockNode (PandocBlock (Pandoc.Header _ _ _))))) =
+  NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-purple-100"
+wrapWithNodeDecoration pmNode beforeNodeIndex afterNodeIndex _ = NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-purple-100"
 
 walkDiffTreeNode :: RichTextDiffOp DocNode -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
 walkDiffTreeNode (Copy (TreeNode (InlineContent textSpan))) = do
@@ -173,23 +202,44 @@ walkDiffTreeNode (UpdateMarks _ (TreeNode (InlineContent textSpan))) = do
 -- Just transform non-text nodes to their PM equivalent (without decoration).
 -- We shouldn't really get this diff op for block nodes. TODO: Express this in the type system.
 walkDiffTreeNode (UpdateMarks _ node) = pure $ Left $ docNodeToPMNode node
--- TODO: Implement heading level updates properly
+-- The decoration for heading level updates is handled in `walkDiffTree` because
+-- we need to know the size of the node (therefore, we need to have processed its subtree).
+-- Unfortunately, this is ugly; didn't think of a way to avoid it.
 walkDiffTreeNode (UpdateHeadingLevel _ node) = pure $ Left $ docNodeToPMNode node
 
 wrapInInlineDecoration :: PMTreeNode -> PMIndex -> PMIndex -> T.Text -> InlineDecoration PMTreeNode
 wrapInInlineDecoration pmNode startIndex endIndex cssClassName =
   PMInlineDecoration
-    { from = startIndex,
-      to = endIndex,
-      attrs = DecorationAttrs {nodeName = Nothing, cssClass = Just cssClassName, style = Nothing},
-      decoratedInline = pmNode
+    { inlineDecFrom = startIndex,
+      inlineDecTo = endIndex,
+      inlineDecAttrs =
+        DecorationAttrs
+          { nodeName = Nothing,
+            cssClass = Just cssClassName,
+            style = Nothing
+          },
+      inlineDecContent = pmNode
+    }
+
+wrapInNodeDecoration :: PMTreeNode -> PMIndex -> PMIndex -> T.Text -> NodeDecoration PMTreeNode
+wrapInNodeDecoration pmNode startIndex endIndex cssClassName =
+  PMNodeDecoration
+    { nodeDecFrom = startIndex,
+      nodeDecTo = endIndex,
+      nodeDecAttrs =
+        DecorationAttrs
+          { nodeName = Nothing,
+            cssClass = Just cssClassName,
+            style = Nothing
+          },
+      nodeDecContent = pmNode
     }
 
 wrapInWidgetDecoration :: PMTreeNode -> PMIndex -> WidgetDecoration PMTreeNode
 wrapInWidgetDecoration pmNode position =
   PMWidgetDecoration
     { pos = position,
-      decoratedNode = pmNode
+      widgetDecContent = pmNode
     }
 
 docNodeToPMNode :: DocNode -> PMTreeNode
@@ -229,3 +279,6 @@ isNotDeletedPMBlockNode (Right (InlineDecoration _)) = False
 -- Widget decorations capture deleted content in our case.
 -- TODO: Capture this properly in the type system.
 isNotDeletedPMBlockNode (Right (WidgetDecoration _)) = False
+isNotDeletedPMBlockNode (Right (NodeDecoration dec)) = case nodeDecContent dec of
+  PMNode (PM.BlockNode blockNode) -> not (isRootBlockNode blockNode)
+  _ -> False
