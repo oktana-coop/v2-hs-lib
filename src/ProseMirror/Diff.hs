@@ -40,6 +40,10 @@ instance (ToJSON a) => ToJSON (WidgetDecoration a) where
 
 data Decoration a = InlineDecoration (InlineDecoration a) | WidgetDecoration (WidgetDecoration a) deriving (Show, Eq)
 
+undecorate :: Decoration a -> a
+undecorate (InlineDecoration dec) = decoratedInline dec
+undecorate (WidgetDecoration dec) = decoratedNode dec
+
 instance (ToJSON a) => ToJSON (Decoration a) where
   toJSON (InlineDecoration inlineDec) = toJSON inlineDec
   toJSON (WidgetDecoration widgetDec) = toJSON widgetDec
@@ -96,13 +100,14 @@ pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration decPos (PMNode pmN
 pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration _ (WrapperInlineNode)))) childNodesWithDecorations = splitNodesAndDecorations childNodesWithDecorations
 -- Widget decoration for wrapper block node. Just return the children nodes and decorations (they will contain the decoration themselves)
 pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration _ (WrapperBlockNode)))) childNodesWithDecorations = splitNodesAndDecorations childNodesWithDecorations
--- Widget decoration for block node. Append the block decoration to the accumulated list of decorations.
--- TODO: See if making decoration a functor makes this case easier to write.
-pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration decPos (PMNode pmNode@(PM.BlockNode blockNode))))) childNodesWithDecorations =
-  ([PM.BlockNode $ wrapChildrenToBlock blockNode childNodes], [blockDecoration] <> childDecorations)
+-- Widget decoration for block node. Get the decorated child nodes, undecorate them and create a composite block decoration that includes all children.
+-- In this case we ignore the node itself (return an empty list in the first slot of the tuple) since we only care about the decoration (the node is deleted).
+pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration decPos (PMNode (PM.BlockNode blockNode))))) childNodesWithDecorations =
+  ([], [blockDecoration])
   where
-    blockDecoration = WidgetDecoration $ PMWidgetDecoration decPos pmNode
-    (childNodes, childDecorations) = splitNodesAndDecorations childNodesWithDecorations
+    blockDecoration = WidgetDecoration $ PMWidgetDecoration decPos blockNodeWithChildren
+    blockNodeWithChildren = PM.BlockNode $ wrapChildrenToBlock blockNode $ map undecorate decoratedChildNodes
+    (_, decoratedChildNodes) = splitNodesAndDecorations childNodesWithDecorations
 -- TODO: There are cases we didn't handle, like an inline decoration wrapping blocks.
 -- These are failure cases and we should guard against them, ideally in the type system (with more accurate/specific types).
 pmTreeNodeFolder _ _ = undefined
