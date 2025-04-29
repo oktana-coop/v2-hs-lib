@@ -43,7 +43,7 @@ instance (ToJSON a) => ToJSON (Decoration a) where
   toJSON (InlineDecoration inlineDec) = toJSON inlineDec
   toJSON (WidgetDecoration widgetDec) = toJSON widgetDec
 
-data PMTreeNode = PMNode PM.Node | WrapperInlineNode
+data PMTreeNode = PMNode PM.Node | WrapperInlineNode | WrapperBlockNode
 
 type DecoratedPMTree = Tree (Either PMTreeNode (Decoration PMTreeNode))
 
@@ -78,6 +78,8 @@ pmTreeNodeFolder :: Either PMTreeNode (Decoration PMTreeNode) -> [([PM.Node], [D
 pmTreeNodeFolder (Left (PMNode pmNode@(PM.TextNode _))) _ = ([pmNode], [])
 -- Undecorated (wrapper) inline node
 pmTreeNodeFolder (Left (WrapperInlineNode)) childNodesWithDecorations = splitNodesAndDecorations childNodesWithDecorations
+-- Undecorated wrapper block node (div)
+pmTreeNodeFolder (Left (WrapperBlockNode)) childNodesWithDecorations = splitNodesAndDecorations childNodesWithDecorations
 -- Undecorated block node
 pmTreeNodeFolder (Left (PMNode (PM.BlockNode blockNode))) childNodesWithDecorations = ([PM.BlockNode $ wrapChildrenToBlock blockNode childNodes], childDecorations)
   where
@@ -91,6 +93,8 @@ pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration decPos (PMNode pmN
   ([pmNode], [WidgetDecoration $ PMWidgetDecoration decPos pmNode])
 -- Widget decoration for wrapper inline node. Just return the children nodes and decorations (they will contain the decoration themselves)
 pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration _ (WrapperInlineNode)))) childNodesWithDecorations = splitNodesAndDecorations childNodesWithDecorations
+-- Widget decoration for wrapper block node. Just return the children nodes and decorations (they will contain the decoration themselves)
+pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration _ (WrapperBlockNode)))) childNodesWithDecorations = splitNodesAndDecorations childNodesWithDecorations
 -- Widget decoration for block node. Append the block decoration to the accumulated list of decorations.
 -- TODO: See if making decoration a functor makes this case easier to write.
 pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration decPos (PMNode pmNode@(PM.BlockNode blockNode))))) childNodesWithDecorations =
@@ -181,19 +185,20 @@ wrapInWidgetDecoration pmNode position =
 
 docNodeToPMNode :: DocNode -> PMTreeNode
 docNodeToPMNode Root = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "doc", PM.content = Nothing, PM.attrs = Nothing}
-docNodeToPMNode (TreeNode (BlockNode node)) = PMNode $ PM.BlockNode $ treeBlockNodeToPMBlockNode node
+docNodeToPMNode (TreeNode (BlockNode node)) = treeBlockNodeToPMBlockNode node
 docNodeToPMNode (TreeNode (InlineNode)) = WrapperInlineNode
 docNodeToPMNode (TreeNode (InlineContent textSpan)) = PMNode $ PM.TextNode $ treeTextSpanNodeToPMTextNode textSpan
 
 -- TODO: Use ProseMirror schema as a parameter
-treeBlockNodeToPMBlockNode :: RichText.BlockNode -> PM.BlockNode
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Plain _)) = PM.PMBlock {PM.nodeType = "paragraph", PM.content = Nothing, PM.attrs = Nothing}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Para _)) = PM.PMBlock {PM.nodeType = "paragraph", PM.content = Nothing, PM.attrs = Nothing}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Header level _ _)) = PM.PMBlock {PM.nodeType = "heading", PM.content = Nothing, PM.attrs = Just $ KM.fromList [(K.fromText "level", Number (fromIntegral level))]}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.CodeBlock _ text)) = PM.PMBlock {PM.nodeType = "code_block", PM.content = Just $ [PM.TextNode $ PM.PMText {PM.text = text, PM.marks = Nothing}], PM.attrs = Nothing}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BulletList _)) = PM.PMBlock {PM.nodeType = "bullet_list", PM.content = Nothing, PM.attrs = Nothing}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.OrderedList _ _)) = PM.PMBlock {PM.nodeType = "ordered_list", PM.content = Nothing, PM.attrs = Nothing}
-treeBlockNodeToPMBlockNode (RichText.ListItem _) = PM.PMBlock {PM.nodeType = "list_item", PM.content = Nothing, PM.attrs = Nothing}
+treeBlockNodeToPMBlockNode :: RichText.BlockNode -> PMTreeNode
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Plain _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "paragraph", PM.content = Nothing, PM.attrs = Nothing}
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Para _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "paragraph", PM.content = Nothing, PM.attrs = Nothing}
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Header level _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "heading", PM.content = Nothing, PM.attrs = Just $ KM.fromList [(K.fromText "level", Number (fromIntegral level))]}
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.CodeBlock _ text)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "code_block", PM.content = Just $ [PM.TextNode $ PM.PMText {PM.text = text, PM.marks = Nothing}], PM.attrs = Nothing}
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BulletList _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "bullet_list", PM.content = Nothing, PM.attrs = Nothing}
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.OrderedList _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "ordered_list", PM.content = Nothing, PM.attrs = Nothing}
+treeBlockNodeToPMBlockNode (RichText.ListItem _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "list_item", PM.content = Nothing, PM.attrs = Nothing}
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Div _ _)) = WrapperBlockNode
 -- TODO: Incrementally handle more blocks
 treeBlockNodeToPMBlockNode _ = undefined
 

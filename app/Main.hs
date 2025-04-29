@@ -7,6 +7,7 @@ import Data.Aeson (encode)
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
+import Debug.Trace (trace)
 import PandocReader as AutomergePandoc.PandocReader (readAutomerge)
 import PandocWriter as AutomergePandoc.PandocWriter (writeAutomerge)
 import ProseMirror.Diff (DecoratedPMDoc, toDecoratedPMDoc)
@@ -57,8 +58,8 @@ responseForErrorsList pandocErrors = Failure $ map (ErrorMessage . renderError) 
 
 produceProseMirrorDiff :: Format -> String -> String -> IO ()
 produceProseMirrorDiff format doc1Str doc2Str = do
-  eitherDoc1 <- runIO $ readFrom format def (T.pack doc1Str)
-  eitherDoc2 <- runIO $ readFrom format def (T.pack doc2Str)
+  eitherDoc1 <- runIO $ readFrom format def (T.pack $ trace doc1Str $ doc1Str)
+  eitherDoc2 <- runIO $ readFrom format def (T.pack $ trace doc2Str $ doc2Str)
 
   case (eitherDoc1, eitherDoc2) of
     (Right doc1, Right doc2) -> BL.putStrLn $ encode $ wrapToResponse $ pure $ toDecoratedPMDoc $ getAnnotatedTree doc1 doc2
