@@ -160,7 +160,7 @@ walkDiffTree (Node nodeWithDiff subTrees) = do
   case pmNode of
     Left undecoratedPMNode ->
       if mustWrapToNodeDecoration nodeWithDiff
-        then pure $ Node {rootLabel = Right $ decorateNode undecoratedPMNode beforeNodeIndex afterNodeIndex diffOpType, subForest = pmSubForest}
+        then pure $ Node {rootLabel = Right $ decorateNode undecoratedPMNode beforeNodeIndex afterNodeIndex diffOpType, subForest = childTrees}
         else pure $ Node {rootLabel = pmNode, subForest = childTrees}
       where
         diffOpType = (getDiffOpType nodeWithDiff)
