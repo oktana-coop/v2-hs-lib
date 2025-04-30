@@ -16,7 +16,7 @@ import qualified Data.Text as T
 import Data.Tree (Tree (..), drawTree, foldTree)
 import qualified Debug.Trace
 import DocTree.Common as RichText (BlockNode (..), LinkMark (..), Mark (..), TextSpan (..))
-import DocTree.LeafTextSpans (DocNode (..), TreeNode (..))
+import DocTree.LeafTextSpans as PandocTree (DocNode (..), TreeNode (..))
 import ProseMirror.Decoration (Decoration (..), DecorationAttrs (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), undecorate)
 import ProseMirror.PMJson (Mark (markAttrs), isRootBlockNode)
 import qualified ProseMirror.PMJson as PM (BlockNode (..), Mark (..), Node (..), TextNode (..))
@@ -34,16 +34,16 @@ instance ToJSON DecoratedPMDoc where
 
 type PMIndex = Int
 
-toDecoratedPMDoc :: Tree (RichTextDiffOp DocNode) -> DecoratedPMDoc
+toDecoratedPMDoc :: Tree (RichTextDiffOp PandocTree.DocNode) -> DecoratedPMDoc
 toDecoratedPMDoc = pmDocFromPMTree . traceTree . toProseMirrorTreeWithDiffDecorations
 
 traceTree :: (Show a) => Tree a -> Tree a
 traceTree tree = Debug.Trace.trace (drawTree $ fmap show tree) tree
 
-toProseMirrorTreeWithDiffDecorations :: Tree (RichTextDiffOp DocNode) -> DecoratedPMTree
+toProseMirrorTreeWithDiffDecorations :: Tree (RichTextDiffOp PandocTree.DocNode) -> DecoratedPMTree
 toProseMirrorTreeWithDiffDecorations diffTree = evalState (walkDiffTree diffTree) 0
 
-walkDiffTree :: Tree (RichTextDiffOp DocNode) -> State PMIndex DecoratedPMTree
+walkDiffTree :: Tree (RichTextDiffOp PandocTree.DocNode) -> State PMIndex DecoratedPMTree
 walkDiffTree (Node nodeWithDiff subTrees) = do
   pmNode <- walkDiffTreeNode nodeWithDiff
   notDeletedBlockNode <- pure $ isNotDeletedPMBlockNode pmNode
@@ -78,7 +78,7 @@ walkDiffTree (Node nodeWithDiff subTrees) = do
     incrementIndexIf :: Bool -> State PMIndex ()
     incrementIndexIf condition = when condition (modify (+ 1))
 
-mustWrapToNodeDecoration :: RichTextDiffOp DocNode -> Bool
+mustWrapToNodeDecoration :: RichTextDiffOp PandocTree.DocNode -> Bool
 mustWrapToNodeDecoration (UpdateHeadingLevel _ _) = True
 mustWrapToNodeDecoration _ = False
 
@@ -87,18 +87,18 @@ decorateNode pmNode beforeNodeIndex afterNodeIndex UpdateHeadingLevelType =
   NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-purple-100"
 decorateNode pmNode beforeNodeIndex afterNodeIndex _ = NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-purple-100"
 
-walkDiffTreeNode :: RichTextDiffOp DocNode -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
-walkDiffTreeNode (Copy (TreeNode (InlineContent textSpan))) = walkTextNode textSpan >>= pure . Left
+walkDiffTreeNode :: RichTextDiffOp PandocTree.DocNode -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
+walkDiffTreeNode (Copy (PandocTree.TreeNode (InlineContent textSpan))) = walkTextNode textSpan >>= pure . Left
 -- Just transform non-text nodes to their PM equivalent (without decoration). For block nodes, increasing the index is handled in another function (`walkDiffTree`).
 walkDiffTreeNode (Copy node) = pure $ Left $ docNodeToPMNode node
-walkDiffTreeNode (Insert (TreeNode (InlineContent textSpan))) = walkTextNodeAddingDecoration textSpan "bg-green-300"
+walkDiffTreeNode (Insert (PandocTree.TreeNode (InlineContent textSpan))) = walkTextNodeAddingDecoration textSpan "bg-green-300"
 walkDiffTreeNode (Insert node) = pure $ Left $ docNodeToPMNode node
 walkDiffTreeNode (Delete node) = do
   position <- get
   pure $ Right $ WidgetDecoration $ wrapInWidgetDecoration pmNode position
   where
     pmNode = docNodeToPMNode node
-walkDiffTreeNode (UpdateMarks _ (TreeNode (InlineContent textSpan))) = walkTextNodeAddingDecoration textSpan "bg-purple-100"
+walkDiffTreeNode (UpdateMarks _ (PandocTree.TreeNode (InlineContent textSpan))) = walkTextNodeAddingDecoration textSpan "bg-purple-100"
 -- Just transform non-text nodes to their PM equivalent (without decoration).
 -- We shouldn't really get this diff op for block nodes. TODO: Express this in the type system.
 walkDiffTreeNode (UpdateMarks _ node) = pure $ Left $ docNodeToPMNode node
@@ -159,11 +159,11 @@ wrapInWidgetDecoration pmNode position =
       widgetDecContent = pmNode
     }
 
-docNodeToPMNode :: DocNode -> PMTreeNode
+docNodeToPMNode :: PandocTree.DocNode -> PMTreeNode
 docNodeToPMNode Root = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "doc", PM.content = Nothing, PM.attrs = Nothing}
-docNodeToPMNode (TreeNode (BlockNode node)) = treeBlockNodeToPMBlockNode node
-docNodeToPMNode (TreeNode (InlineNode)) = WrapperInlineNode
-docNodeToPMNode (TreeNode (InlineContent textSpan)) = PMNode $ PM.TextNode $ treeTextSpanNodeToPMTextNode textSpan
+docNodeToPMNode (PandocTree.TreeNode (BlockNode node)) = treeBlockNodeToPMBlockNode node
+docNodeToPMNode (PandocTree.TreeNode (InlineNode)) = WrapperInlineNode
+docNodeToPMNode (PandocTree.TreeNode (InlineContent textSpan)) = PMNode $ PM.TextNode $ treeTextSpanNodeToPMTextNode textSpan
 
 -- TODO: Use ProseMirror schema as a parameter
 treeBlockNodeToPMBlockNode :: RichText.BlockNode -> PMTreeNode
