@@ -16,7 +16,7 @@ import DocTree.Common as RichText (TextSpan (..))
 import DocTree.LeafTextSpans as PandocTree (DocNode (..), TreeNode (..))
 import ProseMirror.Decoration (Decoration (..), DecorationAttrs (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), undecorate)
 import qualified ProseMirror.PMJson as PM (BlockNode (..), Node (..), TextNode (..), isRootBlockNode)
-import ProseMirror.PMTree (PMTreeNode (..), docNodeToPMNode, treeTextSpanNodeToPMTextNode)
+import ProseMirror.PMTree (PMTreeNode (..), leafTextSpansTreeNodeToPMNode, treeTextSpanNodeToPMTextNode)
 import RichTextDiffOp (RichTextDiffOp (..), RichTextDiffOpType (UpdateHeadingLevelType), getDiffOpType)
 
 type DecoratedPMTree = Tree (Either PMTreeNode (Decoration PMTreeNode))
@@ -84,23 +84,23 @@ decorateNode pmNode beforeNodeIndex afterNodeIndex _ = NodeDecoration $ wrapInNo
 walkDiffTreeNode :: RichTextDiffOp PandocTree.DocNode -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
 walkDiffTreeNode (Copy (PandocTree.TreeNode (InlineContent textSpan))) = walkTextNode textSpan >>= pure . Left
 -- Just transform non-text nodes to their PM equivalent (without decoration). For block nodes, increasing the index is handled in another function (`walkDiffTree`).
-walkDiffTreeNode (Copy node) = pure $ Left $ docNodeToPMNode node
+walkDiffTreeNode (Copy node) = pure $ Left $ leafTextSpansTreeNodeToPMNode node
 walkDiffTreeNode (Insert (PandocTree.TreeNode (InlineContent textSpan))) = walkTextNodeAddingDecoration textSpan "bg-green-300"
-walkDiffTreeNode (Insert node) = pure $ Left $ docNodeToPMNode node
+walkDiffTreeNode (Insert node) = pure $ Left $ leafTextSpansTreeNodeToPMNode node
 walkDiffTreeNode (Delete node) = do
   position <- get
   pure $ Right $ WidgetDecoration $ wrapInWidgetDecoration pmNode position
   where
-    pmNode = docNodeToPMNode node
+    pmNode = leafTextSpansTreeNodeToPMNode node
 walkDiffTreeNode (UpdateMarks _ (PandocTree.TreeNode (InlineContent textSpan))) = walkTextNodeAddingDecoration textSpan "bg-purple-100"
 -- Just transform non-text nodes to their PM equivalent (without decoration).
 -- We shouldn't really get this diff op for block nodes. TODO: Express this in the type system.
-walkDiffTreeNode (UpdateMarks _ node) = pure $ Left $ docNodeToPMNode node
+walkDiffTreeNode (UpdateMarks _ node) = pure $ Left $ leafTextSpansTreeNodeToPMNode node
 -- The decoration for heading level updates is handled in `walkDiffTree` because
 -- we need to know the size of the node (therefore, we need to have processed its subtree).
 -- Unfortunately, this is ugly; didn't think of a way to avoid it.
 -- So in this function we return the node undecorated.
-walkDiffTreeNode (UpdateHeadingLevel _ node) = pure $ Left $ docNodeToPMNode node
+walkDiffTreeNode (UpdateHeadingLevel _ node) = pure $ Left $ leafTextSpansTreeNodeToPMNode node
 
 walkTextNodeAddingDecoration :: TextSpan -> T.Text -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
 walkTextNodeAddingDecoration textSpan cssClassName = do

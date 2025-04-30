@@ -1,7 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.PMJson (BlockNode (..), TextNode (..), Mark (..), Node (..), isRootBlockNode) where
+module ProseMirror.PMJson (BlockNode (..), TextNode (..), Mark (..), Node (..), PMDoc (..), isRootBlockNode) where
 
 import Data.Aeson (Object, ToJSON (..), object, (.=))
 import Data.List.NonEmpty (NonEmpty)
