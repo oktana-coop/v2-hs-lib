@@ -88,24 +88,15 @@ decorateNode pmNode beforeNodeIndex afterNodeIndex UpdateHeadingLevelType =
 decorateNode pmNode beforeNodeIndex afterNodeIndex _ = NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-purple-100"
 
 walkDiffTreeNode :: RichTextDiffOp DocNode -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
-walkDiffTreeNode (Copy (TreeNode (InlineContent textSpan))) = do
-  modify (+ textLength)
-  pure $ Left pmNode
-  where
-    pmTextNode = treeTextSpanNodeToPMTextNode textSpan
-    pmNode = PMNode $ PM.TextNode $ pmTextNode
-    textLength = T.length $ PM.text pmTextNode
+walkDiffTreeNode (Copy (TreeNode (InlineContent textSpan))) = walkTextNode textSpan >>= pure . Left
 -- Just transform non-text nodes to their PM equivalent (without decoration). For block nodes, increasing the index is handled in another function (`walkDiffTree`).
 walkDiffTreeNode (Copy node) = pure $ Left $ docNodeToPMNode node
 walkDiffTreeNode (Insert (TreeNode (InlineContent textSpan))) = do
   startIndex <- get
-  modify (+ textLength)
+  pmNode <- walkTextNode textSpan
+  endIndex <- get
   -- TODO: Use parameters for decoration class
-  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex (startIndex + textLength) "bg-green-300"
-  where
-    pmTextNode = treeTextSpanNodeToPMTextNode textSpan
-    pmNode = PMNode $ PM.TextNode $ pmTextNode
-    textLength = T.length $ PM.text pmTextNode
+  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex endIndex "bg-green-300"
 walkDiffTreeNode (Insert node) = pure $ Left $ docNodeToPMNode node
 walkDiffTreeNode (Delete node) = do
   position <- get
@@ -114,13 +105,10 @@ walkDiffTreeNode (Delete node) = do
     pmNode = docNodeToPMNode node
 walkDiffTreeNode (UpdateMarks _ (TreeNode (InlineContent textSpan))) = do
   startIndex <- get
-  modify (+ textLength)
+  pmNode <- walkTextNode textSpan
+  endIndex <- get
   -- TODO: Use parameters for decoration class
-  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex (startIndex + textLength) "bg-purple-100"
-  where
-    pmTextNode = treeTextSpanNodeToPMTextNode textSpan
-    pmNode = PMNode $ PM.TextNode $ pmTextNode
-    textLength = T.length $ PM.text pmTextNode
+  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex endIndex "bg-purple-100"
 -- Just transform non-text nodes to their PM equivalent (without decoration).
 -- We shouldn't really get this diff op for block nodes. TODO: Express this in the type system.
 walkDiffTreeNode (UpdateMarks _ node) = pure $ Left $ docNodeToPMNode node
@@ -129,6 +117,15 @@ walkDiffTreeNode (UpdateMarks _ node) = pure $ Left $ docNodeToPMNode node
 -- Unfortunately, this is ugly; didn't think of a way to avoid it.
 -- So in this function we return the node undecorated.
 walkDiffTreeNode (UpdateHeadingLevel _ node) = pure $ Left $ docNodeToPMNode node
+
+walkTextNode :: TextSpan -> State PMIndex PMTreeNode
+walkTextNode textSpan = do
+  modify (+ textLength)
+  pure pmNode
+  where
+    pmTextNode = treeTextSpanNodeToPMTextNode textSpan
+    pmNode = PMNode $ PM.TextNode $ pmTextNode
+    textLength = T.length $ PM.text pmTextNode
 
 wrapInInlineDecoration :: PMTreeNode -> PMIndex -> PMIndex -> T.Text -> InlineDecoration PMTreeNode
 wrapInInlineDecoration pmNode startIndex endIndex cssClassName =
