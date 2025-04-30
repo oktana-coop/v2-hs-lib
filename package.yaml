@@ -50,6 +50,7 @@ library:
     - ProseMirror.Diff
   other-modules:
     - ProseMirror.PMJson
+    - ProseMirror.Decoration
 
 executables:
   v2-hs-lib:
