@@ -28,5 +28,10 @@ data BlockNode = PMBlock {nodeType :: T.Text, content :: Maybe [Node], attrs :: 
 instance ToJSON BlockNode where
   toJSON blockNode = object $ ["type" .= nodeType blockNode, "content" .= content blockNode, "attrs" .= attrs blockNode]
 
+data PMDoc = PMDoc {doc :: BlockNode} deriving (Show, Eq)
+
+instance ToJSON PMDoc where
+  toJSON decoratedPMDoc = object ["doc" .= doc decoratedPMDoc]
+
 isRootBlockNode :: BlockNode -> Bool
 isRootBlockNode blockNode = nodeType blockNode == "doc"

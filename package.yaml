@@ -51,6 +51,8 @@ library:
   other-modules:
     - ProseMirror.PMJson
     - ProseMirror.Decoration
+    - ProseMirror.PMTree
+    - ProseMirror.PandocWriter
 
 executables:
   v2-hs-lib:

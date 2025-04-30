@@ -28,6 +28,8 @@ library
   other-modules:
       ProseMirror.PMJson
       ProseMirror.Decoration
+      ProseMirror.PMTree
+      ProseMirror.PandocWriter
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints

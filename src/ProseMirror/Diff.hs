@@ -7,23 +7,17 @@ module ProseMirror.Diff (toDecoratedPMDoc, DecoratedPMDoc) where
 
 import Control.Monad (when)
 import Control.Monad.State (State, evalState, get, modify)
-import Data.Aeson (ToJSON, Value (Number, String), object, toJSON, (.=))
-import qualified Data.Aeson.Key as K
-import qualified Data.Aeson.KeyMap as KM
-import Data.List.NonEmpty (nonEmpty)
+import Data.Aeson (ToJSON, object, toJSON, (.=))
 import Data.Maybe (listToMaybe)
 import qualified Data.Text as T
 import Data.Tree (Tree (..), drawTree, foldTree)
 import qualified Debug.Trace
-import DocTree.Common as RichText (BlockNode (..), LinkMark (..), Mark (..), TextSpan (..))
+import DocTree.Common as RichText (TextSpan (..))
 import DocTree.LeafTextSpans as PandocTree (DocNode (..), TreeNode (..))
 import ProseMirror.Decoration (Decoration (..), DecorationAttrs (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), undecorate)
-import ProseMirror.PMJson (Mark (markAttrs), isRootBlockNode)
-import qualified ProseMirror.PMJson as PM (BlockNode (..), Mark (..), Node (..), TextNode (..))
+import qualified ProseMirror.PMJson as PM (BlockNode (..), Node (..), TextNode (..), isRootBlockNode)
+import ProseMirror.PMTree (PMTreeNode (..), docNodeToPMNode, treeTextSpanNodeToPMTextNode)
 import RichTextDiffOp (RichTextDiffOp (..), RichTextDiffOpType (UpdateHeadingLevelType), getDiffOpType)
-import Text.Pandoc.Definition as Pandoc (Block (..))
-
-data PMTreeNode = PMNode PM.Node | WrapperInlineNode | WrapperBlockNode deriving (Show)
 
 type DecoratedPMTree = Tree (Either PMTreeNode (Decoration PMTreeNode))
 
@@ -159,36 +153,8 @@ wrapInWidgetDecoration pmNode position =
       widgetDecContent = pmNode
     }
 
-docNodeToPMNode :: PandocTree.DocNode -> PMTreeNode
-docNodeToPMNode Root = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "doc", PM.content = Nothing, PM.attrs = Nothing}
-docNodeToPMNode (PandocTree.TreeNode (BlockNode node)) = treeBlockNodeToPMBlockNode node
-docNodeToPMNode (PandocTree.TreeNode (InlineNode)) = WrapperInlineNode
-docNodeToPMNode (PandocTree.TreeNode (InlineContent textSpan)) = PMNode $ PM.TextNode $ treeTextSpanNodeToPMTextNode textSpan
-
--- TODO: Use ProseMirror schema as a parameter
-treeBlockNodeToPMBlockNode :: RichText.BlockNode -> PMTreeNode
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Plain _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "paragraph", PM.content = Nothing, PM.attrs = Nothing}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Para _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "paragraph", PM.content = Nothing, PM.attrs = Nothing}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Header level _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "heading", PM.content = Nothing, PM.attrs = Just $ KM.fromList [(K.fromText "level", Number (fromIntegral level))]}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.CodeBlock _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "code_block", PM.content = Nothing, PM.attrs = Nothing}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BulletList _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "bullet_list", PM.content = Nothing, PM.attrs = Nothing}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.OrderedList _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "ordered_list", PM.content = Nothing, PM.attrs = Nothing}
-treeBlockNodeToPMBlockNode (RichText.ListItem _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "list_item", PM.content = Nothing, PM.attrs = Nothing}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Div _ _)) = WrapperBlockNode
--- TODO: Incrementally handle more blocks
-treeBlockNodeToPMBlockNode _ = undefined
-
--- TODO: Use ProseMirror schema as a parameter
-treeTextSpanNodeToPMTextNode :: RichText.TextSpan -> PM.TextNode
-treeTextSpanNodeToPMTextNode textSpan = PM.PMText {PM.text = value textSpan, PM.marks = (fmap . fmap) toPMMark (nonEmpty $ marks textSpan)}
-  where
-    toPMMark :: RichText.Mark -> PM.Mark
-    toPMMark RichText.EmphMark = PM.PMMark {PM.markType = "em", markAttrs = Nothing}
-    toPMMark RichText.StrongMark = PM.PMMark {PM.markType = "strong", markAttrs = Nothing}
-    toPMMark (RichText.LinkMark (RichText.Link _ (linkUrl, linkTitle))) = PM.PMMark {PM.markType = "link", markAttrs = Just $ KM.fromList [(K.fromText "href", String linkUrl), (K.fromText "title", String linkTitle)]}
-
 isNotDeletedPMBlockNode :: Either PMTreeNode (Decoration PMTreeNode) -> Bool
-isNotDeletedPMBlockNode (Left (PMNode (PM.BlockNode blockNode))) = not (isRootBlockNode blockNode)
+isNotDeletedPMBlockNode (Left (PMNode (PM.BlockNode blockNode))) = not (PM.isRootBlockNode blockNode)
 isNotDeletedPMBlockNode (Left _) = False
 -- Inline decorations wrap text nodes, not block nodes.
 -- TODO: Capture this properly in the type system.
@@ -197,7 +163,7 @@ isNotDeletedPMBlockNode (Right (InlineDecoration _)) = False
 -- TODO: Capture this properly in the type system.
 isNotDeletedPMBlockNode (Right (WidgetDecoration _)) = False
 isNotDeletedPMBlockNode (Right (NodeDecoration dec)) = case nodeDecContent dec of
-  PMNode (PM.BlockNode blockNode) -> not (isRootBlockNode blockNode)
+  PMNode (PM.BlockNode blockNode) -> not (PM.isRootBlockNode blockNode)
   _ -> False
 
 pmDocFromPMTree :: DecoratedPMTree -> DecoratedPMDoc
