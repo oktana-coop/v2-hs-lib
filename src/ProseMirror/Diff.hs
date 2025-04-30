@@ -91,24 +91,14 @@ walkDiffTreeNode :: RichTextDiffOp DocNode -> State PMIndex (Either PMTreeNode (
 walkDiffTreeNode (Copy (TreeNode (InlineContent textSpan))) = walkTextNode textSpan >>= pure . Left
 -- Just transform non-text nodes to their PM equivalent (without decoration). For block nodes, increasing the index is handled in another function (`walkDiffTree`).
 walkDiffTreeNode (Copy node) = pure $ Left $ docNodeToPMNode node
-walkDiffTreeNode (Insert (TreeNode (InlineContent textSpan))) = do
-  startIndex <- get
-  pmNode <- walkTextNode textSpan
-  endIndex <- get
-  -- TODO: Use parameters for decoration class
-  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex endIndex "bg-green-300"
+walkDiffTreeNode (Insert (TreeNode (InlineContent textSpan))) = walkTextNodeAddingDecoration textSpan "bg-green-300"
 walkDiffTreeNode (Insert node) = pure $ Left $ docNodeToPMNode node
 walkDiffTreeNode (Delete node) = do
   position <- get
   pure $ Right $ WidgetDecoration $ wrapInWidgetDecoration pmNode position
   where
     pmNode = docNodeToPMNode node
-walkDiffTreeNode (UpdateMarks _ (TreeNode (InlineContent textSpan))) = do
-  startIndex <- get
-  pmNode <- walkTextNode textSpan
-  endIndex <- get
-  -- TODO: Use parameters for decoration class
-  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex endIndex "bg-purple-100"
+walkDiffTreeNode (UpdateMarks _ (TreeNode (InlineContent textSpan))) = walkTextNodeAddingDecoration textSpan "bg-purple-100"
 -- Just transform non-text nodes to their PM equivalent (without decoration).
 -- We shouldn't really get this diff op for block nodes. TODO: Express this in the type system.
 walkDiffTreeNode (UpdateMarks _ node) = pure $ Left $ docNodeToPMNode node
@@ -117,6 +107,13 @@ walkDiffTreeNode (UpdateMarks _ node) = pure $ Left $ docNodeToPMNode node
 -- Unfortunately, this is ugly; didn't think of a way to avoid it.
 -- So in this function we return the node undecorated.
 walkDiffTreeNode (UpdateHeadingLevel _ node) = pure $ Left $ docNodeToPMNode node
+
+walkTextNodeAddingDecoration :: TextSpan -> T.Text -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
+walkTextNodeAddingDecoration textSpan cssClassName = do
+  startIndex <- get
+  pmNode <- walkTextNode textSpan
+  endIndex <- get
+  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex endIndex cssClassName
 
 walkTextNode :: TextSpan -> State PMIndex PMTreeNode
 walkTextNode textSpan = do
@@ -128,14 +125,14 @@ walkTextNode textSpan = do
     textLength = T.length $ PM.text pmTextNode
 
 wrapInInlineDecoration :: PMTreeNode -> PMIndex -> PMIndex -> T.Text -> InlineDecoration PMTreeNode
-wrapInInlineDecoration pmNode startIndex endIndex cssClassName =
+wrapInInlineDecoration pmNode startIndex endIndex className =
   PMInlineDecoration
     { inlineDecFrom = startIndex,
       inlineDecTo = endIndex,
       inlineDecAttrs =
         DecorationAttrs
           { nodeName = Nothing,
-            cssClass = Just cssClassName,
+            cssClass = Just className,
             style = Nothing
           },
       inlineDecContent = pmNode
