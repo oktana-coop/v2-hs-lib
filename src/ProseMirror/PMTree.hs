@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.PMTree (PMTree, PMTreeNode (..), groupedInlinesPandocTreeToPMTree, pmDocFromPMTree, leafTextSpansTreeNodeToPMNode, treeTextSpanNodeToPMTextNode) where
+module ProseMirror.PMTree (PMTree, PMTreeNode (..), groupedInlinesPandocTreeToPMTree, pmDocFromPMTree, leafTextSpansPandocTreeNodeToPMNode, treeTextSpanNodeToPMTextNode) where
 
 import Data.Aeson (Value (Number, String))
 import qualified Data.Aeson.Key as K
@@ -21,17 +21,17 @@ pmDocFromPMTree :: PMTree -> PM.PMDoc
 pmDocFromPMTree _ = undefined
 
 groupedInlinesPandocTreeToPMTree :: Tree GroupedInlinesTree.DocNode -> PMTree
-groupedInlinesPandocTreeToPMTree = fmap groupedInlinesTreeNodeToPMNode
+groupedInlinesPandocTreeToPMTree = fmap groupedInlinesPandocTreeNodeToPMNode
 
-groupedInlinesTreeNodeToPMNode :: GroupedInlinesTree.DocNode -> PMTreeNode
-groupedInlinesTreeNodeToPMNode GroupedInlinesTree.Root = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "doc", PM.content = Nothing, PM.attrs = Nothing}
-groupedInlinesTreeNodeToPMNode _ = undefined
+groupedInlinesPandocTreeNodeToPMNode :: GroupedInlinesTree.DocNode -> PMTreeNode
+groupedInlinesPandocTreeNodeToPMNode GroupedInlinesTree.Root = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "doc", PM.content = Nothing, PM.attrs = Nothing}
+groupedInlinesPandocTreeNodeToPMNode _ = undefined
 
-leafTextSpansTreeNodeToPMNode :: LeafTextSpansTree.DocNode -> PMTreeNode
-leafTextSpansTreeNodeToPMNode LeafTextSpansTree.Root = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "doc", PM.content = Nothing, PM.attrs = Nothing}
-leafTextSpansTreeNodeToPMNode (LeafTextSpansTree.TreeNode (LeafTextSpansTree.BlockNode node)) = treeBlockNodeToPMBlockNode node
-leafTextSpansTreeNodeToPMNode (LeafTextSpansTree.TreeNode (LeafTextSpansTree.InlineNode)) = WrapperInlineNode
-leafTextSpansTreeNodeToPMNode (LeafTextSpansTree.TreeNode (LeafTextSpansTree.InlineContent textSpan)) = PMNode $ PM.TextNode $ treeTextSpanNodeToPMTextNode textSpan
+leafTextSpansPandocTreeNodeToPMNode :: LeafTextSpansTree.DocNode -> PMTreeNode
+leafTextSpansPandocTreeNodeToPMNode LeafTextSpansTree.Root = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "doc", PM.content = Nothing, PM.attrs = Nothing}
+leafTextSpansPandocTreeNodeToPMNode (LeafTextSpansTree.TreeNode (LeafTextSpansTree.BlockNode node)) = treeBlockNodeToPMBlockNode node
+leafTextSpansPandocTreeNodeToPMNode (LeafTextSpansTree.TreeNode (LeafTextSpansTree.InlineNode)) = WrapperInlineNode
+leafTextSpansPandocTreeNodeToPMNode (LeafTextSpansTree.TreeNode (LeafTextSpansTree.InlineContent textSpan)) = PMNode $ PM.TextNode $ treeTextSpanNodeToPMTextNode textSpan
 
 -- TODO: Use ProseMirror schema as a parameter
 treeBlockNodeToPMBlockNode :: RichText.BlockNode -> PMTreeNode
