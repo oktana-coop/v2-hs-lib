@@ -20,7 +20,7 @@ import DocTree.Common as RichText (BlockNode (..), LinkMark (..), Mark (..), Tex
 import DocTree.LeafTextSpans (DocNode (..), TreeNode (..))
 import ProseMirror.PMJson (Mark (markAttrs), isRootBlockNode)
 import qualified ProseMirror.PMJson as PM (BlockNode (..), Mark (..), Node (..), TextNode (..))
-import RichTextDiffOp (RichTextDiffOp (..))
+import RichTextDiffOp (RichTextDiffOp (..), RichTextDiffOpType (UpdateHeadingLevelType), getDiffOpType)
 import Text.Pandoc.Definition as Pandoc (Block (..))
 
 data DecorationAttrs = DecorationAttrs {nodeName :: Maybe T.Text, cssClass :: Maybe T.Text, style :: Maybe T.Text} deriving (Show, Eq)
@@ -150,20 +150,25 @@ walkDiffTree (Node nodeWithDiff subTrees) = do
   if notDeletedBlockNode then modify (+ 1) else pure ()
   afterNodeIndex <- get
   case pmNode of
-    Left n ->
+    Left undecoratedPMNode ->
+      -- The decoration for heading level updates is handled here because
+      -- we need to know the size of the node (therefore, we need to have processed its subtree).
+      -- Unfortunately, this is ugly; didn't think of a way to avoid it.
       if mustWrapToNodeDecoration nodeWithDiff
-        then pure $ Node {rootLabel = Right $ wrapWithNodeDecoration n beforeNodeIndex afterNodeIndex nodeWithDiff, subForest = pmSubForest}
+        then pure $ Node {rootLabel = Right $ decorateNode undecoratedPMNode beforeNodeIndex afterNodeIndex diffOpType, subForest = pmSubForest}
         else pure $ Node {rootLabel = pmNode, subForest = pmSubForest}
+      where
+        diffOpType = (getDiffOpType nodeWithDiff)
     Right _ -> pure $ Node {rootLabel = pmNode, subForest = pmSubForest}
 
 mustWrapToNodeDecoration :: RichTextDiffOp DocNode -> Bool
 mustWrapToNodeDecoration (UpdateHeadingLevel _ _) = True
 mustWrapToNodeDecoration _ = False
 
-wrapWithNodeDecoration :: PMTreeNode -> PMIndex -> PMIndex -> RichTextDiffOp DocNode -> Decoration PMTreeNode
-wrapWithNodeDecoration pmNode beforeNodeIndex afterNodeIndex (UpdateHeadingLevel _ (TreeNode (BlockNode (PandocBlock (Pandoc.Header _ _ _))))) =
+decorateNode :: PMTreeNode -> PMIndex -> PMIndex -> RichTextDiffOpType -> Decoration PMTreeNode
+decorateNode pmNode beforeNodeIndex afterNodeIndex UpdateHeadingLevelType =
   NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-purple-100"
-wrapWithNodeDecoration pmNode beforeNodeIndex afterNodeIndex _ = NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-purple-100"
+decorateNode pmNode beforeNodeIndex afterNodeIndex _ = NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-purple-100"
 
 walkDiffTreeNode :: RichTextDiffOp DocNode -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
 walkDiffTreeNode (Copy (TreeNode (InlineContent textSpan))) = do
@@ -205,6 +210,7 @@ walkDiffTreeNode (UpdateMarks _ node) = pure $ Left $ docNodeToPMNode node
 -- The decoration for heading level updates is handled in `walkDiffTree` because
 -- we need to know the size of the node (therefore, we need to have processed its subtree).
 -- Unfortunately, this is ugly; didn't think of a way to avoid it.
+-- So in this function we return the node undecorated.
 walkDiffTreeNode (UpdateHeadingLevel _ node) = pure $ Left $ docNodeToPMNode node
 
 wrapInInlineDecoration :: PMTreeNode -> PMIndex -> PMIndex -> T.Text -> InlineDecoration PMTreeNode
