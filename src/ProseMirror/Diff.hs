@@ -3,17 +3,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
-module ProseMirror.Diff (proseMirrorJSONDocWithDiffDecorations, toDecoratedPMDoc, DecoratedPMDoc) where
+module ProseMirror.Diff (toDecoratedPMDoc, DecoratedPMDoc) where
 
+import Control.Monad (when)
 import Control.Monad.State (State, evalState, get, modify)
-import Data.Aeson (ToJSON, Value (Number, String), encode, object, toJSON, (.=))
+import Data.Aeson (ToJSON, Value (Number, String), object, toJSON, (.=))
 import qualified Data.Aeson.Key as K
 import qualified Data.Aeson.KeyMap as KM
-import qualified Data.ByteString.Lazy.Char8 as BSL8
 import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (listToMaybe)
 import qualified Data.Text as T
-import Data.Text.Encoding (decodeUtf8)
 import Data.Tree (Tree (..), drawTree, foldTree)
 import qualified Debug.Trace
 import DocTree.Common as RichText (BlockNode (..), LinkMark (..), Mark (..), TextSpan (..))
@@ -65,9 +64,6 @@ instance ToJSON DecoratedPMDoc where
   toJSON decoratedPMDoc = object ["doc" .= doc decoratedPMDoc, "decorations" .= decorations decoratedPMDoc]
 
 type PMIndex = Int
-
-proseMirrorJSONDocWithDiffDecorations :: Tree (RichTextDiffOp DocNode) -> T.Text
-proseMirrorJSONDocWithDiffDecorations = decodeUtf8 . BSL8.toStrict . encode . pmDocFromPMTree . toProseMirrorTreeWithDiffDecorations
 
 toDecoratedPMDoc :: Tree (RichTextDiffOp DocNode) -> DecoratedPMDoc
 toDecoratedPMDoc = pmDocFromPMTree . traceTree . toProseMirrorTreeWithDiffDecorations
@@ -142,24 +138,36 @@ walkDiffTree :: Tree (RichTextDiffOp DocNode) -> State PMIndex DecoratedPMTree
 walkDiffTree (Node nodeWithDiff subTrees) = do
   pmNode <- walkDiffTreeNode nodeWithDiff
   notDeletedBlockNode <- pure $ isNotDeletedPMBlockNode pmNode
-  -- This is ugly. Unfortunately, ProseMirror indexing increases by 1 at the end of block nodes (after processing the subtrees),
-  -- so I wasn't able to think of a good way to avoid it. The else case is a noop.
+
+  -- These conditional state updates are ugly.
+  -- Unfortunately, ProseMirror indexing increases by 1 both before and after block nodes so I wasn't able to think of a good way to avoid it.
+
+  -- Update state before processing children
   beforeNodeIndex <- get
-  if notDeletedBlockNode then modify (+ 1) else pure ()
-  pmSubForest <- mapM (walkDiffTree) subTrees
-  if notDeletedBlockNode then modify (+ 1) else pure ()
+  incrementIndexIf notDeletedBlockNode
+
+  -- Process children
+  childTrees <- mapM (walkDiffTree) subTrees
+
+  -- Update state after processing children
+  incrementIndexIf notDeletedBlockNode
   afterNodeIndex <- get
+
+  -- Build the node tree, conditionally adding a node decoration.
+  -- The decoration for heading level updates (and any other op type that requires a node decoration)
+  -- must be handled here because we need to know the size of the node (therefore, we need to have processed its subtree).
+  -- Unfortunately, this is ugly; didn't think of a way to avoid it.
   case pmNode of
     Left undecoratedPMNode ->
-      -- The decoration for heading level updates is handled here because
-      -- we need to know the size of the node (therefore, we need to have processed its subtree).
-      -- Unfortunately, this is ugly; didn't think of a way to avoid it.
       if mustWrapToNodeDecoration nodeWithDiff
         then pure $ Node {rootLabel = Right $ decorateNode undecoratedPMNode beforeNodeIndex afterNodeIndex diffOpType, subForest = pmSubForest}
-        else pure $ Node {rootLabel = pmNode, subForest = pmSubForest}
+        else pure $ Node {rootLabel = pmNode, subForest = childTrees}
       where
         diffOpType = (getDiffOpType nodeWithDiff)
-    Right _ -> pure $ Node {rootLabel = pmNode, subForest = pmSubForest}
+    Right _ -> pure $ Node {rootLabel = pmNode, subForest = childTrees}
+  where
+    incrementIndexIf :: Bool -> State PMIndex ()
+    incrementIndexIf condition = when condition (modify (+ 1))
 
 mustWrapToNodeDecoration :: RichTextDiffOp DocNode -> Bool
 mustWrapToNodeDecoration (UpdateHeadingLevel _ _) = True
