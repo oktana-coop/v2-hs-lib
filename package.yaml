@@ -48,11 +48,11 @@ library:
     - text >= 2.1.1
   exposed-modules:
     - ProseMirror.Diff
+    - ProseMirror.PandocWriter
   other-modules:
     - ProseMirror.PMJson
     - ProseMirror.Decoration
     - ProseMirror.PMTree
-    - ProseMirror.PandocWriter
 
 executables:
   v2-hs-lib:

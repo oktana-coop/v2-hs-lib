@@ -8,7 +8,7 @@ data Command
   | ProseMirrorDiff Format String String
   deriving (Show)
 
-data Format = Pandoc | Markdown | Html | Json | Automerge deriving (Show)
+data Format = Pandoc | Markdown | Html | Json | Automerge | ProseMirror deriving (Show)
 
 outputFormatParser :: Parser Format
 outputFormatParser = option readFormat (long "to" <> metavar "FORMAT" <> help "Specify the format (pandoc, markdown, html, json)")
@@ -24,6 +24,7 @@ readFormat = eitherReader $ \arg ->
     "html" -> Right Html
     "json" -> Right Json
     "automerge" -> Right Automerge
+    "prosemirror" -> Right ProseMirror
     _ -> Left $ "Unknown format: " ++ arg
 
 commandParser :: Parser Command

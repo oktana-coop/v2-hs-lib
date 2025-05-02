@@ -11,6 +11,7 @@ import Debug.Trace (trace)
 import PandocReader as AutomergePandoc.PandocReader (readAutomerge)
 import PandocWriter as AutomergePandoc.PandocWriter (writeAutomerge)
 import ProseMirror.Diff (DecoratedPMDoc, toDecoratedPMDoc)
+import ProseMirror.PandocWriter (writeProseMirror)
 import Response (ErrorOutput (..), Response (..))
 import RichTextDiff (getAnnotatedTree)
 import Text.Pandoc (Pandoc, PandocIO, PandocMonad, ReaderOptions, WriterOptions, def, readHtml, readJSON, readMarkdown, readNative)
@@ -25,6 +26,7 @@ writeTo format = case format of
   Cli.Html -> writeHtml5String
   Cli.Json -> writeJSON
   Cli.Automerge -> writeAutomerge
+  Cli.ProseMirror -> writeProseMirror
 
 readFrom :: Format -> ReaderOptions -> T.Text -> PandocIO Pandoc
 readFrom format = case format of
@@ -33,6 +35,7 @@ readFrom format = case format of
   Cli.Html -> readHtml
   Cli.Json -> readJSON
   Cli.Automerge -> readAutomerge
+  Cli.ProseMirror -> undefined
 
 convert :: Format -> Format -> String -> IO ()
 convert inputFormat outputFormat input = do
