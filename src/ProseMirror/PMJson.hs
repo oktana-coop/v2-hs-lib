@@ -1,7 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.PMJson (BlockNode (..), TextNode (..), Mark (..), Node (..), PMDoc (..), isRootBlockNode) where
+module ProseMirror.PMJson (BlockNode (..), TextNode (..), Mark (..), Node (..), PMDoc (..), isRootBlockNode, wrapChildrenToBlock) where
 
 import Data.Aeson (Object, ToJSON (..), object, (.=))
 import Data.List.NonEmpty (NonEmpty)
@@ -35,3 +35,7 @@ instance ToJSON PMDoc where
 
 isRootBlockNode :: BlockNode -> Bool
 isRootBlockNode blockNode = nodeType blockNode == "doc"
+
+wrapChildrenToBlock :: BlockNode -> [Node] -> BlockNode
+wrapChildrenToBlock (PMBlock blockType Nothing blockAttrs) children = PMBlock blockType (Just children) blockAttrs
+wrapChildrenToBlock (PMBlock blockType (Just existingChildren) blockAttrs) newChildren = PMBlock blockType (Just (existingChildren <> newChildren)) blockAttrs

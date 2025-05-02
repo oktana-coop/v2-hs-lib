@@ -15,7 +15,7 @@ import qualified Debug.Trace
 import DocTree.Common as RichText (TextSpan (..))
 import qualified DocTree.LeafTextSpans as PandocTree
 import ProseMirror.Decoration (Decoration (..), DecorationAttrs (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), undecorate)
-import qualified ProseMirror.PMJson as PM (BlockNode (..), Node (..), TextNode (..), isRootBlockNode)
+import qualified ProseMirror.PMJson as PM (BlockNode (..), Node (..), TextNode (..), isRootBlockNode, wrapChildrenToBlock)
 import ProseMirror.PMTree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode, treeTextSpanNodeToPMTextNode)
 import RichTextDiffOp (RichTextDiffOp (..), RichTextDiffOpType (UpdateHeadingLevelType), getDiffOpType)
 
@@ -191,7 +191,7 @@ pmTreeNodeFolder (Left (WrapperInlineNode)) childNodesWithDecorations = splitNod
 -- Undecorated wrapper block node (div)
 pmTreeNodeFolder (Left (WrapperBlockNode)) childNodesWithDecorations = splitNodesAndDecorations childNodesWithDecorations
 -- Undecorated block node
-pmTreeNodeFolder (Left (PMNode (PM.BlockNode blockNode))) childNodesWithDecorations = ([PM.BlockNode $ wrapChildrenToBlock blockNode childNodes], childDecorations)
+pmTreeNodeFolder (Left (PMNode (PM.BlockNode blockNode))) childNodesWithDecorations = ([PM.BlockNode $ PM.wrapChildrenToBlock blockNode childNodes], childDecorations)
   where
     (childNodes, childDecorations) = splitNodesAndDecorations childNodesWithDecorations
 -- Inline decoration for text node.
@@ -211,21 +211,17 @@ pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration decPos (PMNode (PM
   ([], [blockDecoration])
   where
     blockDecoration = WidgetDecoration $ PMWidgetDecoration decPos blockNodeWithChildren
-    blockNodeWithChildren = PM.BlockNode $ wrapChildrenToBlock blockNode $ map undecorate decoratedChildNodes
+    blockNodeWithChildren = PM.BlockNode $ PM.wrapChildrenToBlock blockNode $ map undecorate decoratedChildNodes
     (_, decoratedChildNodes) = splitNodesAndDecorations childNodesWithDecorations
 -- Node decoration
 pmTreeNodeFolder (Right (NodeDecoration (PMNodeDecoration decFrom decTo decAttrs (PMNode (PM.BlockNode blockNode))))) childNodesWithDecorations =
   ([pmNode], [NodeDecoration $ PMNodeDecoration decFrom decTo decAttrs pmNode])
   where
-    pmNode = PM.BlockNode $ wrapChildrenToBlock blockNode childNodes
+    pmNode = PM.BlockNode $ PM.wrapChildrenToBlock blockNode childNodes
     (childNodes, _) = splitNodesAndDecorations childNodesWithDecorations
 -- TODO: There are cases we didn't handle, like an inline decoration wrapping blocks.
 -- These are failure cases and we should guard against them, ideally in the type system (with more accurate/specific types).
 pmTreeNodeFolder _ _ = undefined
-
-wrapChildrenToBlock :: PM.BlockNode -> [PM.Node] -> PM.BlockNode
-wrapChildrenToBlock (PM.PMBlock blockType Nothing blockAttrs) children = PM.PMBlock blockType (Just children) blockAttrs
-wrapChildrenToBlock (PM.PMBlock blockType (Just existingChildren) blockAttrs) newChildren = PM.PMBlock blockType (Just (existingChildren <> newChildren)) blockAttrs
 
 splitNodesAndDecorations :: [([PM.Node], [Decoration PM.Node])] -> ([PM.Node], [Decoration PM.Node])
 splitNodesAndDecorations nodesWithDecorations = (concatMap fst nodesWithDecorations, concatMap snd nodesWithDecorations)

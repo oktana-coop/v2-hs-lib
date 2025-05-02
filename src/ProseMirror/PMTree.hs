@@ -5,27 +5,50 @@ module ProseMirror.PMTree (PMTree, PMTreeNode (..), groupedInlinesPandocTreeToPM
 import Data.Aeson (Value (Number, String))
 import qualified Data.Aeson.Key as K
 import qualified Data.Aeson.KeyMap as KM
+import Data.Graph (Tree (..))
 import Data.List.NonEmpty (nonEmpty)
-import Data.Tree (Tree)
+import Data.Maybe (listToMaybe)
+import Data.Tree (foldTree)
 import DocTree.Common as RichText (BlockNode (..), LinkMark (..), Mark (..), TextSpan (..))
 import qualified DocTree.GroupedInlines as GroupedInlinesTree
 import qualified DocTree.LeafTextSpans as LeafTextSpansTree
-import qualified ProseMirror.PMJson as PM (BlockNode (..), Mark (..), Node (..), PMDoc (..), TextNode (..))
+import qualified ProseMirror.PMJson as PM (BlockNode (..), Mark (..), Node (..), PMDoc (..), TextNode (..), wrapChildrenToBlock)
 import Text.Pandoc.Definition as Pandoc (Block (..))
 
 data PMTreeNode = PMNode PM.Node | WrapperInlineNode | WrapperBlockNode deriving (Show)
 
 type PMTree = Tree PMTreeNode
 
-pmDocFromPMTree :: PMTree -> PM.PMDoc
-pmDocFromPMTree _ = undefined
+pmDocFromPMTree :: PMTree -> Either String PM.PMDoc
+pmDocFromPMTree pmTree = do
+  pmDoc <- extractRootBlock $ foldTree pmTreeNodeFolder pmTree
+  pure $ PM.PMDoc {PM.doc = pmDoc}
+  where
+    extractRootBlock :: [PM.Node] -> Either String PM.BlockNode
+    extractRootBlock nodes = case listToMaybe nodes of
+      Just node -> assertRootNodeIsBlock node
+      Nothing -> Left "No root node found."
+
+    assertRootNodeIsBlock :: PM.Node -> Either String PM.BlockNode
+    assertRootNodeIsBlock (PM.BlockNode rootNode) = Right rootNode
+    assertRootNodeIsBlock _ = Left "Root node is not a block node."
+
+pmTreeNodeFolder :: PMTreeNode -> [[PM.Node]] -> [PM.Node]
+pmTreeNodeFolder (PMNode pmNode@(PM.TextNode _)) _ = [pmNode]
+pmTreeNodeFolder WrapperInlineNode childNodes = concat childNodes
+pmTreeNodeFolder (WrapperBlockNode) childNodes = concat childNodes
+pmTreeNodeFolder (PMNode (PM.BlockNode blockNode)) childNodes = [PM.BlockNode $ PM.wrapChildrenToBlock blockNode $ concat childNodes]
 
 groupedInlinesPandocTreeToPMTree :: Tree GroupedInlinesTree.DocNode -> PMTree
-groupedInlinesPandocTreeToPMTree = fmap groupedInlinesPandocTreeNodeToPMNode
-
-groupedInlinesPandocTreeNodeToPMNode :: GroupedInlinesTree.DocNode -> PMTreeNode
-groupedInlinesPandocTreeNodeToPMNode GroupedInlinesTree.Root = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "doc", PM.content = Nothing, PM.attrs = Nothing}
-groupedInlinesPandocTreeNodeToPMNode _ = undefined
+groupedInlinesPandocTreeToPMTree (Node GroupedInlinesTree.Root childTrees) =
+  Node (PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "doc", PM.content = Nothing, PM.attrs = Nothing}) (map groupedInlinesPandocTreeToPMTree childTrees)
+groupedInlinesPandocTreeToPMTree (Node (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode blockNode)) childTrees) =
+  Node (treeBlockNodeToPMBlockNode blockNode) (map groupedInlinesPandocTreeToPMTree childTrees)
+groupedInlinesPandocTreeToPMTree (Node (GroupedInlinesTree.TreeNode (GroupedInlinesTree.InlineNode (GroupedInlinesTree.InlineContent textSpans))) _) =
+  Node WrapperInlineNode (map pmTreeFromTextSpan textSpans)
+  where
+    pmTreeFromTextSpan :: TextSpan -> Tree PMTreeNode
+    pmTreeFromTextSpan textSpan = Node (PMNode (PM.TextNode (treeTextSpanNodeToPMTextNode textSpan))) []
 
 leafTextSpansPandocTreeNodeToPMNode :: LeafTextSpansTree.DocNode -> PMTreeNode
 leafTextSpansPandocTreeNodeToPMNode LeafTextSpansTree.Root = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "doc", PM.content = Nothing, PM.attrs = Nothing}
