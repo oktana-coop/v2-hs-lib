@@ -82,21 +82,21 @@ mustWrapToNodeDecoration _ = False
 
 decorateNode :: PMTreeNode -> PMIndex -> PMIndex -> RichTextDiffOpType -> Decoration PMTreeNode
 decorateNode pmNode beforeNodeIndex afterNodeIndex UpdateHeadingLevelType =
-  NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-purple-100"
-decorateNode pmNode beforeNodeIndex afterNodeIndex _ = NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-purple-100"
+  NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-purple-100 dark:bg-purple-200 dark:text-black"
+decorateNode pmNode beforeNodeIndex afterNodeIndex _ = NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-purple-100 dark:bg-purple-200 dark:text-black"
 
 walkDiffTreeNode :: RichTextDiffOp PandocTree.DocNode -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
 walkDiffTreeNode (Copy (PandocTree.TreeNode (PandocTree.InlineContent textSpan))) = walkTextNode textSpan >>= pure . Left
 -- Just transform non-text nodes to their PM equivalent (without decoration). For block nodes, increasing the index is handled in another function (`walkDiffTree`).
 walkDiffTreeNode (Copy node) = pure $ Left $ pandocTreeNodeToPMNode node
-walkDiffTreeNode (Insert (PandocTree.TreeNode (PandocTree.InlineContent textSpan))) = walkTextNodeAddingDecoration textSpan "bg-green-300"
+walkDiffTreeNode (Insert (PandocTree.TreeNode (PandocTree.InlineContent textSpan))) = walkTextNodeAddingDecoration textSpan "bg-green-300 dark:text-black"
 walkDiffTreeNode (Insert node) = pure $ Left $ pandocTreeNodeToPMNode node
 walkDiffTreeNode (Delete node) = do
   position <- get
   pure $ Right $ WidgetDecoration $ wrapInWidgetDecoration pmNode position
   where
     pmNode = pandocTreeNodeToPMNode node
-walkDiffTreeNode (UpdateMarks _ (PandocTree.TreeNode (PandocTree.InlineContent textSpan))) = walkTextNodeAddingDecoration textSpan "bg-purple-100"
+walkDiffTreeNode (UpdateMarks _ (PandocTree.TreeNode (PandocTree.InlineContent textSpan))) = walkTextNodeAddingDecoration textSpan "bg-purple-100 dark:bg-purple-200 dark:text-black"
 -- Just transform non-text nodes to their PM equivalent (without decoration).
 -- We shouldn't really get this diff op for block nodes. TODO: Express this in the type system.
 walkDiffTreeNode (UpdateMarks _ node) = pure $ Left $ pandocTreeNodeToPMNode node
