@@ -77,3 +77,4 @@ treeTextSpanNodeToPMTextNode textSpan = PM.PMText {PM.text = value textSpan, PM.
     toPMMark RichText.EmphMark = PM.PMMark {PM.markType = "em", PM.markAttrs = Nothing}
     toPMMark RichText.StrongMark = PM.PMMark {PM.markType = "strong", PM.markAttrs = Nothing}
     toPMMark (RichText.LinkMark (RichText.Link _ (linkUrl, linkTitle))) = PM.PMMark {PM.markType = "link", PM.markAttrs = Just $ KM.fromList [(K.fromText "href", Data.Aeson.String linkUrl), (K.fromText "title", Data.Aeson.String linkTitle)]}
+    toPMMark RichText.CodeMark = PM.PMMark {PM.markType = "code", PM.markAttrs = Nothing}
