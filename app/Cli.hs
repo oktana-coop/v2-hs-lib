@@ -5,6 +5,7 @@ import Options.Applicative (Parser, ReadM, argument, command, eitherReader, exec
 data Command
   = ConvertFromAutomerge Format String
   | ConvertToAutomerge Format String
+  | Convert Format Format String
   | ProseMirrorDiff Format String String
   deriving (Show)
 
@@ -41,6 +42,12 @@ commandParser =
           ( info
               (ConvertToAutomerge <$> inputFormatParser <*> argument str (metavar "INPUT_DATA"))
               (progDesc "Convert from the input format to Automerge Spans JSON")
+          )
+        <> command
+          "convert"
+          ( info
+              (Convert <$> inputFormatParser <*> outputFormatParser <*> argument str (metavar "INPUT_STRING"))
+              (progDesc "Convert from the input to the output format")
           )
         <> command
           "proseMirrorDiff"

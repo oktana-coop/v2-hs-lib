@@ -14,9 +14,10 @@ import ProseMirror.Diff (DecoratedPMDoc, toDecoratedPMDoc)
 import ProseMirror.PandocWriter (writeProseMirror)
 import Response (ErrorOutput (..), Response (..))
 import RichTextDiff (getAnnotatedTree)
-import Text.Pandoc (Pandoc, PandocIO, PandocMonad, ReaderOptions, WriterOptions, def, readHtml, readJSON, readMarkdown, readNative)
+import Text.Pandoc (Pandoc, PandocIO, PandocMonad, ReaderOptions, WriterOptions, def, readHtml, readJSON, readMarkdown, readNative, readerExtensions)
 import Text.Pandoc.Class (runIO)
 import Text.Pandoc.Error (PandocError, handleError, renderError)
+import Text.Pandoc.Extensions (Extension (Ext_fenced_code_blocks), enableExtension, pandocExtensions)
 import Text.Pandoc.Writers (writeHtml5String, writeJSON, writeMarkdown, writeNative)
 
 writeTo :: (PandocMonad m) => Format -> WriterOptions -> Pandoc -> m T.Text
@@ -40,10 +41,16 @@ readFrom format = case format of
 convert :: Format -> Format -> String -> IO ()
 convert inputFormat outputFormat input = do
   result <- runIO $ do
-    doc <- readFrom inputFormat def (T.pack input)
+    doc <- readFrom inputFormat readerOpts (T.pack input)
     writeTo outputFormat def doc
   rst <- handleError result
   TIO.putStrLn rst
+  where
+    -- Explicitly enabling the fenced code blocks extension. For some reason it wasn't included when
+    -- we were just using `def` in the reader options.
+    -- TODO: Investigate why, in theory `def` includes fenced code blocks too,
+    -- so we must understand why it needs this special treatment.
+    readerOpts = def {readerExtensions = enableExtension Ext_fenced_code_blocks pandocExtensions}
 
 convertFromAutomerge :: Format -> String -> IO ()
 convertFromAutomerge outputFormat = convert Automerge outputFormat
@@ -76,4 +83,5 @@ main = do
   case command of
     ConvertFromAutomerge format str -> convertFromAutomerge format str
     ConvertToAutomerge format str -> convertToAutomerge format str
+    Convert from to str -> convert from to str
     ProseMirrorDiff format str1 str2 -> produceProseMirrorDiff format str1 str2
