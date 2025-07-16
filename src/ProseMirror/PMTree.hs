@@ -65,6 +65,7 @@ treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.CodeBlock _ _)) = PMNod
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BulletList _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "bullet_list", PM.content = Nothing, PM.attrs = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.OrderedList _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "ordered_list", PM.content = Nothing, PM.attrs = Nothing}
 treeBlockNodeToPMBlockNode (RichText.ListItem _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "list_item", PM.content = Nothing, PM.attrs = Nothing}
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BlockQuote _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "blockquote", PM.content = Nothing, PM.attrs = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Div _ _)) = WrapperBlockNode
 -- TODO: Incrementally handle more blocks
 treeBlockNodeToPMBlockNode _ = undefined
