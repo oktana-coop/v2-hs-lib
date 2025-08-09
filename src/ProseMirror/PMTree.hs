@@ -71,6 +71,7 @@ treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.OrderedList _ _)) = PMN
 treeBlockNodeToPMBlockNode (RichText.ListItem _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "list_item", PM.content = Nothing, PM.attrs = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BlockQuote _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "blockquote", PM.content = Nothing, PM.attrs = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Div _ _)) = WrapperBlockNode
+treeBlockNodeToPMBlockNode (RichText.NoteContent (NoteId noteId) _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.nodeType = "note_content", PM.content = Nothing, PM.attrs = Just $ KM.fromList [(K.fromText "id", Data.Aeson.String noteId)]}
 -- TODO: Incrementally handle more blocks
 treeBlockNodeToPMBlockNode _ = undefined
 
