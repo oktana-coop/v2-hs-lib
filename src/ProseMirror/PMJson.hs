@@ -1,7 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.PMJson (BlockNode (..), TextNode (..), Mark (..), Node (..), PMDoc (..), isRootBlockNode, wrapChildrenToBlock) where
+module ProseMirror.PMJson (BlockNode (..), TextNode (..), Mark (..), Node (..), PMDoc (..), isRootBlockNode, isAtomNode, wrapChildrenToBlock) where
 
 import Data.Aeson (Object, ToJSON (..), object, (.=))
 import Data.List.NonEmpty (NonEmpty)
@@ -35,6 +35,12 @@ instance ToJSON PMDoc where
 
 isRootBlockNode :: BlockNode -> Bool
 isRootBlockNode blockNode = nodeType blockNode == "doc"
+
+-- In ProseMirror nodes like note refs which don't have directly editable content and
+-- should be treated as a single unit in the view have the `atom` property set to `true`.
+-- https://prosemirror.net/docs/ref/#model.NodeSpec.atom
+isAtomNode :: BlockNode -> Bool
+isAtomNode blockNode = nodeType blockNode == "note_ref"
 
 wrapChildrenToBlock :: BlockNode -> [Node] -> BlockNode
 wrapChildrenToBlock (PMBlock blockType Nothing blockAttrs) children = PMBlock blockType (Just children) blockAttrs
