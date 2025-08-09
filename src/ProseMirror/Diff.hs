@@ -12,11 +12,11 @@ import Data.Maybe (listToMaybe)
 import qualified Data.Text as T
 import Data.Tree (Tree (..), drawTree, foldTree)
 import qualified Debug.Trace
-import DocTree.Common as RichText (TextSpan (..))
+import DocTree.Common as RichText (InlineSpan (..), TextSpan (..))
 import qualified DocTree.LeafTextSpans as PandocTree
 import ProseMirror.Decoration (Decoration (..), DecorationAttrs (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), undecorate)
-import qualified ProseMirror.PMJson as PM (BlockNode (..), Node (..), TextNode (..), isRootBlockNode, wrapChildrenToBlock)
-import ProseMirror.PMTree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode, treeTextSpanNodeToPMTextNode)
+import qualified ProseMirror.PMJson as PM (BlockNode (..), Node (..), TextNode (..), isAtomNode, isRootBlockNode, wrapChildrenToBlock)
+import ProseMirror.PMTree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode, pmNodeFromInlineSpan, treeTextSpanNodeToPMTextNode)
 import RichTextDiffOp (RichTextDiffOp (..), RichTextDiffOpType (UpdateHeadingLevelType), getDiffOpType)
 
 -- Alias to the function exposed from the PMTree module
@@ -86,17 +86,17 @@ decorateNode pmNode beforeNodeIndex afterNodeIndex UpdateHeadingLevelType =
 decorateNode pmNode beforeNodeIndex afterNodeIndex _ = NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-purple-100 dark:bg-purple-200 dark:text-black"
 
 walkDiffTreeNode :: RichTextDiffOp PandocTree.DocNode -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
-walkDiffTreeNode (Copy (PandocTree.TreeNode (PandocTree.InlineContent textSpan))) = walkTextNode textSpan >>= pure . Left
+walkDiffTreeNode (Copy (PandocTree.TreeNode (PandocTree.InlineContent inlineSpan))) = walkInlineNode inlineSpan >>= pure . Left
 -- Just transform non-text nodes to their PM equivalent (without decoration). For block nodes, increasing the index is handled in another function (`walkDiffTree`).
 walkDiffTreeNode (Copy node) = pure $ Left $ pandocTreeNodeToPMNode node
-walkDiffTreeNode (Insert (PandocTree.TreeNode (PandocTree.InlineContent textSpan))) = walkTextNodeAddingDecoration textSpan "bg-green-300 dark:text-black"
+walkDiffTreeNode (Insert (PandocTree.TreeNode (PandocTree.InlineContent inlineSpan))) = walkInlineNodeAddingDecoration inlineSpan "bg-green-300 dark:text-black"
 walkDiffTreeNode (Insert node) = pure $ Left $ pandocTreeNodeToPMNode node
 walkDiffTreeNode (Delete node) = do
   position <- get
   pure $ Right $ WidgetDecoration $ wrapInWidgetDecoration pmNode position
   where
     pmNode = pandocTreeNodeToPMNode node
-walkDiffTreeNode (UpdateMarks _ (PandocTree.TreeNode (PandocTree.InlineContent textSpan))) = walkTextNodeAddingDecoration textSpan "bg-purple-100 dark:bg-purple-200 dark:text-black"
+walkDiffTreeNode (UpdateMarks _ (PandocTree.TreeNode (PandocTree.InlineContent inlineSpan))) = walkInlineNodeAddingDecoration inlineSpan "bg-purple-100 dark:bg-purple-200 dark:text-black"
 -- Just transform non-text nodes to their PM equivalent (without decoration).
 -- We shouldn't really get this diff op for block nodes. TODO: Express this in the type system.
 walkDiffTreeNode (UpdateMarks _ node) = pure $ Left $ pandocTreeNodeToPMNode node
@@ -106,12 +106,19 @@ walkDiffTreeNode (UpdateMarks _ node) = pure $ Left $ pandocTreeNodeToPMNode nod
 -- So in this function we return the node undecorated.
 walkDiffTreeNode (UpdateHeadingLevel _ node) = pure $ Left $ pandocTreeNodeToPMNode node
 
-walkTextNodeAddingDecoration :: TextSpan -> T.Text -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
-walkTextNodeAddingDecoration textSpan cssClassName = do
-  startIndex <- get
-  pmNode <- walkTextNode textSpan
-  endIndex <- get
-  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex endIndex cssClassName
+walkInlineNode :: InlineSpan -> State PMIndex PMTreeNode
+walkInlineNode (InlineText textSpan) = walkTextNode textSpan
+-- In ProseMirror nodes like note refs which don't have directly editable content and
+-- should be treated as a single unit in the view have the `atom` property set to `true`.
+-- https://prosemirror.net/docs/ref/#model.NodeSpec.atom
+walkInlineNode inlineSpan = walkNodeMappingToPMAtom inlineSpan
+
+walkNodeMappingToPMAtom :: InlineSpan -> State PMIndex PMTreeNode
+walkNodeMappingToPMAtom inlineSpan = do
+  modify (+ 1)
+  pure pmNode
+  where
+    pmNode = pmNodeFromInlineSpan inlineSpan
 
 walkTextNode :: TextSpan -> State PMIndex PMTreeNode
 walkTextNode textSpan = do
@@ -121,6 +128,24 @@ walkTextNode textSpan = do
     pmTextNode = treeTextSpanNodeToPMTextNode textSpan
     pmNode = PMNode $ PM.TextNode $ pmTextNode
     textLength = T.length $ PM.text pmTextNode
+
+walkInlineNodeAddingDecoration :: InlineSpan -> T.Text -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
+walkInlineNodeAddingDecoration (InlineText textSpan) = walkTextNodeAddingDecoration textSpan
+walkInlineNodeAddingDecoration inlineSpan = walkNodeMappingToPMAtomAddingDecoration inlineSpan
+
+walkTextNodeAddingDecoration :: TextSpan -> T.Text -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
+walkTextNodeAddingDecoration textSpan cssClassName = do
+  startIndex <- get
+  pmNode <- walkTextNode textSpan
+  endIndex <- get
+  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex endIndex cssClassName
+
+walkNodeMappingToPMAtomAddingDecoration :: InlineSpan -> T.Text -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
+walkNodeMappingToPMAtomAddingDecoration inlineSpan cssClassName = do
+  startIndex <- get
+  pmNode <- walkInlineNode inlineSpan
+  endIndex <- get
+  pure $ Right $ NodeDecoration $ wrapInNodeDecoration pmNode startIndex endIndex cssClassName
 
 wrapInInlineDecoration :: PMTreeNode -> PMIndex -> PMIndex -> T.Text -> InlineDecoration PMTreeNode
 wrapInInlineDecoration pmNode startIndex endIndex className =
@@ -158,7 +183,7 @@ wrapInWidgetDecoration pmNode position =
     }
 
 isNotDeletedPMBlockNode :: Either PMTreeNode (Decoration PMTreeNode) -> Bool
-isNotDeletedPMBlockNode (Left (PMNode (PM.BlockNode blockNode))) = not (PM.isRootBlockNode blockNode)
+isNotDeletedPMBlockNode (Left (PMNode (PM.BlockNode blockNode))) = not (PM.isRootBlockNode blockNode || PM.isAtomNode blockNode)
 isNotDeletedPMBlockNode (Left _) = False
 -- Inline decorations wrap text nodes, not block nodes.
 -- TODO: Capture this properly in the type system.
@@ -167,7 +192,7 @@ isNotDeletedPMBlockNode (Right (InlineDecoration _)) = False
 -- TODO: Capture this properly in the type system.
 isNotDeletedPMBlockNode (Right (WidgetDecoration _)) = False
 isNotDeletedPMBlockNode (Right (NodeDecoration dec)) = case nodeDecContent dec of
-  PMNode (PM.BlockNode blockNode) -> not (PM.isRootBlockNode blockNode)
+  PMNode (PM.BlockNode blockNode) -> not (PM.isRootBlockNode blockNode || PM.isAtomNode blockNode)
   _ -> False
 
 pmDocFromPMTree :: DecoratedPMTree -> DecoratedPMDoc
