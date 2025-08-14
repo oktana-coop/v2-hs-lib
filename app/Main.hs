@@ -46,8 +46,8 @@ convert inputFormat outputFormat input = do
   rst <- handleError result
   TIO.putStrLn rst
   where
-    -- Explicitly enabling the fenced code blocks and footnotes extensions. For some reason it wasn't included when
-    -- we were just using `def` in the reader/writer options.
+    -- Explicitly enabling the fenced code blocks and footnotes extensions. For some reason they aren't included when
+    -- we're just using `def` in the reader/writer options.
     -- TODO: Investigate why, in theory `def` includes fenced code blocks too,
     -- so we must understand why it needs this special treatment.
     readerOpts = def {readerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks pandocExtensions}
