@@ -14,10 +14,10 @@ import ProseMirror.Diff (DecoratedPMDoc, toDecoratedPMDoc)
 import ProseMirror.PandocWriter (writeProseMirror)
 import Response (ErrorOutput (..), Response (..))
 import RichTextDiff (getAnnotatedTree)
-import Text.Pandoc (Pandoc, PandocIO, PandocMonad, ReaderOptions, WriterOptions, def, readHtml, readJSON, readMarkdown, readNative, readerExtensions)
+import Text.Pandoc (Pandoc, PandocIO, PandocMonad, ReaderOptions, WriterOptions, def, readHtml, readJSON, readMarkdown, readNative, readerExtensions, writerExtensions)
 import Text.Pandoc.Class (runIO)
 import Text.Pandoc.Error (PandocError, handleError, renderError)
-import Text.Pandoc.Extensions (Extension (Ext_fenced_code_blocks), enableExtension, pandocExtensions)
+import Text.Pandoc.Extensions (Extension (Ext_fenced_code_blocks, Ext_footnotes), enableExtension, pandocExtensions)
 import Text.Pandoc.Writers (writeHtml5String, writeJSON, writeMarkdown, writeNative)
 
 writeTo :: (PandocMonad m) => Format -> WriterOptions -> Pandoc -> m T.Text
@@ -42,15 +42,20 @@ convert :: Format -> Format -> String -> IO ()
 convert inputFormat outputFormat input = do
   result <- runIO $ do
     doc <- readFrom inputFormat readerOpts (T.pack input)
-    writeTo outputFormat def doc
+    writeTo outputFormat writerOpts doc
   rst <- handleError result
   TIO.putStrLn rst
   where
-    -- Explicitly enabling the fenced code blocks extension. For some reason it wasn't included when
-    -- we were just using `def` in the reader options.
+    -- Explicitly enabling the fenced code blocks and footnotes extensions. For some reason it wasn't included when
+    -- we were just using `def` in the reader/writer options.
     -- TODO: Investigate why, in theory `def` includes fenced code blocks too,
     -- so we must understand why it needs this special treatment.
-    readerOpts = def {readerExtensions = enableExtension Ext_fenced_code_blocks pandocExtensions}
+    readerOpts = def {readerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks pandocExtensions}
+    writerOpts =
+      def
+        { writerExtensions =
+            enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks pandocExtensions
+        }
 
 convertFromAutomerge :: Format -> String -> IO ()
 convertFromAutomerge outputFormat = convert Automerge outputFormat
