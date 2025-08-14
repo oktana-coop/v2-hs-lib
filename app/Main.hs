@@ -51,11 +51,7 @@ convert inputFormat outputFormat input = do
     -- TODO: Investigate why, in theory `def` includes fenced code blocks too,
     -- so we must understand why it needs this special treatment.
     readerOpts = def {readerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks pandocExtensions}
-    writerOpts =
-      def
-        { writerExtensions =
-            enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks pandocExtensions
-        }
+    writerOpts = def {writerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks pandocExtensions}
 
 convertFromAutomerge :: Format -> String -> IO ()
 convertFromAutomerge outputFormat = convert Automerge outputFormat
