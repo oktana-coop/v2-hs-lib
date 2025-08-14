@@ -5,11 +5,12 @@ import Options.Applicative (Parser, ReadM, argument, command, eitherReader, exec
 data Command
   = ConvertFromAutomerge Format String
   | ConvertToAutomerge Format String
-  | Convert Format Format String
+  | ConvertToText Format Format String
+  | ConvertToBinary Format Format String
   | ProseMirrorDiff Format String String
   deriving (Show)
 
-data Format = Pandoc | Markdown | Html | Json | Automerge | ProseMirror deriving (Show)
+data Format = Pandoc | Markdown | Html | Json | Automerge | ProseMirror | Docx | Pdf deriving (Show)
 
 outputFormatParser :: Parser Format
 outputFormatParser = option readFormat (long "to" <> metavar "FORMAT" <> help "Specify the format (pandoc, markdown, html, json)")
@@ -26,6 +27,8 @@ readFormat = eitherReader $ \arg ->
     "json" -> Right Json
     "automerge" -> Right Automerge
     "prosemirror" -> Right ProseMirror
+    "docx" -> Right Docx
+    "pdf" -> Right Pdf
     _ -> Left $ "Unknown format: " ++ arg
 
 commandParser :: Parser Command
@@ -44,10 +47,16 @@ commandParser =
               (progDesc "Convert from the input format to Automerge Spans JSON")
           )
         <> command
-          "convert"
+          "convertToText"
           ( info
-              (Convert <$> inputFormatParser <*> outputFormatParser <*> argument str (metavar "INPUT_STRING"))
-              (progDesc "Convert from the input to the output format")
+              (ConvertToText <$> inputFormatParser <*> outputFormatParser <*> argument str (metavar "INPUT_STRING"))
+              (progDesc "Convert from the input to the output text format")
+          )
+        <> command
+          "convertToBinary"
+          ( info
+              (ConvertToBinary <$> inputFormatParser <*> outputFormatParser <*> argument str (metavar "INPUT_STRING"))
+              (progDesc "Convert from the input to the output binary format")
           )
         <> command
           "proseMirrorDiff"
