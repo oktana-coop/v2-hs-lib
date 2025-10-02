@@ -26,6 +26,7 @@ library
   exposed-modules:
       ProseMirror.Diff
       ProseMirror.PandocWriter
+      ProseMirror.PandocReader
   other-modules:
       ProseMirror.PMJson
       ProseMirror.Decoration
