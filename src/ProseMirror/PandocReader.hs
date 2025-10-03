@@ -3,7 +3,9 @@ module ProseMirror.PandocReader (readProseMirror) where
 import Control.Monad ((>=>))
 import Control.Monad.Except (throwError)
 import qualified Data.Text as T
+import qualified DocTree.GroupedInlines as GroupedInlinesTree
 import ProseMirror.PMJson (PMDoc, parseProseMirrorText)
+import ProseMirror.PMTree (pmTreeFromPMDoc, pmTreeToGroupedInlinesTree)
 import Text.Pandoc (PandocError (PandocParseError), ReaderOptions)
 import Text.Pandoc.Builder as Pandoc (Pandoc)
 import Text.Pandoc.Class (PandocMonad)
@@ -27,4 +29,4 @@ readProseMirror _ =
     handleParsingErrorMessage = throwError . PandocParseError . T.pack
 
 toPandoc :: (PandocMonad m) => PMDoc -> m Pandoc.Pandoc
-toPandoc = undefined
+toPandoc = pure . GroupedInlinesTree.toPandoc . pmTreeToGroupedInlinesTree . pmTreeFromPMDoc
