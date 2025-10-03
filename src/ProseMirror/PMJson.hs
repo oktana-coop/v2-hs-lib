@@ -1,10 +1,13 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.PMJson (BlockNode (..), TextNode (..), Mark (..), Node (..), PMDoc (..), isRootBlockNode, isAtomNode, wrapChildrenToBlock) where
+module ProseMirror.PMJson (BlockNode (..), TextNode (..), Mark (..), Node (..), PMDoc (..), isRootBlockNode, isAtomNode, wrapChildrenToBlock, parseProseMirror, parseProseMirrorText) where
 
-import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (..), object, withObject, (.:), (.:?), (.=))
+import Control.Monad ((>=>))
+import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (..), eitherDecodeStrictText, object, withObject, (.:), (.:?), (.=))
+import Data.Aeson.Decoding (eitherDecode)
 import Data.Aeson.Types (Parser)
+import qualified Data.ByteString.Lazy as BL
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.Text as T
 import ProseMirror.Utils.JSON (parseNonEmpty)
@@ -76,3 +79,16 @@ isAtomNode blockNode = nodeType blockNode == "note_ref"
 wrapChildrenToBlock :: BlockNode -> [Node] -> BlockNode
 wrapChildrenToBlock (PMBlock blockType Nothing blockAttrs) children = PMBlock blockType (Just children) blockAttrs
 wrapChildrenToBlock (PMBlock blockType (Just existingChildren) blockAttrs) newChildren = PMBlock blockType (Just (existingChildren <> newChildren)) blockAttrs
+
+parseProseMirror :: BL.ByteString -> Either String PMDoc
+parseProseMirror = eitherDecode >=> assertRootNodeIsDoc
+
+parseProseMirrorText :: T.Text -> Either String PMDoc
+parseProseMirrorText = eitherDecodeStrictText >=> assertRootNodeIsDoc
+
+assertRootNodeIsDoc :: Node -> Either String PMDoc
+assertRootNodeIsDoc (BlockNode rootNode) =
+  if nodeType rootNode == "doc"
+    then Right $ PMDoc {doc = rootNode}
+    else Left "Root node type is not doc"
+assertRootNodeIsDoc _ = Left "Root node is not a block node."
