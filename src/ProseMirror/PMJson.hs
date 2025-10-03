@@ -3,11 +3,23 @@
 
 module ProseMirror.PMJson (BlockNode (..), TextNode (..), Mark (..), Node (..), PMDoc (..), isRootBlockNode, isAtomNode, wrapChildrenToBlock) where
 
-import Data.Aeson (Object, ToJSON (..), object, (.=))
+import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (..), object, withObject, (.:), (.:?), (.=))
+import Data.Aeson.Types (Parser)
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.Text as T
+import ProseMirror.Utils.JSON (parseNonEmpty)
 
 data Node = BlockNode BlockNode | TextNode TextNode deriving (Show, Eq)
+
+instance FromJSON Node where
+  parseJSON val =
+    ( withObject "Node" $ \v -> do
+        elementType <- (v .: "type" :: Parser String)
+        case elementType of
+          "text" -> fmap TextNode $ parseJSON val
+          _ -> fmap BlockNode $ parseJSON val
+    )
+      val
 
 instance ToJSON Node where
   toJSON (BlockNode blockNode) = toJSON blockNode
@@ -15,15 +27,34 @@ instance ToJSON Node where
 
 data Mark = PMMark {markType :: T.Text, markAttrs :: Maybe Object} deriving (Show, Eq)
 
+instance FromJSON Mark where
+  parseJSON = withObject "Mark" $ \v -> do
+    mType <- v .: "type" >>= parseNonEmpty "type"
+    mAttrs <- v .:? "attrs"
+    pure $ PMMark {markType = mType, markAttrs = mAttrs}
+
 instance ToJSON Mark where
   toJSON mark = object $ ["type" .= markType mark, "attrs" .= markAttrs mark]
 
 data TextNode = PMText {text :: T.Text, marks :: Maybe (NonEmpty Mark)} deriving (Show, Eq)
 
+instance FromJSON TextNode where
+  parseJSON = withObject "TextNode" $ \v -> do
+    nText <- v .: "text" >>= parseNonEmpty "text"
+    nMarks <- v .:? "marks"
+    pure $ PMText {text = nText, marks = nMarks}
+
 instance ToJSON TextNode where
   toJSON textNode = object $ ["type" .= T.pack "text", "text" .= text textNode, "marks" .= marks textNode]
 
 data BlockNode = PMBlock {nodeType :: T.Text, content :: Maybe [Node], attrs :: Maybe Object} deriving (Show, Eq)
+
+instance FromJSON BlockNode where
+  parseJSON = withObject "BlockNode" $ \v -> do
+    nType <- v .: "type" >>= parseNonEmpty "type"
+    nContent <- v .:? "content"
+    nAttrs <- v .:? "attrs"
+    pure PMBlock {nodeType = nType, content = nContent, attrs = nAttrs}
 
 instance ToJSON BlockNode where
   toJSON blockNode = object $ ["type" .= nodeType blockNode, "content" .= content blockNode, "attrs" .= attrs blockNode]
