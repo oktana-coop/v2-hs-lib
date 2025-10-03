@@ -80,9 +80,11 @@ wrapChildrenToBlock :: BlockNode -> [Node] -> BlockNode
 wrapChildrenToBlock (PMBlock blockType Nothing blockAttrs) children = PMBlock blockType (Just children) blockAttrs
 wrapChildrenToBlock (PMBlock blockType (Just existingChildren) blockAttrs) newChildren = PMBlock blockType (Just (existingChildren <> newChildren)) blockAttrs
 
+-- Using Kleisli composition to compose the 2 smaller functions in the monadic context (Either monad)
 parseProseMirror :: BL.ByteString -> Either String PMDoc
 parseProseMirror = eitherDecode >=> assertRootNodeIsDoc
 
+-- Using Kleisli composition to compose the 2 smaller functions in the monadic context (Either monad)
 parseProseMirrorText :: T.Text -> Either String PMDoc
 parseProseMirrorText = eitherDecodeStrictText >=> assertRootNodeIsDoc
 

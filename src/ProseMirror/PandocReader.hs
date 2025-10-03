@@ -9,6 +9,7 @@ import Text.Pandoc.Builder as Pandoc (Pandoc)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Sources (ToSources, sourcesToText, toSources)
 
+-- Although ReaderOptions are not used, the function is written like this so that it's consistent with the other Pandoc reader functions.
 readProseMirror :: (PandocMonad m, ToSources a) => ReaderOptions -> a -> m Pandoc
 readProseMirror _ =
   -- Using Kleisli composition to compose the 2 smaller functions in the monadic context (PandocMonad)
