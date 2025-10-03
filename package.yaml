@@ -54,6 +54,7 @@ library:
     - ProseMirror.PMJson
     - ProseMirror.Decoration
     - ProseMirror.PMTree
+    - ProseMirror.Utils.JSON
 
 executables:
   v2-hs-lib:
