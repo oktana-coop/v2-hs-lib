@@ -13,7 +13,10 @@ import DocTree.Common as RichText (BlockNode (..), InlineSpan (..), LinkMark (..
 import qualified DocTree.GroupedInlines as GroupedInlinesTree
 import qualified DocTree.LeafTextSpans as LeafTextSpansTree
 import qualified ProseMirror.PMJson as PM (BlockNode (..), Mark (..), Node (..), PMDoc (..), TextNode (..), wrapChildrenToBlock)
-import Text.Pandoc.Definition as Pandoc (Block (..))
+import Text.Pandoc.Builder as Pandoc
+  ( Block (..),
+    nullAttr,
+  )
 
 data PMTreeNode = PMNode PM.Node | WrapperInlineNode | WrapperBlockNode deriving (Show)
 
@@ -90,3 +93,14 @@ pmTreeFromPMDoc = undefined
 
 pmTreeToGroupedInlinesTree :: PMTree -> Tree GroupedInlinesTree.DocNode
 pmTreeToGroupedInlinesTree = undefined
+
+-- TODO: Use ProseMirror schema as a parameter
+pmNodeToTreeNode :: PMTreeNode -> RichText.BlockNode
+pmNodeToTreeNode (WrapperBlockNode) = RichText.PandocBlock $ Pandoc.Div nullAttr []
+pmNodeToTreeNode (WrapperInlineNode) = undefined
+pmNodeToTreeNode (PMNode (PM.BlockNode pmBlockNode)) = case PM.nodeType pmBlockNode of
+  -- Node hierarchy is represented in the tree structure, so we always use an empty list of children in the Pandoc blocks
+  "paragraph" -> RichText.PandocBlock $ Pandoc.Para []
+  -- TODO: Incrementally handle more blocks
+  _ -> undefined
+pmNodeToTreeNode (PMNode (PM.TextNode pmTextNode)) = undefined
