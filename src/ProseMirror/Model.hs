@@ -69,8 +69,6 @@ instance FromJSON HeadingLevel where
       then pure $ HeadingLevel level
       else fail "Invalid heading level"
 
-data Heading = Heading HeadingLevel [TextNode] deriving (Show, Eq)
-
 newtype NoteId = NoteId T.Text deriving (Show, Eq)
 
 instance FromJSON NoteId where
@@ -78,20 +76,23 @@ instance FromJSON NoteId where
     noteId <- parseNonEmpty "id" t
     pure $ NoteId noteId
 
-data BlockType
-  = ParagraphType
+data NodeType
+  = TextType
+  | ParagraphType
   | HeadingType
   | CodeBlockType
   | BlockQuoteType
   | BulletListType
   | OrderedListType
   | ListItemType
+  | NoteRefType
   | NoteContentType
   deriving (Show, Eq)
 
-instance FromJSON BlockType where
-  parseJSON :: Value -> Parser BlockType
+instance FromJSON NodeType where
+  parseJSON :: Value -> Parser NodeType
   parseJSON = withText "BlockType" $ \t -> case t of
+    "text" -> pure TextType
     "paragraph" -> pure ParagraphType
     "heading" -> pure HeadingType
     "code_block" -> pure CodeBlockType
@@ -99,12 +100,14 @@ instance FromJSON BlockType where
     "bullet_list" -> pure BulletListType
     "ordered_list" -> pure OrderedListType
     "list_item" -> pure ListItemType
+    "note_ref" -> pure NoteRefType
     "note_content" -> pure NoteContentType
     _ -> fail "Invalid block type"
 
-instance ToJSON BlockType where
-  toJSON :: BlockType -> Value
+instance ToJSON NodeType where
+  toJSON :: NodeType -> Value
   toJSON bt = case bt of
+    TextType -> String "text"
     ParagraphType -> String "paragraph"
     HeadingType -> String "heading"
     CodeBlockType -> String "code_block"
@@ -112,4 +115,36 @@ instance ToJSON BlockType where
     BulletListType -> String "bullet_list"
     OrderedListType -> String "ordered_list"
     ListItemType -> String "list_item"
+    NoteRefType -> String "note_ref"
     NoteContentType -> String "note_content"
+
+data BlockAttrs = HeadingAttrs HeadingLevel | NoteRefAttrs NoteId | NoteContentAttrs NoteId deriving (Show, Eq)
+
+data BlockNode = PMBlock {nodeType :: NodeType, fragment :: Maybe [Node], attrs :: Maybe BlockAttrs} deriving (Show, Eq)
+
+instance FromJSON BlockNode where
+  parseJSON = withObject "BlockNode" $ \v -> do
+    nType <- (v .: "type" :: Parser NodeType)
+    nContent <- v .:? "fragment"
+    case nType of
+      ParagraphType -> pure $ PMBlock {nodeType = ParagraphType, fragment = nContent, attrs = Nothing}
+      _ -> fail "Unknown block type"
+
+instance ToJSON BlockNode where
+  toJSON blockNode = object $ ["type" .= nodeType blockNode, "fragment" .= fragment blockNode, "attrs" .= attrs blockNode]
+
+data Node = BlockNode BlockNode | TextNode TextNode deriving (Show, Eq)
+
+instance FromJSON Node where
+  parseJSON val =
+    ( withObject "Node" $ \v -> do
+        nType <- (v .: "type" :: Parser NodeType)
+        case nType of
+          TextType -> fmap TextNode $ parseJSON val
+          _ -> fmap BlockNode $ parseJSON val
+    )
+      val
+
+instance ToJSON Node where
+  toJSON (BlockNode blockNode) = toJSON blockNode
+  toJSON (TextNode textNode) = toJSON textNode
