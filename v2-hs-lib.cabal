@@ -28,10 +28,11 @@ library
       ProseMirror.PandocWriter
       ProseMirror.PandocReader
   other-modules:
-      ProseMirror.PMJson
+      ProseMirror.Model
+      ProseMirror.Json
       ProseMirror.Decoration
-      ProseMirror.PMTree
-      ProseMirror.Utils.JSON
+      ProseMirror.Tree
+      ProseMirror.Utils.Json
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints

@@ -1,4 +1,4 @@
-module ProseMirror.Utils.JSON (parseNonEmpty) where
+module ProseMirror.Utils.Json (parseNonEmpty) where
 
 import Data.Aeson.Types (Parser)
 import qualified Data.Text as T

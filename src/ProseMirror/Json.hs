@@ -1,7 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.PMJson (BlockNode (..), TextNode (..), Mark (..), Node (..), PMDoc (..), isRootBlockNode, isAtomNode, wrapChildrenToBlock, parseProseMirror, parseProseMirrorText) where
+module ProseMirror.Json (BlockNode (..), TextNode (..), Mark (..), Node (..), PMDoc (..), isRootBlockNode, isAtomNode, wrapChildrenToBlock, parseProseMirror, parseProseMirrorText) where
 
 import Control.Monad ((>=>))
 import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (..), eitherDecodeStrictText, object, withObject, (.:), (.:?), (.=))
@@ -10,7 +10,7 @@ import Data.Aeson.Types (Parser)
 import qualified Data.ByteString.Lazy as BL
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.Text as T
-import ProseMirror.Utils.JSON (parseNonEmpty)
+import ProseMirror.Utils.Json (parseNonEmpty)
 
 data Node = BlockNode BlockNode | TextNode TextNode deriving (Show, Eq)
 

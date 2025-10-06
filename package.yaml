@@ -51,10 +51,11 @@ library:
     - ProseMirror.PandocWriter
     - ProseMirror.PandocReader
   other-modules:
-    - ProseMirror.PMJson
+    - ProseMirror.Model
+    - ProseMirror.Json
     - ProseMirror.Decoration
-    - ProseMirror.PMTree
-    - ProseMirror.Utils.JSON
+    - ProseMirror.Tree
+    - ProseMirror.Utils.Json
 
 executables:
   v2-hs-lib:

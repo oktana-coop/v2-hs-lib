@@ -15,8 +15,8 @@ import qualified Debug.Trace
 import DocTree.Common as RichText (InlineSpan (..), TextSpan (..))
 import qualified DocTree.LeafTextSpans as PandocTree
 import ProseMirror.Decoration (Decoration (..), DecorationAttrs (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), undecorate)
-import qualified ProseMirror.PMJson as PM (BlockNode (..), Node (..), TextNode (..), isAtomNode, isRootBlockNode, wrapChildrenToBlock)
-import ProseMirror.PMTree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode, pmNodeFromInlineSpan, treeTextSpanNodeToPMTextNode)
+import qualified ProseMirror.Json as PM (BlockNode (..), Node (..), TextNode (..), isAtomNode, isRootBlockNode, wrapChildrenToBlock)
+import ProseMirror.Tree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode, pmNodeFromInlineSpan, treeTextSpanNodeToPMTextNode)
 import RichTextDiffOp (RichTextDiffOp (..), RichTextDiffOpType (UpdateHeadingLevelType), getDiffOpType)
 
 -- Alias to the function exposed from the PMTree module
