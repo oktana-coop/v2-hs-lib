@@ -29,4 +29,4 @@ readProseMirror _ =
     handleParsingErrorMessage = throwError . PandocParseError . T.pack
 
 toPandoc :: (PandocMonad m) => PMDoc -> m Pandoc.Pandoc
-toPandoc = pure . GroupedInlinesTree.toPandoc . pmTreeToGroupedInlinesTree . pmTreeFromPMDoc
+toPandoc = GroupedInlinesTree.toPandoc . pmTreeToGroupedInlinesTree . pmTreeFromPMDoc
