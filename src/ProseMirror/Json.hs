@@ -4,8 +4,7 @@
 module ProseMirror.Json (BlockNode (..), TextNode (..), Mark (..), Node (..), PMDoc (..), isRootBlockNode, isAtomNode, wrapChildrenToBlock, parseProseMirror, parseProseMirrorText) where
 
 import Control.Monad ((>=>))
-import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (..), eitherDecodeStrictText, object, withObject, (.:), (.:?), (.=))
-import Data.Aeson.Decoding (eitherDecode)
+import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (..), eitherDecode, eitherDecodeStrictText, object, withObject, (.:), (.:?), (.=))
 import Data.Aeson.Types (Parser)
 import qualified Data.ByteString.Lazy as BL
 import Data.List.NonEmpty (NonEmpty)

@@ -3,8 +3,10 @@
 
 module ProseMirror.Model where
 
-import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (toJSON), Value (..), object, withObject, withScientific, withText, (.:), (.:?), (.=))
+import Control.Monad ((>=>))
+import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (toJSON), Value (..), eitherDecode, eitherDecodeStrictText, object, withObject, withScientific, withText, (.:), (.:?), (.=))
 import Data.Aeson.Types (Parser)
+import qualified Data.ByteString.Lazy as BL
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.Text as T
 import ProseMirror.Utils.Json (parseNonEmpty)
@@ -69,7 +71,8 @@ instance FromJSON NoteId where
     pure $ NoteId noteId
 
 data NodeType
-  = TextType
+  = DocType
+  | TextType
   | ParagraphType
   | HeadingType
   | CodeBlockType
@@ -84,6 +87,7 @@ data NodeType
 instance FromJSON NodeType where
   parseJSON :: Value -> Parser NodeType
   parseJSON = withText "BlockType" $ \t -> case t of
+    "doc" -> pure DocType
     "text" -> pure TextType
     "paragraph" -> pure ParagraphType
     "heading" -> pure HeadingType
@@ -99,6 +103,7 @@ instance FromJSON NodeType where
 instance ToJSON NodeType where
   toJSON :: NodeType -> Value
   toJSON bt = case bt of
+    DocType -> String "doc"
     TextType -> String "text"
     ParagraphType -> String "paragraph"
     HeadingType -> String "heading"
@@ -110,17 +115,38 @@ instance ToJSON NodeType where
     NoteRefType -> String "note_ref"
     NoteContentType -> String "note_content"
 
-data Block = Paragraph | Heading HeadingLevel | CodeBlock | BlockQuote | BulletList | OrderedList | ListItem | NoteRef NoteId | NoteContent NoteId deriving (Show, Eq)
+data Block = Doc | Paragraph | Heading HeadingLevel | CodeBlock | BlockQuote | BulletList | OrderedList | ListItem | NoteRef NoteId | NoteContent NoteId deriving (Show, Eq)
 
 data BlockNode = PMBlock {block :: Block, fragment :: Maybe [Node]} deriving (Show, Eq)
 
 data Node = BlockNode BlockNode | TextNode TextNode deriving (Show, Eq)
+
+nodeType :: Node -> NodeType
+nodeType (BlockNode (PMBlock Doc _)) = DocType
+nodeType (BlockNode (PMBlock Paragraph _)) = ParagraphType
+nodeType (BlockNode (PMBlock (Heading _) _)) = HeadingType
+nodeType (BlockNode (PMBlock CodeBlock _)) = CodeBlockType
+nodeType (BlockNode (PMBlock BlockQuote _)) = BlockQuoteType
+nodeType (BlockNode (PMBlock BulletList _)) = BulletListType
+nodeType (BlockNode (PMBlock OrderedList _)) = OrderedListType
+nodeType (BlockNode (PMBlock ListItem _)) = ListItemType
+nodeType (BlockNode (PMBlock (NoteRef _) _)) = NoteRefType
+nodeType (BlockNode (PMBlock (NoteContent _) _)) = NoteContentType
+nodeType (TextNode _) = TextType
+
+-- In ProseMirror nodes like note refs which don't have directly editable content and
+-- should be treated as a single unit in the view have the `atom` property set to `true`.
+-- https://prosemirror.net/docs/ref/#model.NodeSpec.atom
+isAtomNode :: Node -> Bool
+isAtomNode (BlockNode (PMBlock (NoteRef _) _)) = True
+isAtomNode _ = False
 
 instance FromJSON Node where
   parseJSON = withObject "Node" $ \v -> do
     nType <- (v .: "type" :: Parser NodeType)
     children <- v .:? "fragment"
     case nType of
+      DocType -> pure $ BlockNode $ PMBlock {block = Doc, fragment = children}
       TextType -> do
         nText <- v .: "text" >>= parseNonEmpty "text"
         nMarks <- v .:? "marks"
@@ -156,6 +182,7 @@ instance FromJSON Node where
 instance ToJSON Node where
   toJSON (TextNode textNode) = toJSON textNode
   toJSON (BlockNode (PMBlock bl children)) = case bl of
+    Doc -> object ["type" .= toJSON DocType, "fragment" .= children]
     Paragraph -> object ["type" .= toJSON ParagraphType, "fragment" .= children]
     Heading (HeadingLevel level) -> object ["type" .= toJSON HeadingType, "fragment" .= children, "attrs" .= object ["level" .= toJSON level]]
     CodeBlock -> object ["type" .= toJSON CodeBlockType, "fragment" .= children]
@@ -165,3 +192,29 @@ instance ToJSON Node where
     ListItem -> object ["type" .= toJSON ListItemType, "fragment" .= children]
     NoteRef (NoteId noteId) -> object ["type" .= toJSON NoteRefType, "fragment" .= children, "attrs" .= object ["id" .= toJSON noteId]]
     NoteContent (NoteId noteId) -> object ["type" .= toJSON NoteContentType, "fragment" .= children, "attrs" .= object ["id" .= toJSON noteId]]
+
+data PMDoc = PMDoc {doc :: Node} deriving (Show, Eq)
+
+instance ToJSON PMDoc where
+  toJSON pmDoc = object ["doc" .= doc pmDoc]
+
+isRootBlockNode :: Node -> Bool
+isRootBlockNode blockNode = nodeType blockNode == DocType
+
+wrapChildrenToBlock :: BlockNode -> [Node] -> BlockNode
+wrapChildrenToBlock (PMBlock bl Nothing) children = PMBlock bl (Just children)
+wrapChildrenToBlock (PMBlock bl (Just existingChildren)) newChildren = PMBlock bl (Just (existingChildren <> newChildren))
+
+-- Using Kleisli composition to compose the 2 smaller functions in the monadic context (Either monad)
+parseProseMirror :: BL.ByteString -> Either String PMDoc
+parseProseMirror = eitherDecode >=> assertRootNodeIsDoc
+
+-- Using Kleisli composition to compose the 2 smaller functions in the monadic context (Either monad)
+parseProseMirrorText :: T.Text -> Either String PMDoc
+parseProseMirrorText = eitherDecodeStrictText >=> assertRootNodeIsDoc
+
+assertRootNodeIsDoc :: Node -> Either String PMDoc
+assertRootNodeIsDoc n =
+  if nodeType n == DocType
+    then Right $ PMDoc {doc = n}
+    else Left "Root node type is not doc"
