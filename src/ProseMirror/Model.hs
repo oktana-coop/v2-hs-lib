@@ -3,7 +3,7 @@
 
 module ProseMirror.Model where
 
-import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (toJSON), Value (Bool, Null, String), eitherDecode, eitherDecodeStrictText, encode, object, withObject, withScientific, withText, (.!=), (.:), (.:?), (.=))
+import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (toJSON), Value (..), eitherDecode, eitherDecodeStrictText, encode, object, withObject, withScientific, withText, (.!=), (.:), (.:?), (.=))
 import qualified Data.Aeson.Key as K
 import qualified Data.Aeson.KeyMap as KM
 import Data.Aeson.Types (Parser)
@@ -120,18 +120,31 @@ instance ToJSON NodeType where
 
 data BlockAttrs = HeadingAttrs HeadingLevel | NoteRefAttrs NoteId | NoteContentAttrs NoteId deriving (Show, Eq)
 
-data BlockNode = PMBlock {nodeType :: NodeType, fragment :: Maybe [Node], attrs :: Maybe BlockAttrs} deriving (Show, Eq)
+data Block = Paragraph | Heading HeadingLevel | NoteRef NoteId | NoteContent NoteId deriving (Show, Eq)
+
+data BlockNode = PMBlock {block :: Block, fragment :: Maybe [Node]} deriving (Show, Eq)
 
 instance FromJSON BlockNode where
   parseJSON = withObject "BlockNode" $ \v -> do
     nType <- (v .: "type" :: Parser NodeType)
-    nContent <- v .:? "fragment"
+    children <- v .:? "fragment"
     case nType of
-      ParagraphType -> pure $ PMBlock {nodeType = ParagraphType, fragment = nContent, attrs = Nothing}
+      ParagraphType -> pure $ PMBlock {block = Paragraph, fragment = children}
+      HeadingType -> do
+        nAttrs <- (v .:? "attrs" :: Parser (Maybe Object))
+        case nAttrs of
+          Just attrs -> do
+            level <- (attrs .: "level" :: Parser HeadingLevel)
+            pure $ PMBlock {block = Heading level, fragment = children}
+          Nothing -> fail "Could not find heading attrs"
       _ -> fail "Unknown block type"
 
 instance ToJSON BlockNode where
-  toJSON blockNode = object $ ["type" .= nodeType blockNode, "fragment" .= fragment blockNode, "attrs" .= attrs blockNode]
+  toJSON (PMBlock bl children) = case bl of
+    Paragraph -> object ["type" .= toJSON ParagraphType, "fragment" .= children]
+    Heading (HeadingLevel level) -> object ["type" .= toJSON HeadingType, "fragment" .= children, "attrs" .= object ["level" .= toJSON level]]
+    NoteRef (NoteId noteId) -> object ["type" .= toJSON NoteRefType, "fragment" .= children, "attrs" .= object ["id" .= toJSON noteId]]
+    NoteContent (NoteId noteId) -> object ["type" .= toJSON NoteContentType, "fragment" .= children, "attrs" .= object ["id" .= toJSON noteId]]
 
 data Node = BlockNode BlockNode | TextNode TextNode deriving (Show, Eq)
 
