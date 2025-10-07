@@ -4,7 +4,7 @@ import Control.Monad ((>=>))
 import Control.Monad.Except (throwError)
 import qualified Data.Text as T
 import qualified DocTree.GroupedInlines as GroupedInlinesTree
-import ProseMirror.Json (PMDoc, parseProseMirrorText)
+import ProseMirror.Model (PMDoc, parseProseMirrorText)
 import ProseMirror.Tree (pmTreeFromPMDoc, pmTreeToGroupedInlinesTree)
 import Text.Pandoc (PandocError (PandocParseError), ReaderOptions)
 import Text.Pandoc.Builder as Pandoc (Pandoc)

@@ -29,7 +29,6 @@ library
       ProseMirror.PandocReader
   other-modules:
       ProseMirror.Model
-      ProseMirror.Json
       ProseMirror.Decoration
       ProseMirror.Tree
       ProseMirror.Utils.Json

@@ -15,7 +15,7 @@ import qualified Debug.Trace
 import DocTree.Common as RichText (InlineSpan (..), TextSpan (..))
 import qualified DocTree.LeafTextSpans as PandocTree
 import ProseMirror.Decoration (Decoration (..), DecorationAttrs (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), undecorate)
-import qualified ProseMirror.Json as PM (BlockNode (..), Node (..), TextNode (..), isAtomNode, isRootBlockNode, wrapChildrenToBlock)
+import qualified ProseMirror.Model as PM (Node (..), TextNode (..), isAtomNode, isRootBlockNode, wrapChildrenToBlock)
 import ProseMirror.Tree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode, pmNodeFromInlineSpan, treeTextSpanNodeToPMTextNode)
 import RichTextDiffOp (RichTextDiffOp (..), RichTextDiffOpType (UpdateHeadingLevelType), getDiffOpType)
 
@@ -25,7 +25,7 @@ pandocTreeNodeToPMNode = leafTextSpansPandocTreeNodeToPMNode
 
 type DecoratedPMTree = Tree (Either PMTreeNode (Decoration PMTreeNode))
 
-data DecoratedPMDoc = DecoratedPMDoc {doc :: PM.BlockNode, decorations :: [Decoration PM.Node]} deriving (Show, Eq)
+data DecoratedPMDoc = DecoratedPMDoc {doc :: PM.Node, decorations :: [Decoration PM.Node]} deriving (Show, Eq)
 
 instance ToJSON DecoratedPMDoc where
   toJSON decoratedPMDoc = object ["doc" .= doc decoratedPMDoc, "decorations" .= decorations decoratedPMDoc]
@@ -183,7 +183,7 @@ wrapInWidgetDecoration pmNode position =
     }
 
 isNotDeletedPMBlockNode :: Either PMTreeNode (Decoration PMTreeNode) -> Bool
-isNotDeletedPMBlockNode (Left (PMNode (PM.BlockNode blockNode))) = not (PM.isRootBlockNode blockNode || PM.isAtomNode blockNode)
+isNotDeletedPMBlockNode (Left (PMNode node)) = not (PM.isRootBlockNode node || PM.isAtomNode node)
 isNotDeletedPMBlockNode (Left _) = False
 -- Inline decorations wrap text nodes, not block nodes.
 -- TODO: Capture this properly in the type system.
@@ -192,7 +192,7 @@ isNotDeletedPMBlockNode (Right (InlineDecoration _)) = False
 -- TODO: Capture this properly in the type system.
 isNotDeletedPMBlockNode (Right (WidgetDecoration _)) = False
 isNotDeletedPMBlockNode (Right (NodeDecoration dec)) = case nodeDecContent dec of
-  PMNode (PM.BlockNode blockNode) -> not (PM.isRootBlockNode blockNode || PM.isAtomNode blockNode)
+  PMNode node -> not (PM.isRootBlockNode node || PM.isAtomNode node)
   _ -> False
 
 pmDocFromPMTree :: DecoratedPMTree -> DecoratedPMDoc
@@ -200,11 +200,11 @@ pmDocFromPMTree pmTree = DecoratedPMDoc {doc = pmDoc, decorations = pmDecoration
   where
     (pmDoc, pmDecorations) = extractRootBlock $ foldTree pmTreeNodeFolder pmTree
 
-    extractRootBlock :: ([PM.Node], [Decoration PM.Node]) -> (PM.BlockNode, [Decoration PM.Node])
+    extractRootBlock :: ([PM.Node], [Decoration PM.Node]) -> (PM.Node, [Decoration PM.Node])
     extractRootBlock (nodes, decs) = (assertRootNodeIsBlock $ listToMaybe nodes, decs)
 
-    assertRootNodeIsBlock :: Maybe PM.Node -> PM.BlockNode
-    assertRootNodeIsBlock (Just (PM.BlockNode rootNode)) = rootNode
+    assertRootNodeIsBlock :: Maybe PM.Node -> PM.Node
+    assertRootNodeIsBlock (Just n@(PM.BlockNode _)) = n
     -- TODO: Fail gracefully
     assertRootNodeIsBlock _ = undefined
 
