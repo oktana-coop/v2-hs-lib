@@ -3,9 +3,7 @@
 
 module ProseMirror.Model where
 
-import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (toJSON), Value (..), eitherDecode, eitherDecodeStrictText, encode, object, withObject, withScientific, withText, (.!=), (.:), (.:?), (.=))
-import qualified Data.Aeson.Key as K
-import qualified Data.Aeson.KeyMap as KM
+import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (toJSON), Value (..), object, withObject, withScientific, withText, (.:), (.:?), (.=))
 import Data.Aeson.Types (Parser)
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.Text as T
@@ -50,12 +48,6 @@ instance ToJSON Mark where
   toJSON Code = object ["type" .= T.pack "code"]
 
 data TextNode = PMText {text :: T.Text, marks :: Maybe (NonEmpty Mark)} deriving (Show, Eq)
-
-instance FromJSON TextNode where
-  parseJSON = withObject "TextNode" $ \v -> do
-    nText <- v .: "text" >>= parseNonEmpty "text"
-    nMarks <- v .:? "marks"
-    pure $ PMText {text = nText, marks = nMarks}
 
 instance ToJSON TextNode where
   toJSON textNode = object $ ["type" .= T.pack "text", "text" .= text textNode, "marks" .= marks textNode]
@@ -118,46 +110,58 @@ instance ToJSON NodeType where
     NoteRefType -> String "note_ref"
     NoteContentType -> String "note_content"
 
-data BlockAttrs = HeadingAttrs HeadingLevel | NoteRefAttrs NoteId | NoteContentAttrs NoteId deriving (Show, Eq)
-
-data Block = Paragraph | Heading HeadingLevel | NoteRef NoteId | NoteContent NoteId deriving (Show, Eq)
+data Block = Paragraph | Heading HeadingLevel | CodeBlock | BlockQuote | BulletList | OrderedList | ListItem | NoteRef NoteId | NoteContent NoteId deriving (Show, Eq)
 
 data BlockNode = PMBlock {block :: Block, fragment :: Maybe [Node]} deriving (Show, Eq)
 
-instance FromJSON BlockNode where
-  parseJSON = withObject "BlockNode" $ \v -> do
+data Node = BlockNode BlockNode | TextNode TextNode deriving (Show, Eq)
+
+instance FromJSON Node where
+  parseJSON = withObject "Node" $ \v -> do
     nType <- (v .: "type" :: Parser NodeType)
     children <- v .:? "fragment"
     case nType of
-      ParagraphType -> pure $ PMBlock {block = Paragraph, fragment = children}
+      TextType -> do
+        nText <- v .: "text" >>= parseNonEmpty "text"
+        nMarks <- v .:? "marks"
+        pure $ TextNode $ PMText {text = nText, marks = nMarks}
+      ParagraphType -> pure $ BlockNode $ PMBlock {block = Paragraph, fragment = children}
       HeadingType -> do
         nAttrs <- (v .:? "attrs" :: Parser (Maybe Object))
         case nAttrs of
           Just attrs -> do
             level <- (attrs .: "level" :: Parser HeadingLevel)
-            pure $ PMBlock {block = Heading level, fragment = children}
+            pure $ BlockNode $ PMBlock {block = Heading level, fragment = children}
           Nothing -> fail "Could not find heading attrs"
-      _ -> fail "Unknown block type"
-
-instance ToJSON BlockNode where
-  toJSON (PMBlock bl children) = case bl of
-    Paragraph -> object ["type" .= toJSON ParagraphType, "fragment" .= children]
-    Heading (HeadingLevel level) -> object ["type" .= toJSON HeadingType, "fragment" .= children, "attrs" .= object ["level" .= toJSON level]]
-    NoteRef (NoteId noteId) -> object ["type" .= toJSON NoteRefType, "fragment" .= children, "attrs" .= object ["id" .= toJSON noteId]]
-    NoteContent (NoteId noteId) -> object ["type" .= toJSON NoteContentType, "fragment" .= children, "attrs" .= object ["id" .= toJSON noteId]]
-
-data Node = BlockNode BlockNode | TextNode TextNode deriving (Show, Eq)
-
-instance FromJSON Node where
-  parseJSON val =
-    ( withObject "Node" $ \v -> do
-        nType <- (v .: "type" :: Parser NodeType)
-        case nType of
-          TextType -> fmap TextNode $ parseJSON val
-          _ -> fmap BlockNode $ parseJSON val
-    )
-      val
+      CodeBlockType -> pure $ BlockNode $ PMBlock {block = CodeBlock, fragment = children}
+      BlockQuoteType -> pure $ BlockNode $ PMBlock {block = BlockQuote, fragment = children}
+      BulletListType -> pure $ BlockNode $ PMBlock {block = BulletList, fragment = children}
+      OrderedListType -> pure $ BlockNode $ PMBlock {block = OrderedList, fragment = children}
+      ListItemType -> pure $ BlockNode $ PMBlock {block = ListItem, fragment = children}
+      NoteRefType -> do
+        nAttrs <- (v .:? "attrs" :: Parser (Maybe Object))
+        case nAttrs of
+          Just attrs -> do
+            noteId <- (attrs .: "id" :: Parser NoteId)
+            pure $ BlockNode $ PMBlock {block = NoteRef noteId, fragment = children}
+          Nothing -> fail "Could not find note ref attrs"
+      NoteContentType -> do
+        nAttrs <- (v .:? "attrs" :: Parser (Maybe Object))
+        case nAttrs of
+          Just attrs -> do
+            noteId <- (attrs .: "id" :: Parser NoteId)
+            pure $ BlockNode $ PMBlock {block = NoteContent noteId, fragment = children}
+          Nothing -> fail "Could not find note ref attrs"
 
 instance ToJSON Node where
-  toJSON (BlockNode blockNode) = toJSON blockNode
   toJSON (TextNode textNode) = toJSON textNode
+  toJSON (BlockNode (PMBlock bl children)) = case bl of
+    Paragraph -> object ["type" .= toJSON ParagraphType, "fragment" .= children]
+    Heading (HeadingLevel level) -> object ["type" .= toJSON HeadingType, "fragment" .= children, "attrs" .= object ["level" .= toJSON level]]
+    CodeBlock -> object ["type" .= toJSON CodeBlockType, "fragment" .= children]
+    BlockQuote -> object ["type" .= toJSON BlockQuoteType, "fragment" .= children]
+    BulletList -> object ["type" .= toJSON BulletListType, "fragment" .= children]
+    OrderedList -> object ["type" .= toJSON OrderedListType, "fragment" .= children]
+    ListItem -> object ["type" .= toJSON ListItemType, "fragment" .= children]
+    NoteRef (NoteId noteId) -> object ["type" .= toJSON NoteRefType, "fragment" .= children, "attrs" .= object ["id" .= toJSON noteId]]
+    NoteContent (NoteId noteId) -> object ["type" .= toJSON NoteContentType, "fragment" .= children, "attrs" .= object ["id" .= toJSON noteId]]
