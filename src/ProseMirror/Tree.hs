@@ -3,9 +3,9 @@
 module ProseMirror.Tree (PMTree, PMTreeNode (..), groupedInlinesPandocTreeToPMTree, pmDocFromPMTree, leafTextSpansPandocTreeNodeToPMNode, treeTextSpanNodeToPMTextNode, pmNodeFromInlineSpan, pmTreeFromPMDoc, pmTreeToGroupedInlinesTree) where
 
 import Data.List.NonEmpty (nonEmpty, toList)
-import Data.Maybe (listToMaybe)
+import Data.Maybe (listToMaybe, maybeToList)
 import qualified Data.Text as T
-import Data.Tree (Tree (..), foldTree)
+import Data.Tree (Tree (..), foldTree, unfoldTree)
 import DocTree.Common as RichText (BlockNode (..), InlineSpan (..), LinkMark (..), Mark (..), NoteId (..), TextSpan (..))
 import qualified DocTree.GroupedInlines as GroupedInlinesTree
 import qualified DocTree.LeafTextSpans as LeafTextSpansTree
@@ -83,7 +83,12 @@ treeTextSpanNodeToPMTextNode textSpan = PM.PMText {PM.text = value textSpan, PM.
     toPMMark RichText.CodeMark = PM.Code
 
 pmTreeFromPMDoc :: PM.PMDoc -> PMTree
-pmTreeFromPMDoc = undefined
+pmTreeFromPMDoc (PM.PMDoc rootNode) = unfoldTree pmTreeFromPMDocUnfolder rootNode
+
+pmTreeFromPMDocUnfolder :: PM.Node -> (PMTreeNode, [PM.Node])
+pmTreeFromPMDocUnfolder (PM.BlockNode (PM.PMBlock bl children)) =
+  (PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = bl, PM.fragment = Nothing}, concat $ maybeToList children)
+pmTreeFromPMDocUnfolder textNode@(PM.TextNode _) = (PMNode textNode, [])
 
 pmTreeToGroupedInlinesTree :: PMTree -> Tree GroupedInlinesTree.DocNode
 pmTreeToGroupedInlinesTree = foldTree pmNodeToGroupedInlinesNodeFolder
