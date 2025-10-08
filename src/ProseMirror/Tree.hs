@@ -38,14 +38,14 @@ pmTreeNodeFolder (PMNode (PM.BlockNode blockNode)) childNodes = [PM.BlockNode $ 
 
 groupedInlinesPandocTreeToPMTree :: Tree GroupedInlinesTree.DocNode -> PMTree
 groupedInlinesPandocTreeToPMTree (Node GroupedInlinesTree.Root childTrees) =
-  Node (PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Doc, PM.fragment = Nothing}) (map groupedInlinesPandocTreeToPMTree childTrees)
+  Node (PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Doc, PM.content = Nothing}) (map groupedInlinesPandocTreeToPMTree childTrees)
 groupedInlinesPandocTreeToPMTree (Node (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode blockNode)) childTrees) =
   Node (treeBlockNodeToPMBlockNode blockNode) (map groupedInlinesPandocTreeToPMTree childTrees)
 groupedInlinesPandocTreeToPMTree (Node (GroupedInlinesTree.TreeNode (GroupedInlinesTree.InlineNode (GroupedInlinesTree.InlineContent inlineSpans))) _) =
   Node WrapperInlineNode (map pmTreeFromInlineSpan inlineSpans)
 
 leafTextSpansPandocTreeNodeToPMNode :: LeafTextSpansTree.DocNode -> PMTreeNode
-leafTextSpansPandocTreeNodeToPMNode LeafTextSpansTree.Root = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Doc, PM.fragment = Nothing}
+leafTextSpansPandocTreeNodeToPMNode LeafTextSpansTree.Root = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Doc, PM.content = Nothing}
 leafTextSpansPandocTreeNodeToPMNode (LeafTextSpansTree.TreeNode (LeafTextSpansTree.BlockNode node)) = treeBlockNodeToPMBlockNode node
 leafTextSpansPandocTreeNodeToPMNode (LeafTextSpansTree.TreeNode (LeafTextSpansTree.InlineNode)) = WrapperInlineNode
 leafTextSpansPandocTreeNodeToPMNode (LeafTextSpansTree.TreeNode (LeafTextSpansTree.InlineContent inlineSpan)) = pmNodeFromInlineSpan inlineSpan
@@ -55,20 +55,20 @@ pmTreeFromInlineSpan inlineSpan = Node (pmNodeFromInlineSpan inlineSpan) []
 
 pmNodeFromInlineSpan :: InlineSpan -> PMTreeNode
 pmNodeFromInlineSpan (InlineText textSpan) = PMNode (PM.TextNode (treeTextSpanNodeToPMTextNode textSpan))
-pmNodeFromInlineSpan (NoteRef (NoteId noteId)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.NoteRef $ PM.NoteId noteId, PM.fragment = Nothing}
+pmNodeFromInlineSpan (NoteRef (NoteId noteId)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.NoteRef $ PM.NoteId noteId, PM.content = Nothing}
 
 -- TODO: Use ProseMirror schema as a parameter
 treeBlockNodeToPMBlockNode :: RichText.BlockNode -> PMTreeNode
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Plain _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Paragraph, PM.fragment = Nothing}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Para _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Paragraph, PM.fragment = Nothing}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Header level _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Heading $ PM.HeadingLevel level, PM.fragment = Nothing}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.CodeBlock _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.CodeBlock, PM.fragment = Nothing}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BulletList _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.BulletList, PM.fragment = Nothing}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.OrderedList _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.OrderedList, PM.fragment = Nothing}
-treeBlockNodeToPMBlockNode (RichText.ListItem _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.ListItem, PM.fragment = Nothing}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BlockQuote _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.BlockQuote, PM.fragment = Nothing}
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Plain _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Paragraph, PM.content = Nothing}
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Para _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Paragraph, PM.content = Nothing}
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Header level _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Heading $ PM.HeadingLevel level, PM.content = Nothing}
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.CodeBlock _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.CodeBlock, PM.content = Nothing}
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BulletList _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.BulletList, PM.content = Nothing}
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.OrderedList _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.OrderedList, PM.content = Nothing}
+treeBlockNodeToPMBlockNode (RichText.ListItem _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.ListItem, PM.content = Nothing}
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BlockQuote _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.BlockQuote, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Div _ _)) = WrapperBlockNode
-treeBlockNodeToPMBlockNode (RichText.NoteContent (NoteId noteId) _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.NoteContent $ PM.NoteId noteId, PM.fragment = Nothing}
+treeBlockNodeToPMBlockNode (RichText.NoteContent (NoteId noteId) _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.NoteContent $ PM.NoteId noteId, PM.content = Nothing}
 -- TODO: Incrementally handle more blocks
 treeBlockNodeToPMBlockNode _ = undefined
 
@@ -87,7 +87,7 @@ pmTreeFromPMDoc (PM.PMDoc rootNode) = unfoldTree pmTreeFromPMDocUnfolder rootNod
 
 pmTreeFromPMDocUnfolder :: PM.Node -> (PMTreeNode, [PM.Node])
 pmTreeFromPMDocUnfolder (PM.BlockNode (PM.PMBlock bl children)) =
-  (PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = bl, PM.fragment = Nothing}, concat $ maybeToList children)
+  (PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = bl, PM.content = Nothing}, concat $ maybeToList children)
 pmTreeFromPMDocUnfolder textNode@(PM.TextNode _) = (PMNode textNode, [])
 
 pmTreeToGroupedInlinesTree :: PMTree -> Tree GroupedInlinesTree.DocNode

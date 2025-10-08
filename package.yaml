@@ -54,6 +54,7 @@ library:
     - ProseMirror.Model
     - ProseMirror.Decoration
     - ProseMirror.Tree
+    - ProseMirror.Utils.Debug
     - ProseMirror.Utils.Json
 
 executables:

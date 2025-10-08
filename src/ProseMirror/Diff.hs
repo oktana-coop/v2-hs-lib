@@ -10,13 +10,13 @@ import Control.Monad.State (State, evalState, get, modify)
 import Data.Aeson (ToJSON, object, toJSON, (.=))
 import Data.Maybe (listToMaybe)
 import qualified Data.Text as T
-import Data.Tree (Tree (..), drawTree, foldTree)
-import qualified Debug.Trace
+import Data.Tree (Tree (..), foldTree)
 import DocTree.Common as RichText (InlineSpan (..), TextSpan (..))
 import qualified DocTree.LeafTextSpans as PandocTree
 import ProseMirror.Decoration (Decoration (..), DecorationAttrs (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), undecorate)
 import qualified ProseMirror.Model as PM (Node (..), TextNode (..), isAtomNode, isRootBlockNode, wrapChildrenToBlock)
 import ProseMirror.Tree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode, pmNodeFromInlineSpan, treeTextSpanNodeToPMTextNode)
+import ProseMirror.Utils.Debug (traceTree)
 import RichTextDiffOp (RichTextDiffOp (..), RichTextDiffOpType (UpdateHeadingLevelType), getDiffOpType)
 
 -- Alias to the function exposed from the PMTree module
@@ -34,9 +34,6 @@ type PMIndex = Int
 
 toDecoratedPMDoc :: Tree (RichTextDiffOp PandocTree.DocNode) -> DecoratedPMDoc
 toDecoratedPMDoc = pmDocFromPMTree . traceTree . toProseMirrorTreeWithDiffDecorations
-
-traceTree :: (Show a) => Tree a -> Tree a
-traceTree tree = Debug.Trace.trace (drawTree $ fmap show tree) tree
 
 toProseMirrorTreeWithDiffDecorations :: Tree (RichTextDiffOp PandocTree.DocNode) -> DecoratedPMTree
 toProseMirrorTreeWithDiffDecorations diffTree = evalState (walkDiffTree diffTree) 0

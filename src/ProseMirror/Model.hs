@@ -117,7 +117,7 @@ instance ToJSON NodeType where
 
 data Block = Doc | Paragraph | Heading HeadingLevel | CodeBlock | BlockQuote | BulletList | OrderedList | ListItem | NoteRef NoteId | NoteContent NoteId deriving (Show, Eq)
 
-data BlockNode = PMBlock {block :: Block, fragment :: Maybe [Node]} deriving (Show, Eq)
+data BlockNode = PMBlock {block :: Block, content :: Maybe [Node]} deriving (Show, Eq)
 
 data Node = BlockNode BlockNode | TextNode TextNode deriving (Show, Eq)
 
@@ -144,54 +144,54 @@ isAtomNode _ = False
 instance FromJSON Node where
   parseJSON = withObject "Node" $ \v -> do
     nType <- (v .: "type" :: Parser NodeType)
-    children <- v .:? "fragment"
+    children <- v .:? "content"
     case nType of
-      DocType -> pure $ BlockNode $ PMBlock {block = Doc, fragment = children}
+      DocType -> pure $ BlockNode $ PMBlock {block = Doc, content = children}
       TextType -> do
         nText <- v .: "text" >>= parseNonEmpty "text"
         nMarks <- v .:? "marks"
         pure $ TextNode $ PMText {text = nText, marks = nMarks}
-      ParagraphType -> pure $ BlockNode $ PMBlock {block = Paragraph, fragment = children}
+      ParagraphType -> pure $ BlockNode $ PMBlock {block = Paragraph, content = children}
       HeadingType -> do
         nAttrs <- (v .:? "attrs" :: Parser (Maybe Object))
         case nAttrs of
           Just attrs -> do
             level <- (attrs .: "level" :: Parser HeadingLevel)
-            pure $ BlockNode $ PMBlock {block = Heading level, fragment = children}
+            pure $ BlockNode $ PMBlock {block = Heading level, content = children}
           Nothing -> fail "Could not find heading attrs"
-      CodeBlockType -> pure $ BlockNode $ PMBlock {block = CodeBlock, fragment = children}
-      BlockQuoteType -> pure $ BlockNode $ PMBlock {block = BlockQuote, fragment = children}
-      BulletListType -> pure $ BlockNode $ PMBlock {block = BulletList, fragment = children}
-      OrderedListType -> pure $ BlockNode $ PMBlock {block = OrderedList, fragment = children}
-      ListItemType -> pure $ BlockNode $ PMBlock {block = ListItem, fragment = children}
+      CodeBlockType -> pure $ BlockNode $ PMBlock {block = CodeBlock, content = children}
+      BlockQuoteType -> pure $ BlockNode $ PMBlock {block = BlockQuote, content = children}
+      BulletListType -> pure $ BlockNode $ PMBlock {block = BulletList, content = children}
+      OrderedListType -> pure $ BlockNode $ PMBlock {block = OrderedList, content = children}
+      ListItemType -> pure $ BlockNode $ PMBlock {block = ListItem, content = children}
       NoteRefType -> do
         nAttrs <- (v .:? "attrs" :: Parser (Maybe Object))
         case nAttrs of
           Just attrs -> do
             noteId <- (attrs .: "id" :: Parser NoteId)
-            pure $ BlockNode $ PMBlock {block = NoteRef noteId, fragment = children}
+            pure $ BlockNode $ PMBlock {block = NoteRef noteId, content = children}
           Nothing -> fail "Could not find note ref attrs"
       NoteContentType -> do
         nAttrs <- (v .:? "attrs" :: Parser (Maybe Object))
         case nAttrs of
           Just attrs -> do
             noteId <- (attrs .: "id" :: Parser NoteId)
-            pure $ BlockNode $ PMBlock {block = NoteContent noteId, fragment = children}
+            pure $ BlockNode $ PMBlock {block = NoteContent noteId, content = children}
           Nothing -> fail "Could not find note ref attrs"
 
 instance ToJSON Node where
   toJSON (TextNode textNode) = toJSON textNode
   toJSON (BlockNode (PMBlock bl children)) = case bl of
-    Doc -> object ["type" .= toJSON DocType, "fragment" .= children]
-    Paragraph -> object ["type" .= toJSON ParagraphType, "fragment" .= children]
-    Heading (HeadingLevel level) -> object ["type" .= toJSON HeadingType, "fragment" .= children, "attrs" .= object ["level" .= toJSON level]]
-    CodeBlock -> object ["type" .= toJSON CodeBlockType, "fragment" .= children]
-    BlockQuote -> object ["type" .= toJSON BlockQuoteType, "fragment" .= children]
-    BulletList -> object ["type" .= toJSON BulletListType, "fragment" .= children]
-    OrderedList -> object ["type" .= toJSON OrderedListType, "fragment" .= children]
-    ListItem -> object ["type" .= toJSON ListItemType, "fragment" .= children]
-    NoteRef (NoteId noteId) -> object ["type" .= toJSON NoteRefType, "fragment" .= children, "attrs" .= object ["id" .= toJSON noteId]]
-    NoteContent (NoteId noteId) -> object ["type" .= toJSON NoteContentType, "fragment" .= children, "attrs" .= object ["id" .= toJSON noteId]]
+    Doc -> object ["type" .= toJSON DocType, "content" .= children]
+    Paragraph -> object ["type" .= toJSON ParagraphType, "content" .= children]
+    Heading (HeadingLevel level) -> object ["type" .= toJSON HeadingType, "content" .= children, "attrs" .= object ["level" .= toJSON level]]
+    CodeBlock -> object ["type" .= toJSON CodeBlockType, "content" .= children]
+    BlockQuote -> object ["type" .= toJSON BlockQuoteType, "content" .= children]
+    BulletList -> object ["type" .= toJSON BulletListType, "content" .= children]
+    OrderedList -> object ["type" .= toJSON OrderedListType, "content" .= children]
+    ListItem -> object ["type" .= toJSON ListItemType, "content" .= children]
+    NoteRef (NoteId noteId) -> object ["type" .= toJSON NoteRefType, "content" .= children, "attrs" .= object ["id" .= toJSON noteId]]
+    NoteContent (NoteId noteId) -> object ["type" .= toJSON NoteContentType, "content" .= children, "attrs" .= object ["id" .= toJSON noteId]]
 
 data PMDoc = PMDoc {doc :: Node} deriving (Show, Eq)
 
