@@ -180,7 +180,7 @@ wrapInWidgetDecoration pmNode position =
     }
 
 isNotDeletedPMBlockNode :: Either PMTreeNode (Decoration PMTreeNode) -> Bool
-isNotDeletedPMBlockNode (Left (PMNode node)) = not (PM.isRootBlockNode node || PM.isAtomNode node)
+isNotDeletedPMBlockNode (Left (PMNode node@(PM.BlockNode _))) = not (PM.isRootBlockNode node || PM.isAtomNode node)
 isNotDeletedPMBlockNode (Left _) = False
 -- Inline decorations wrap text nodes, not block nodes.
 -- TODO: Capture this properly in the type system.
@@ -189,7 +189,7 @@ isNotDeletedPMBlockNode (Right (InlineDecoration _)) = False
 -- TODO: Capture this properly in the type system.
 isNotDeletedPMBlockNode (Right (WidgetDecoration _)) = False
 isNotDeletedPMBlockNode (Right (NodeDecoration dec)) = case nodeDecContent dec of
-  PMNode node -> not (PM.isRootBlockNode node || PM.isAtomNode node)
+  PMNode node@(PM.BlockNode _) -> not (PM.isRootBlockNode node || PM.isAtomNode node)
   _ -> False
 
 pmDocFromPMTree :: DecoratedPMTree -> DecoratedPMDoc
