@@ -7,8 +7,8 @@ import qualified Data.ByteString.Lazy.Char8 as BSL8
 import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8)
 import qualified DocTree.GroupedInlines (toTree)
-import qualified ProseMirror.PMJson as PM (PMDoc (..))
-import ProseMirror.PMTree (PMTree, groupedInlinesPandocTreeToPMTree, pmDocFromPMTree)
+import qualified ProseMirror.Model as PM (PMDoc (..))
+import ProseMirror.Tree (PMTree, groupedInlinesPandocTreeToPMTree, pmDocFromPMTree)
 import Text.Pandoc (PandocError (PandocParseError), WriterOptions)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition as Pandoc (Pandoc)

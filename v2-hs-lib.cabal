@@ -26,10 +26,13 @@ library
   exposed-modules:
       ProseMirror.Diff
       ProseMirror.PandocWriter
+      ProseMirror.PandocReader
   other-modules:
-      ProseMirror.PMJson
+      ProseMirror.Model
       ProseMirror.Decoration
-      ProseMirror.PMTree
+      ProseMirror.Tree
+      ProseMirror.Utils.Debug
+      ProseMirror.Utils.Json
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints

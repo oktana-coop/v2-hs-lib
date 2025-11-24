@@ -15,6 +15,7 @@ import Debug.Trace (trace)
 import PandocReader as AutomergePandoc.PandocReader (readAutomerge)
 import PandocWriter as AutomergePandoc.PandocWriter (writeAutomerge)
 import ProseMirror.Diff (DecoratedPMDoc, toDecoratedPMDoc)
+import ProseMirror.PandocReader (readProseMirror)
 import ProseMirror.PandocWriter (writeProseMirror)
 import Response (ErrorOutput (..), Response (..))
 import RichTextDiff (getAnnotatedTree)
@@ -59,7 +60,7 @@ readFrom format = case format of
   Cli.Json -> readJSON
   Cli.Automerge -> readAutomerge
   -- TODO: Implement these. For the ones that cannot implemented (potentially PDF), return an error
-  Cli.ProseMirror -> undefined
+  Cli.ProseMirror -> readProseMirror
   Cli.Pdf -> undefined
   Cli.Docx -> undefined
 
