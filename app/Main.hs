@@ -19,7 +19,7 @@ import ProseMirror.PandocReader (readProseMirror)
 import ProseMirror.PandocWriter (writeProseMirror)
 import Response (ErrorOutput (..), Response (..))
 import RichTextDiff (getAnnotatedTree)
-import Text.Pandoc (Pandoc, PandocError (PandocSomeError), PandocIO, PandocMonad, ReaderOptions, WriterOptions, def, readHtml, readJSON, readMarkdown, readNative, readerExtensions, writerExtensions)
+import Text.Pandoc (Pandoc, PandocError (PandocSomeError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readMarkdown, readNative, readerExtensions, writerExtensions)
 import Text.Pandoc.Class (runIO)
 import Text.Pandoc.Error (handleError, renderError)
 import Text.Pandoc.Extensions (Extension (Ext_fenced_code_blocks, Ext_footnotes), enableExtension, pandocExtensions)
@@ -75,7 +75,7 @@ convert inputFormat outputFormat input = do
     -- TODO: Investigate why, in theory `def` includes fenced code blocks too,
     -- so we must understand why it needs this special treatment.
     readerOpts = def {readerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks pandocExtensions}
-    writerOpts = def {writerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks pandocExtensions}
+    writerOpts = def {writerWrapText = WrapPreserve, writerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks pandocExtensions}
 
 convertToText :: Format -> Format -> String -> IO ()
 convertToText inputFormat outputFormat input = do
