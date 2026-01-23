@@ -107,7 +107,7 @@ pmNodeToGroupedInlinesNodeFolder (PMNode (PM.BlockNode (PM.PMBlock (PM.BulletLis
 pmNodeToGroupedInlinesNodeFolder (PMNode (PM.BlockNode (PM.PMBlock (PM.OrderedList) _))) childTrees =
   Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.OrderedList (1, DefaultStyle, DefaultDelim) []) childTrees
 pmNodeToGroupedInlinesNodeFolder (PMNode (PM.BlockNode (PM.PMBlock (PM.ListItem) _))) childTrees =
-  Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.ListItem []) (concatAdjacentInlineNodes childTrees)
+  Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.ListItem []) (compactListIfPossible $ concatAdjacentInlineNodes childTrees)
 pmNodeToGroupedInlinesNodeFolder (PMNode (PM.BlockNode (PM.PMBlock (PM.BlockQuote) _))) childTrees =
   Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.BlockQuote []) (concatAdjacentInlineNodes childTrees)
 pmNodeToGroupedInlinesNodeFolder (PMNode (PM.BlockNode (PM.PMBlock (PM.NoteContent (PM.NoteId noteId)) _))) childTrees =
@@ -145,3 +145,39 @@ concatAdjacentInlineNodes = foldr mergeOrAppendAdjacent []
       Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.InlineNode $ (inlineNode1 <> inlineNode2)) (childTrees1 <> childTrees2) : rest
     -- Do not merge in any other case
     mergeOrAppendAdjacent x rest = x : rest
+
+-- Making a list compact requires mapping `Para` blocks to `Plain` ones.
+-- We want to do this when a list has a single paragraph child, optionally followed by one or more list siblings.
+compactListIfPossible :: [Tree GroupedInlinesTree.DocNode] -> [Tree GroupedInlinesTree.DocNode]
+compactListIfPossible childTrees = case childTrees of
+  [] -> []
+  -- This is the case where the list has a single tree (single-child case).
+  (Node root children : rest) | shouldConvertParaToPlain childTrees -> Node (paraToPlain root) children : rest
+  _ -> childTrees
+  where
+    shouldConvertParaToPlain :: [Tree GroupedInlinesTree.DocNode] -> Bool
+    shouldConvertParaToPlain trees = case trees of
+      [] -> False
+      [t] -> isParaTree t
+      (t : rest) -> isParaTree t && all isListTree rest
+
+    isParaTree :: Tree GroupedInlinesTree.DocNode -> Bool
+    isParaTree (Node root _) = isParaNode root
+
+    isListTree :: Tree GroupedInlinesTree.DocNode -> Bool
+    isListTree (Node root _) = isListNode root
+
+    isParaNode :: GroupedInlinesTree.DocNode -> Bool
+    isParaNode (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode (RichText.PandocBlock (Pandoc.Para _)))) = True
+    isParaNode _ = False
+
+    isListNode :: GroupedInlinesTree.DocNode -> Bool
+    isListNode (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode (RichText.PandocBlock (Pandoc.BulletList _)))) = True
+    isListNode (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode (RichText.PandocBlock (Pandoc.OrderedList _ _)))) = True
+    isListNode (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode (RichText.PandocBlock (Pandoc.DefinitionList _)))) = True
+    isListNode _ = False
+
+    paraToPlain :: GroupedInlinesTree.DocNode -> GroupedInlinesTree.DocNode
+    paraToPlain (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode (RichText.PandocBlock (Pandoc.Para children)))) =
+      (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.Plain children)
+    paraToPlain node = node
