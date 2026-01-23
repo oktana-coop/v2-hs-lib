@@ -1,4 +1,4 @@
-module ProseMirror.Utils.Debug where
+module ProseMirror.Utils.Debug (traceTree) where
 
 import Data.Tree (Tree (..), drawTree)
 import qualified Debug.Trace

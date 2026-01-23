@@ -107,7 +107,7 @@ pmNodeToGroupedInlinesNodeFolder (PMNode (PM.BlockNode (PM.PMBlock (PM.BulletLis
 pmNodeToGroupedInlinesNodeFolder (PMNode (PM.BlockNode (PM.PMBlock (PM.OrderedList) _))) childTrees =
   Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.OrderedList (1, DefaultStyle, DefaultDelim) []) childTrees
 pmNodeToGroupedInlinesNodeFolder (PMNode (PM.BlockNode (PM.PMBlock (PM.ListItem) _))) childTrees =
-  Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.ListItem []) (concatAdjacentInlineNodes childTrees)
+  Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.ListItem []) (mapSingleParaChildToPlain $ concatAdjacentInlineNodes childTrees)
 pmNodeToGroupedInlinesNodeFolder (PMNode (PM.BlockNode (PM.PMBlock (PM.BlockQuote) _))) childTrees =
   Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.BlockQuote []) (concatAdjacentInlineNodes childTrees)
 pmNodeToGroupedInlinesNodeFolder (PMNode (PM.BlockNode (PM.PMBlock (PM.NoteContent (PM.NoteId noteId)) _))) childTrees =
@@ -145,3 +145,22 @@ concatAdjacentInlineNodes = foldr mergeOrAppendAdjacent []
       Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.InlineNode $ (inlineNode1 <> inlineNode2)) (childTrees1 <> childTrees2) : rest
     -- Do not merge in any other case
     mergeOrAppendAdjacent x rest = x : rest
+
+mapSingleParaChildToPlain :: [Tree GroupedInlinesTree.DocNode] -> [Tree GroupedInlinesTree.DocNode]
+mapSingleParaChildToPlain inputTree = case inputTree of
+  [] -> []
+  -- This is the case where the list has a single tree (single-child case).
+  (t@(Node root children) : [])
+    -- If the single tree is a paragraph, convert it to plain
+    | treeRootIsPara t -> [Node (paraToPlain root) children]
+    | otherwise -> inputTree
+  _ -> inputTree
+  where
+    treeRootIsPara :: Tree GroupedInlinesTree.DocNode -> Bool
+    treeRootIsPara (Node (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode (RichText.PandocBlock (Pandoc.Para _)))) _) = True
+    treeRootIsPara _ = False
+
+    paraToPlain :: GroupedInlinesTree.DocNode -> GroupedInlinesTree.DocNode
+    paraToPlain (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode (RichText.PandocBlock (Pandoc.Para children)))) =
+      (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.Plain children)
+    paraToPlain node = node
