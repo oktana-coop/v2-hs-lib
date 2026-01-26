@@ -1,2 +1,7 @@
+import Conversion.Golden as ConversionGolden (tests)
+import Test.Tasty (defaultMain, testGroup)
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main = do
+  conversionGoldenTests <- ConversionGolden.tests
+  defaultMain $ testGroup "Tests" [conversionGoldenTests]
