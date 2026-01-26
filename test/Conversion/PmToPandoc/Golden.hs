@@ -24,7 +24,7 @@ goldenCase caseSubFolderPath =
         (toPandocNative pmInput)
 
 toPandocNative :: FilePath -> IO BL.ByteString
-toPandocNative pmPath = do
-  pmJson <- TIO.readFile pmPath
+toPandocNative inputFilePath = do
+  pmJson <- TIO.readFile inputFilePath
   pandocText <- convertToText ProseMirror Pandoc (T.unpack pmJson)
-  return $ BL.fromStrict $ TE.encodeUtf8 $ pandocText
+  (return . BL.fromStrict . TE.encodeUtf8) pandocText
