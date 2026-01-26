@@ -27,6 +27,7 @@ library
       ProseMirror.Diff
       ProseMirror.PandocWriter
       ProseMirror.PandocReader
+      Conversion
   other-modules:
       ProseMirror.Model
       ProseMirror.Decoration
@@ -38,9 +39,11 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       aeson >=2.2.3.0
+    , automerge-pandoc
     , base >=4.7 && <5
     , bytestring >=0.12.1.0
     , containers >=0.7
+    , exceptions >=0.10.7
     , mtl >=2.3.1
     , pandoc >=3.5
     , pandoc-diff
@@ -60,11 +63,8 @@ executable v2-hs-lib
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       aeson >=2.2.3.0
-    , automerge-pandoc
     , base >=4.7 && <5
     , bytestring >=0.12.1.0
-    , exceptions >=0.10.7
-    , mtl >=2.3.1
     , optparse-applicative >=0.18.1.0
     , pandoc >=3.5
     , pandoc-diff

@@ -1,13 +1,13 @@
 module Conversion.PmToPandoc.Golden (tests) where
 
-import Data.Aeson (encode)
+import Conversion (Format (Pandoc, ProseMirror), convertToText)
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import qualified Data.Text.IO as TIO
-import ProseMirror.PandocReader (readProseMirror)
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden (goldenVsString)
-import Text.Pandoc (def, runIO)
 
 tests :: IO TestTree
 tests = do
@@ -17,18 +17,14 @@ goldenCase :: FilePath -> TestTree
 goldenCase caseSubFolderPath =
   let baseDir = "test/Conversion/PmToPandoc" </> caseSubFolderPath
       pmInput = baseDir </> "pm.json"
-      pandocGolden = baseDir </> "pandoc.json"
+      pandocGolden = baseDir </> "pandoc.txt"
    in goldenVsString
         caseSubFolderPath
         pandocGolden
-        (toPandocJson pmInput)
+        (toPandocNative pmInput)
 
-toPandocJson :: FilePath -> IO BL.ByteString
-toPandocJson pmPath = do
+toPandocNative :: FilePath -> IO BL.ByteString
+toPandocNative pmPath = do
   pmJson <- TIO.readFile pmPath
-  result <- runIO $ readProseMirror def pmJson
-  case result of
-    Left err -> fail $ "Conversion to Pandoc failed: " ++ show err
-    Right pandoc -> do
-      -- Encode Pandoc as JSON for comparison
-      return $ encode pandoc
+  pandocText <- convertToText ProseMirror Pandoc (T.unpack pmJson)
+  return $ BL.fromStrict $ TE.encodeUtf8 $ pandocText

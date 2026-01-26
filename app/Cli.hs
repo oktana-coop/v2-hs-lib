@@ -1,5 +1,6 @@
 module Cli (Command (..), readInputCommand, Format (..)) where
 
+import Conversion (Format (..))
 import Options.Applicative (Parser, ReadM, argument, command, eitherReader, execParser, fullDesc, help, helper, info, long, metavar, option, progDesc, str, subparser, (<**>))
 
 data Command
@@ -9,8 +10,6 @@ data Command
   | ConvertToBinary Format Format String
   | ProseMirrorDiff Format String String
   deriving (Show)
-
-data Format = Pandoc | Markdown | Html | Json | Automerge | ProseMirror | Docx | Pdf deriving (Show)
 
 outputFormatParser :: Parser Format
 outputFormatParser = option readFormat (long "to" <> metavar "FORMAT" <> help "Specify the format (pandoc, markdown, html, json)")
