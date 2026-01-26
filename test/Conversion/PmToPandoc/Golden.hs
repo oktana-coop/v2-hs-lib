@@ -11,7 +11,7 @@ import Test.Tasty.Golden (goldenVsString)
 
 tests :: IO TestTree
 tests = do
-  return $ testGroup "ProseMirror → Pandoc (Golden)" [goldenCase "headings-and-paragraphs"]
+  return $ testGroup "ProseMirror → Pandoc (Golden)" [goldenCase "headings-and-paragraphs", goldenCase "marks"]
 
 goldenCase :: FilePath -> TestTree
 goldenCase caseSubFolderPath =

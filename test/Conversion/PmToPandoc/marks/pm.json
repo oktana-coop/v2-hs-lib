@@ -1,0 +1,137 @@
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "heading",
+      "attrs": { "level": 1 },
+      "content": [{ "type": "text", "text": "Marks Testing" }]
+    },
+    {
+      "type": "heading",
+      "attrs": { "level": 2 },
+      "content": [{ "type": "text", "text": "Strong" }]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        { "type": "text", "text": "Some " },
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "strong" },
+        { "type": "text", "text": " text in the middle of a paragraph." }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "marks": [{ "type": "strong" }],
+          "text": "Strong text"
+        },
+        { "type": "text", "text": " start in a paragraph." }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        { "type": "text", "text": "Paragraph ending with " },
+        {
+          "type": "text",
+          "marks": [{ "type": "strong" }],
+          "text": "strong text."
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": { "level": 2 },
+      "content": [{ "type": "text", "text": "Emphasis" }]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        { "type": "text", "text": "Some " },
+        { "type": "text", "marks": [{ "type": "em" }], "text": "emphasized" },
+        { "type": "text", "text": " text." }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": { "level": 2 },
+      "content": [{ "type": "text", "text": "Links" }]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "marks": [
+            {
+              "type": "link",
+              "attrs": { "href": "https://git-scm.com", "title": "Git" }
+            }
+          ],
+          "text": "Git"
+        },
+        { "type": "text", "text": ", " },
+        {
+          "type": "text",
+          "marks": [
+            {
+              "type": "link",
+              "attrs": { "href": "https://automerge.org", "title": "Automerge" }
+            }
+          ],
+          "text": "Automerge"
+        },
+        { "type": "text", "text": " and " },
+        {
+          "type": "text",
+          "marks": [
+            {
+              "type": "link",
+              "attrs": { "href": "https://www.jj-vcs.dev/", "title": "Jujutsu" }
+            }
+          ],
+          "text": "Jujutsu"
+        },
+        { "type": "text", "text": " are great solutions for version control." }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": { "level": 2 },
+      "content": [{ "type": "text", "text": "Combined" }]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "marks": [
+            {
+              "type": "link",
+              "attrs": { "href": "https://v2editor.com", "title": "v2" }
+            },
+            { "type": "strong" }
+          ],
+          "text": "v2"
+        },
+        { "type": "text", "text": " is a " },
+        { "type": "text", "marks": [{ "type": "em" }], "text": "rich text" },
+        { "type": "text", "text": " editor with Git-style version control, " },
+        {
+          "type": "text",
+          "marks": [{ "type": "strong" }],
+          "text": "true privacy"
+        },
+        { "type": "text", "text": ", and " },
+        {
+          "type": "text",
+          "marks": [{ "type": "strong" }],
+          "text": "complete control over your data"
+        },
+        { "type": "text", "text": "." }
+      ]
+    }
+  ]
+}
