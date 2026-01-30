@@ -52,8 +52,8 @@ readFrom format = case format of
   Html -> readHtml
   Json -> readJSON
   Automerge -> readAutomerge
-  -- TODO: Implement these. For the ones that cannot implemented (potentially PDF), return an error
   ProseMirror -> readProseMirror
+  -- TODO: Implement these. For the ones that cannot implemented (potentially PDF), return an error
   Pdf -> undefined
   Docx -> undefined
 
