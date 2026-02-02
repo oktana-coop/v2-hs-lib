@@ -80,6 +80,7 @@ test-suite v2-hs-lib-test
       Conversion.Golden
       Conversion.MdToPm.Golden
       Conversion.PmToMd.Golden
+      Conversion.RoundTrip
       Conversion.Utils
       Paths_v2_hs_lib
   hs-source-dirs:
@@ -90,9 +91,11 @@ test-suite v2-hs-lib-test
     , base >=4.7 && <5
     , bytestring >=0.12.1.0
     , filepath >=1.5.2.0
+    , hspec >=2.11.10
     , pandoc >=3.5
     , tasty >=1.5.3
     , tasty-golden >=2.3.5
+    , tasty-hspec >=1.2.0.4
     , text >=2.1.1
     , v2-hs-lib
   default-language: Haskell2010
