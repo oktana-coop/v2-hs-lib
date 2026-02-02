@@ -18,7 +18,13 @@ import Text.Pandoc.Builder as Pandoc
     nullAttr,
   )
 
-data PMTreeNode = PMNode PM.Node | WrapperInlineNode | WrapperBlockNode deriving (Show)
+data PMTreeNode
+  = PMNode PM.Node
+  | WrapperInlineNode
+  | WrapperBlockNode
+  | -- Nodes that cannot be represented in ProseMirror.
+    UnrepresentableNode
+  deriving (Show)
 
 type PMTree = Tree PMTreeNode
 
@@ -34,6 +40,8 @@ pmTreeNodeFolder :: PMTreeNode -> [[PM.Node]] -> [PM.Node]
 pmTreeNodeFolder (PMNode pmNode@(PM.TextNode _)) _ = [pmNode]
 pmTreeNodeFolder WrapperInlineNode childNodes = concat childNodes
 pmTreeNodeFolder (WrapperBlockNode) childNodes = concat childNodes
+-- Ignore nodes that cannot be represented in ProseMirror
+pmTreeNodeFolder (UnrepresentableNode) _ = []
 pmTreeNodeFolder (PMNode (PM.BlockNode blockNode)) childNodes = [PM.BlockNode $ PM.wrapChildrenToBlock blockNode $ concat childNodes]
 
 groupedInlinesPandocTreeToPMTree :: Tree GroupedInlinesTree.DocNode -> PMTree
@@ -63,6 +71,8 @@ treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Plain _)) = PMNode $ PM
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Para _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Paragraph, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Header level _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Heading $ PM.HeadingLevel level, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.CodeBlock _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.CodeBlock, PM.content = Nothing}
+-- TODO: Potentially handle raw blocks with format "prosemirror" or "html"".
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.RawBlock _ _)) = UnrepresentableNode
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BulletList _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.BulletList, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.OrderedList _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.OrderedList, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.ListItem _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.ListItem, PM.content = Nothing}
@@ -122,6 +132,9 @@ pmNodeToGroupedInlinesNodeFolder (PMNode (PM.TextNode textNode)) _ =
   Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.InlineNode $ GroupedInlinesTree.InlineContent [RichText.InlineText $ pmTextNodeToTreeTextSpan textNode]) []
 pmNodeToGroupedInlinesNodeFolder WrapperInlineNode childTrees =
   Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.InlineNode $ GroupedInlinesTree.InlineContent []) (concatAdjacentInlineNodes childTrees)
+-- Technically, we should never get unrepresentable nodes as input. TODO: Handle this case better, maybe with an error.
+pmNodeToGroupedInlinesNodeFolder UnrepresentableNode childTrees =
+  Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.RawBlock "prosemirror" T.empty) (concatAdjacentInlineNodes childTrees)
 
 pmTextNodeToTreeTextSpan :: PM.TextNode -> RichText.TextSpan
 pmTextNodeToTreeTextSpan (PM.PMText t pmMarks) = RichText.TextSpan t (map toTreeMark $ maybeNonEmptyToList pmMarks)
