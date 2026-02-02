@@ -70,11 +70,11 @@ convert inputFormat outputFormat input = do
     readerOpts = def {readerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks pandocExtensions}
     writerOpts = def {writerWrapText = WrapPreserve, writerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks pandocExtensions}
 
-convertToText :: Format -> Format -> String -> IO T.Text
-convertToText inputFormat outputFormat input = do
-  result <- convert inputFormat outputFormat input
-  successBytes <- handleError result
-  (return . TE.decodeUtf8 . BL.toStrict) successBytes
+convertToText :: Format -> Format -> String -> IO (Either PandocError T.Text)
+convertToText inputFormat outputFormat input = (fmap . fmap) byteStringToText (convert inputFormat outputFormat input)
+  where
+    byteStringToText :: BL.ByteString -> T.Text
+    byteStringToText = TE.decodeUtf8 . BL.toStrict
 
 convertToBinary :: Format -> Format -> String -> IO BL.ByteString
 convertToBinary inputFormat outputFormat input = do
@@ -82,8 +82,8 @@ convertToBinary inputFormat outputFormat input = do
   successBytes <- handleError result
   return successBytes
 
-convertFromAutomerge :: Format -> String -> IO T.Text
+convertFromAutomerge :: Format -> String -> IO (Either PandocError T.Text)
 convertFromAutomerge outputFormat = convertToText Automerge outputFormat
 
-convertToAutomerge :: Format -> String -> IO T.Text
+convertToAutomerge :: Format -> String -> IO (Either PandocError T.Text)
 convertToAutomerge inputFormat = convertToText inputFormat Automerge
