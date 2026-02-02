@@ -196,7 +196,7 @@ instance ToJSON Node where
 data PMDoc = PMDoc {doc :: Node} deriving (Show, Eq)
 
 instance ToJSON PMDoc where
-  toJSON pmDoc = object ["doc" .= doc pmDoc]
+  toJSON pmDoc = toJSON $ doc pmDoc
 
 isRootBlockNode :: Node -> Bool
 isRootBlockNode blockNode = nodeType blockNode == DocType

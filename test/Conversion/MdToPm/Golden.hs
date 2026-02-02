@@ -1,7 +1,7 @@
 module Conversion.MdToPm.Golden (tests) where
 
 import Conversion (Format (..))
-import Conversion.Utils (toTextFormat)
+import Conversion.Utils (readFileAndConvert)
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden (goldenVsString)
@@ -21,9 +21,9 @@ goldenCase caseSubFolderPath =
         [ goldenVsString
             caseSubFolderPath
             pandocGolden
-            (toTextFormat Markdown Pandoc mdInput),
+            (readFileAndConvert Markdown Pandoc mdInput),
           goldenVsString
             caseSubFolderPath
             pmGolden
-            (toTextFormat Markdown ProseMirror mdInput)
+            (readFileAndConvert Markdown ProseMirror mdInput)
         ]
