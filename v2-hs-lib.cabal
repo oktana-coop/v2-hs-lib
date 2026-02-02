@@ -78,8 +78,9 @@ test-suite v2-hs-lib-test
   main-is: Spec.hs
   other-modules:
       Conversion.Golden
-      Conversion.PandocToPm.Golden
-      Conversion.PmToPandoc.Golden
+      Conversion.MdToPm.Golden
+      Conversion.PmToMd.Golden
+      Conversion.Utils
       Paths_v2_hs_lib
   hs-source-dirs:
       test

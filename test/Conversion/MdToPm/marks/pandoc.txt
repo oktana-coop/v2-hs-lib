@@ -1,0 +1,119 @@
+[ Header
+    1
+    ( "marks-testing" , [] , [] )
+    [ Str "Marks" , Space , Str "Testing" ]
+, Header 2 ( "strong" , [] , [] ) [ Str "Strong" ]
+, Para
+    [ Str "Some"
+    , Space
+    , Strong [ Str "strong" ]
+    , Str "\160text"
+    , Space
+    , Str "in"
+    , Space
+    , Str "the"
+    , Space
+    , Str "middle"
+    , Space
+    , Str "of"
+    , Space
+    , Str "a"
+    , Space
+    , Str "paragraph."
+    ]
+, Para
+    [ Strong [ Str "Strong" , Space , Str "text" ]
+    , Str "\160start"
+    , Space
+    , Str "in"
+    , Space
+    , Str "a"
+    , Space
+    , Str "paragraph."
+    ]
+, Para
+    [ Str "Paragraph"
+    , Space
+    , Str "ending"
+    , Space
+    , Str "with"
+    , Space
+    , Strong [ Str "strong" , Space , Str "text." ]
+    ]
+, Header 2 ( "emphasis" , [] , [] ) [ Str "Emphasis" ]
+, Para
+    [ Str "Some"
+    , Space
+    , Emph [ Str "emphasized" ]
+    , Str "\160text."
+    ]
+, Header 2 ( "links" , [] , [] ) [ Str "Links" ]
+, Para
+    [ Link
+        ( "" , [] , [] )
+        [ Str "Git" ]
+        ( "https://git-scm.com" , "Git" )
+    , Str ",\160"
+    , Link
+        ( "" , [] , [] )
+        [ Str "Automerge" ]
+        ( "https://automerge.org" , "Automerge" )
+    , Str "\160and\160"
+    , Link
+        ( "" , [] , [] )
+        [ Str "Jujutsu" ]
+        ( "https://www.jj-vcs.dev/" , "Jujutsu" )
+    , Str "\160are"
+    , Space
+    , Str "great"
+    , Space
+    , Str "solutions"
+    , Space
+    , Str "for"
+    , Space
+    , Str "version"
+    , Space
+    , Str "control."
+    ]
+, Header 2 ( "combined" , [] , [] ) [ Str "Combined" ]
+, Para
+    [ Strong
+        [ Link
+            ( "" , [] , [] )
+            [ Str "v2" ]
+            ( "https://v2editor.com" , "v2" )
+        ]
+    , Str "\160is"
+    , Space
+    , Str "a"
+    , Space
+    , Emph [ Str "rich" , Space , Str "text" ]
+    , Str "\160editor"
+    , Space
+    , Str "with"
+    , Space
+    , Str "Git-style"
+    , Space
+    , Str "version"
+    , Space
+    , Str "control,"
+    , Space
+    , Strong [ Str "true" , Space , Str "privacy" ]
+    , Str ","
+    , Space
+    , Str "and"
+    , Space
+    , Strong
+        [ Str "complete"
+        , Space
+        , Str "control"
+        , Space
+        , Str "over"
+        , Space
+        , Str "your"
+        , Space
+        , Str "data"
+        ]
+    , Str "."
+    ]
+]

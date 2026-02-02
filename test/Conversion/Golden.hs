@@ -1,11 +1,11 @@
 module Conversion.Golden (tests) where
 
-import qualified Conversion.PandocToPm.Golden as PandocToPmGolden
-import qualified Conversion.PmToPandoc.Golden as PmToPandocGolden
+import qualified Conversion.MdToPm.Golden as MdToPmGolden
+import qualified Conversion.PmToMd.Golden as PmToMdGolden
 import Test.Tasty (TestTree, testGroup)
 
 tests :: IO TestTree
 tests = do
-  pmToPandocGoldenTests <- PmToPandocGolden.tests
-  pandocToPmGoldenTests <- PandocToPmGolden.tests
-  return $ testGroup "Conversion Golden" [pmToPandocGoldenTests, pandocToPmGoldenTests]
+  pmToMdGoldenTests <- PmToMdGolden.tests
+  mdToPmGoldenTests <- MdToPmGolden.tests
+  return $ testGroup "Conversion Golden" [pmToMdGoldenTests, mdToPmGoldenTests]

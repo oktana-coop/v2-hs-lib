@@ -1,4 +1,0 @@
-[ Header 1 ( "" , [] , [] ) [ Str "A Heading 1" ]
-, Para [ Str "A paragraph" ]
-, Para [ Str "Another paragraph" ]
-]
