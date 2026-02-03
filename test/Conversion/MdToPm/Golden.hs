@@ -19,11 +19,11 @@ goldenCase caseSubFolderPath =
    in testGroup
         caseSubFolderPath
         [ goldenVsString
-            caseSubFolderPath
+            "pandoc"
             pandocGolden
             (readFileAndConvert Markdown Pandoc mdInput),
           goldenVsString
-            caseSubFolderPath
+            "prosemirror"
             pmGolden
             (readFileAndConvert Markdown ProseMirror mdInput)
         ]
