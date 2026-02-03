@@ -1,6 +1,8 @@
-module Conversion.Utils (toTextFormat, readFileAndConvert) where
+module Conversion.Utils (toTextFormat, readFileAndConvert, normalizeJson) where
 
 import Conversion (Format, convertToText)
+import Data.Aeson (Value, decode)
+import Data.Aeson.Encode.Pretty (Config, confCompare, defConfig, encodePretty')
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
@@ -20,3 +22,12 @@ toTextFormat inputFormat outputFormat inputText = do
   case eitherOutputText of
     Left err -> fail ("Conversion failed: " <> show err)
     Right outputText -> pure outputText
+
+normalizeJson :: T.Text -> T.Text
+normalizeJson input = case decode (BL.fromStrict $ TE.encodeUtf8 input) :: Maybe Value of
+  -- Return original text if invalid JSON
+  Nothing -> input
+  Just value -> TE.decodeUtf8 $ BL.toStrict (encodePretty' prettyConfig value)
+  where
+    prettyConfig :: Data.Aeson.Encode.Pretty.Config
+    prettyConfig = defConfig {confCompare = compare}

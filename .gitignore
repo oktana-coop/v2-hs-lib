@@ -1,3 +1,4 @@
 .stack-work/
 dist-wasm/
+failed-round-trip-tests/
 *~

@@ -1,9 +1,12 @@
 module Conversion.RoundTrip (tests) where
 
-import Conversion (Format (Markdown, ProseMirror))
-import Conversion.Utils (toTextFormat)
+import Control.Monad (when)
+import Conversion (Format (Markdown, Pandoc, ProseMirror))
+import Conversion.Utils (normalizeJson, toTextFormat)
+import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-import System.FilePath ((</>))
+import System.Directory (createDirectoryIfMissing)
+import System.FilePath (takeDirectory, (<.>), (</>))
 import Test.Hspec (Spec, describe, it, shouldBe)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hspec (testSpec)
@@ -16,21 +19,54 @@ tests = do
 spec :: Spec
 spec = do
   describe "Markdown -> ProseMirror -> Markdown" $ do
-    let inputFiles = map buildMdFilePathForCase ["headings-and-paragraphs"]
+    let inputFiles = map buildMdFilePathForCase ["headings-and-paragraphs", "marks"]
     -- roundTripTestForInputFile returns a monadic action (Spec is a monad)
     -- mapM_ combines these `Spec` actions into a single `Spec`.
     -- We use mapM_ because we don't care about the returned value, just the effect of these tests.
-    mapM_ roundTripTestForInputFile inputFiles
+    mapM_ (roundTripTestForInputFile Markdown ProseMirror id) inputFiles
+  describe "ProseMirror -> Markdown -> ProseMirror" $ do
+    let inputFiles = map buildPmFilePathForCase ["headings-and-paragraphs"]
+    -- roundTripTestForInputFile returns a monadic action (Spec is a monad)
+    -- mapM_ combines these `Spec` actions into a single `Spec`.
+    -- We use mapM_ because we don't care about the returned value, just the effect of these tests.
+    mapM_ (roundTripTestForInputFile ProseMirror Markdown normalizeJson) inputFiles
 
 buildMdFilePathForCase :: FilePath -> FilePath
 buildMdFilePathForCase caseSubFolder = baseDir </> "doc.md"
   where
     baseDir = "test/Conversion/MdToPm" </> caseSubFolder
 
-roundTripTestForInputFile :: FilePath -> Spec
-roundTripTestForInputFile filePath = it filePath $ do
-  inputText <- TIO.readFile filePath
-  intermediaryFormatText <- toTextFormat Markdown ProseMirror inputText
-  outputText <- toTextFormat ProseMirror Markdown intermediaryFormatText
+buildPmFilePathForCase :: FilePath -> FilePath
+buildPmFilePathForCase caseSubFolder = baseDir </> "pm.json"
+  where
+    baseDir = "test/Conversion/PmToMd" </> caseSubFolder
 
-  inputText `shouldBe` outputText
+roundTripTestForInputFile :: Format -> Format -> (T.Text -> T.Text) -> FilePath -> Spec
+roundTripTestForInputFile ioFormat intermediaryFormat normalizer filePath = it filePath $ do
+  inputText <- TIO.readFile filePath
+  let normaliedInput = normalizer inputText
+  intermediaryFormatText <- toTextFormat ioFormat intermediaryFormat inputText
+  outputText <- toTextFormat intermediaryFormat ioFormat intermediaryFormatText
+  let normalizedOutput = normalizer outputText
+
+  -- Write files on failure to keep test-output clean
+  when (inputText /= outputText) (writeTestArtifactsToFiles normaliedInput intermediaryFormatText normalizedOutput)
+
+  normaliedInput `shouldBe` normalizedOutput
+  where
+    writeTestArtifactsToFiles :: T.Text -> T.Text -> T.Text -> IO ()
+    writeTestArtifactsToFiles inputText intermediaryFormatText outputText = do
+      let caseDir = takeDirectory filePath
+      let logDir = "failed-round-trip-tests" </> caseDir
+
+      createDirectoryIfMissing True logDir
+      TIO.writeFile (logDir </> "input" <.> getFormatExtension ioFormat) inputText
+      TIO.writeFile (logDir </> "intermediary" <.> getFormatExtension intermediaryFormat) intermediaryFormatText
+      TIO.writeFile (logDir </> "output" <.> getFormatExtension ioFormat) outputText
+
+    getFormatExtension :: Format -> String
+    getFormatExtension Markdown = "md"
+    getFormatExtension ProseMirror = "json"
+    getFormatExtension Pandoc = "txt"
+    -- TODO: If needed, handle more formats.
+    getFormatExtension _ = undefined
