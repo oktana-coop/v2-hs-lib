@@ -26,7 +26,7 @@ stack test --ta --accept
 
 Round trip tests are included in the testing suite, in an attempt to gradually achieve isomorphic conversions:
 
-- Markdown -> ProseMirror -> Markdown
-- ProseMirror -> Markdown -> ProseMirror
+- Markdown → ProseMirror → Markdown
+- ProseMirror → Markdown → ProseMirror
 
-When these round trip tests fail, it's difficult to understand what failed from what's logged into the console (STDOUT). This is why we also write the artifacts to a folder in the repository (`failed-round-trip-tests/`)
+When these round trip tests fail, it's difficult to understand what failed from what's logged into the console (stdout). This is why we also write the artifacts to a folder in the repository (`failed-round-trip-tests/`)
