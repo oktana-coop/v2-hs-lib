@@ -19,13 +19,13 @@ tests = do
 spec :: Spec
 spec = do
   describe "Markdown -> ProseMirror -> Markdown" $ do
-    let inputFiles = map buildMdFilePathForCase ["blockquote", "headings-and-paragraphs", "marks"]
+    let inputFiles = map buildMdFilePathForCase ["blockquote", "headings-and-paragraphs", "marks", "lists"]
     -- roundTripTestForInputFile returns a monadic action (Spec is a monad)
     -- mapM_ combines these `Spec` actions into a single `Spec`.
     -- We use mapM_ because we don't care about the returned value, just the effect of these tests.
     mapM_ (roundTripTestForInputFile Markdown ProseMirror id) inputFiles
   describe "ProseMirror -> Markdown -> ProseMirror" $ do
-    let inputFiles = map buildPmFilePathForCase ["blockquote", "headings-and-paragraphs", "marks"]
+    let inputFiles = map buildPmFilePathForCase ["blockquote", "headings-and-paragraphs", "marks", "lists"]
     -- roundTripTestForInputFile returns a monadic action (Spec is a monad)
     -- mapM_ combines these `Spec` actions into a single `Spec`.
     -- We use mapM_ because we don't care about the returned value, just the effect of these tests.

@@ -1,0 +1,105 @@
+[ Header 1 ( "" , [] , [] ) [ Str "Lists Testing" ]
+, Para [ Str "Here is a simple unordered list:" ]
+, BulletList
+    [ [ Plain [ Str "Item 1" ] ]
+    , [ Plain [ Str "Item 2" ] ]
+    , [ Plain [ Str "Item 3" ] ]
+    ]
+, Para [ Str "And a simple unordered one:" ]
+, OrderedList
+    ( 1 , DefaultStyle , DefaultDelim )
+    [ [ Plain [ Str "Item 1" ] ]
+    , [ Plain [ Str "Item 2" ] ]
+    , [ Plain [ Str "Item 3" ] ]
+    ]
+, Header 2 ( "" , [] , [] ) [ Str "Nested Lists" ]
+, Header 3 ( "" , [] , [] ) [ Str "Unordered" ]
+, BulletList
+    [ [ Plain [ Str "Item 1" ]
+      , BulletList
+          [ [ Plain [ Str "Item 1.1" ]
+            , BulletList
+                [ [ Plain [ Str "Item 1.1.1" ] ]
+                , [ Plain [ Str "Item 1.1.2" ] ]
+                ]
+            ]
+          , [ Plain [ Str "Item 1.2" ] ]
+          ]
+      ]
+    , [ Plain [ Str "Item 2" ] ]
+    , [ Plain [ Str "Item 3" ]
+      , BulletList [ [ Plain [ Str "Item 3.1" ] ] ]
+      ]
+    ]
+, Header 3 ( "" , [] , [] ) [ Str "Ordered" ]
+, OrderedList
+    ( 1 , DefaultStyle , DefaultDelim )
+    [ [ Plain [ Str "Item 1" ]
+      , OrderedList
+          ( 1 , DefaultStyle , DefaultDelim )
+          [ [ Plain [ Str "Item 1.1" ]
+            , OrderedList
+                ( 1 , DefaultStyle , DefaultDelim )
+                [ [ Plain [ Str "Item 1.1.1" ] ] ]
+            ]
+          , [ Plain [ Str "Item 1.2" ]
+            , OrderedList
+                ( 1 , DefaultStyle , DefaultDelim )
+                [ [ Plain [ Str "Item 1.2.1" ] ] ]
+            ]
+          ]
+      ]
+    , [ Plain [ Str "Item 2" ]
+      , OrderedList
+          ( 1 , DefaultStyle , DefaultDelim )
+          [ [ Plain [ Str "Item 2.1" ] ] ]
+      ]
+    ]
+, Header
+    3 ( "" , [] , [] ) [ Str "List Items with Block Children" ]
+, BulletList
+    [ [ Plain [ Str "Item 1" ]
+      , BulletList
+          [ [ Para [ Str "Item 1.1" ]
+            , Para
+                [ Str "A "
+                , Strong [ Str "paragraph" ]
+                , Str " in item 1.1"
+                ]
+            , OrderedList
+                ( 1 , DefaultStyle , DefaultDelim )
+                [ [ Plain [ Str "Item 1.1.1" ] ]
+                , [ Plain [ Str "Item 1.1.2" ] ]
+                , [ Plain
+                      [ Str "Item 1.1.3 (with "
+                      , Link
+                          ( "" , [] , [] )
+                          [ Str "a link" ]
+                          ( "https://v2editor.com" , "a link" )
+                      , Str ")"
+                      ]
+                  ]
+                ]
+            ]
+          , [ Plain [ Str "Item 1.2" ] ]
+          , [ Para [ Str "Item 1.3" ]
+            , BlockQuote [ Para [ Str "A blockquote in a list item" ] ]
+            ]
+          ]
+      ]
+    , [ Plain [ Str "Item 2" ] ]
+    ]
+, Header 2 ( "" , [] , [] ) [ Str "Lists and Other Blocks" ]
+, Para [ Str "Paragraphs above and below the list:" ]
+, BulletList
+    [ [ Plain [ Str "Item 1.1" ] ]
+    , [ Plain [ Str "Item 1.2" ] ]
+    ]
+, Para [ Str "A code block under a list:" ]
+, OrderedList
+    ( 1 , DefaultStyle , DefaultDelim )
+    [ [ Plain [ Str "Item 1.1" ] ]
+    , [ Plain [ Str "Item 1.2" ] ]
+    ]
+, CodeBlock ( "" , [] , [] ) "A code block"
+]
