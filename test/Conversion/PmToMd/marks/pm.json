@@ -108,11 +108,11 @@
         {
           "type": "text",
           "marks": [
+            { "type": "strong" },
             {
               "type": "link",
               "attrs": { "href": "https://v2editor.com", "title": "v2" }
-            },
-            { "type": "strong" }
+            }
           ],
           "text": "v2"
         },

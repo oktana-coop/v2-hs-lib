@@ -25,7 +25,7 @@ spec = do
     -- We use mapM_ because we don't care about the returned value, just the effect of these tests.
     mapM_ (roundTripTestForInputFile Markdown ProseMirror id) inputFiles
   describe "ProseMirror -> Markdown -> ProseMirror" $ do
-    let inputFiles = map buildPmFilePathForCase ["headings-and-paragraphs"]
+    let inputFiles = map buildPmFilePathForCase ["headings-and-paragraphs", "marks"]
     -- roundTripTestForInputFile returns a monadic action (Spec is a monad)
     -- mapM_ combines these `Spec` actions into a single `Spec`.
     -- We use mapM_ because we don't care about the returned value, just the effect of these tests.
