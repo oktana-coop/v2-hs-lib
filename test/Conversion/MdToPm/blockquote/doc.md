@@ -2,7 +2,7 @@
 
 Exploring the concept of work and its relation to play.
 
-> The next form of society will not be based on industrial production. It will be a society of realized art. (Situationist International, [_The Bad Days will End_](https://libcom.org/article/bad-days-will-end-0 "The Bad Days will End, Internationale Situationniste #7")[, Internationale Situationniste #7](https://libcom.org/article/bad-days-will-end-0 "The Bad Days will End, Internationale Situationniste #7"))
+> The next form of society will not be based on industrial production. It will be a society of realized art. (Situationist International, [*The Bad Days will End*](https://libcom.org/article/bad-days-will-end-0 "The Bad Days will End, Internationale Situationniste #7")[, Internationale Situationniste #7](https://libcom.org/article/bad-days-will-end-0 "The Bad Days will End, Internationale Situationniste #7"))
 
 > Labor, perhaps even more than technics, must recover its own **creative voice**. Its abstract form, its de­ployment in the framework of linear time as a res temporalis, its cruel objectification as mere, homogeneous energy, must yield to the con­creteness of skill, to the festiveness of communal activity, to a recogni­tion of its own subjectivity.
 >
