@@ -1,0 +1,944 @@
+[ Header
+    1
+    ( "blockquote-testing" , [] , [] )
+    [ Str "Blockquote" , Space , Str "Testing" ]
+, Para
+    [ Str "Exploring"
+    , Space
+    , Str "the"
+    , Space
+    , Str "concept"
+    , Space
+    , Str "of"
+    , Space
+    , Str "work"
+    , Space
+    , Str "and"
+    , Space
+    , Str "its"
+    , Space
+    , Str "relation"
+    , Space
+    , Str "to"
+    , Space
+    , Str "play."
+    ]
+, BlockQuote
+    [ Para
+        [ Str "The"
+        , Space
+        , Str "next"
+        , Space
+        , Str "form"
+        , Space
+        , Str "of"
+        , Space
+        , Str "society"
+        , Space
+        , Str "will"
+        , Space
+        , Str "not"
+        , Space
+        , Str "be"
+        , Space
+        , Str "based"
+        , Space
+        , Str "on"
+        , Space
+        , Str "industrial"
+        , Space
+        , Str "production."
+        , Space
+        , Str "It"
+        , Space
+        , Str "will"
+        , Space
+        , Str "be"
+        , Space
+        , Str "a"
+        , Space
+        , Str "society"
+        , Space
+        , Str "of"
+        , Space
+        , Str "realized"
+        , Space
+        , Str "art."
+        , Space
+        , Str "(Situationist"
+        , Space
+        , Str "International,"
+        , Space
+        , Link
+            ( "" , [] , [] )
+            [ Emph
+                [ Str "The"
+                , Space
+                , Str "Bad"
+                , Space
+                , Str "Days"
+                , Space
+                , Str "will"
+                , Space
+                , Str "End"
+                ]
+            ]
+            ( "https://libcom.org/article/bad-days-will-end-0"
+            , "The Bad Days will End, Internationale Situationniste #7"
+            )
+        , Link
+            ( "" , [] , [] )
+            [ Str ","
+            , Space
+            , Str "Internationale"
+            , Space
+            , Str "Situationniste"
+            , Space
+            , Str "#7"
+            ]
+            ( "https://libcom.org/article/bad-days-will-end-0"
+            , "The Bad Days will End, Internationale Situationniste #7"
+            )
+        , Str ")"
+        ]
+    ]
+, BlockQuote
+    [ Para
+        [ Str "Labor,"
+        , Space
+        , Str "perhaps"
+        , Space
+        , Str "even"
+        , Space
+        , Str "more"
+        , Space
+        , Str "than"
+        , Space
+        , Str "technics,"
+        , Space
+        , Str "must"
+        , Space
+        , Str "recover"
+        , Space
+        , Str "its"
+        , Space
+        , Str "own"
+        , Space
+        , Strong [ Str "creative" , Space , Str "voice" ]
+        , Str "."
+        , Space
+        , Str "Its"
+        , Space
+        , Str "abstract"
+        , Space
+        , Str "form,"
+        , Space
+        , Str "its"
+        , Space
+        , Str "de\173ployment"
+        , Space
+        , Str "in"
+        , Space
+        , Str "the"
+        , Space
+        , Str "framework"
+        , Space
+        , Str "of"
+        , Space
+        , Str "linear"
+        , Space
+        , Str "time"
+        , Space
+        , Str "as"
+        , Space
+        , Str "a"
+        , Space
+        , Str "res"
+        , Space
+        , Str "temporalis,"
+        , Space
+        , Str "its"
+        , Space
+        , Str "cruel"
+        , Space
+        , Str "objectification"
+        , Space
+        , Str "as"
+        , Space
+        , Str "mere,"
+        , Space
+        , Str "homogeneous"
+        , Space
+        , Str "energy,"
+        , Space
+        , Str "must"
+        , Space
+        , Str "yield"
+        , Space
+        , Str "to"
+        , Space
+        , Str "the"
+        , Space
+        , Str "con\173creteness"
+        , Space
+        , Str "of"
+        , Space
+        , Str "skill,"
+        , Space
+        , Str "to"
+        , Space
+        , Str "the"
+        , Space
+        , Str "festiveness"
+        , Space
+        , Str "of"
+        , Space
+        , Str "communal"
+        , Space
+        , Str "activity,"
+        , Space
+        , Str "to"
+        , Space
+        , Str "a"
+        , Space
+        , Str "recogni\173tion"
+        , Space
+        , Str "of"
+        , Space
+        , Str "its"
+        , Space
+        , Str "own"
+        , Space
+        , Str "subjectivity."
+        ]
+    , Para
+        [ Str "Bookchin,"
+        , Space
+        , Str "The"
+        , Space
+        , Str "Ecology"
+        , Space
+        , Str "of"
+        , Space
+        , Str "Freedom,"
+        , Space
+        , Str "p.266"
+        ]
+    ]
+, Header
+    2
+    ( "work-and-rhythm" , [] , [] )
+    [ Str "Work" , Space , Str "and" , Space , Str "Rhythm" ]
+, BlockQuote
+    [ Para
+        [ Str "Marx\8217s"
+        , Space
+        , Str "ideal"
+        , Space
+        , Str "workday,"
+        , Space
+        , Str "when"
+        , Space
+        , Str "I"
+        , Space
+        , Str "am"
+        , Space
+        , Str "able"
+        , Space
+        , Str "\"to"
+        , Space
+        , Str "hunt"
+        , Space
+        , Str "in"
+        , Space
+        , Str "the"
+        , Space
+        , Str "morning,"
+        , Space
+        , Str "fish"
+        , Space
+        , Str "in"
+        , Space
+        , Str "the"
+        , Space
+        , Str "afternoon,"
+        , Space
+        , Str "rear"
+        , Space
+        , Str "cattle"
+        , Space
+        , Str "in"
+        , Space
+        , Str "the"
+        , Space
+        , Str "evening,"
+        , Space
+        , Str "criticise"
+        , Space
+        , Str "after"
+        , Space
+        , Str "dinner,"
+        , Space
+        , Str "just"
+        , Space
+        , Str "as"
+        , Space
+        , Str "I"
+        , Space
+        , Str "have"
+        , Space
+        , Str "a"
+        , Space
+        , Str "mind,"
+        , Space
+        , Str "without"
+        , Space
+        , Str "ever"
+        , Space
+        , Str "becoming"
+        , Space
+        , Str "hunter,"
+        , Space
+        , Str "fisherman,"
+        , Space
+        , Str "shepherd"
+        , Space
+        , Str "or"
+        , Space
+        , Str "critic\""
+        , Space
+        , Str "(Marx"
+        , Space
+        , Str "and"
+        , Space
+        , Str "Engels"
+        , Space
+        , Str "1845/46,"
+        , Space
+        , Str "53),"
+        , Space
+        , Str "points"
+        , Space
+        , Str "to"
+        , Space
+        , Str "a"
+        , Space
+        , Str "crucial"
+        , Space
+        , Str "characteristic"
+        , Space
+        , Str "of"
+        , Space
+        , Str "work"
+        , Space
+        , Str "from"
+        , Space
+        , Str "a"
+        , Space
+        , Str "eudemonistic"
+        , Space
+        , Str "perspective:"
+        , Space
+        , Str "if"
+        , Space
+        , Str "a"
+        , Space
+        , Str "change"
+        , Space
+        , Str "of"
+        , Space
+        , Str "work"
+        , Space
+        , Str "is"
+        , Space
+        , Str "a"
+        , Space
+        , Str "holiday,"
+        , Space
+        , Str "then"
+        , Space
+        , Str "what"
+        , Space
+        , Str "makes"
+        , Space
+        , Str "work"
+        , Space
+        , Str "an"
+        , Space
+        , Str "especially"
+        , Space
+        , Str "painful"
+        , Space
+        , Str "activity"
+        , Space
+        , Str "is"
+        , Space
+        , Str "its"
+        , Space
+        , Str "continuation"
+        , Space
+        , Str "through"
+        , Space
+        , Str "an"
+        , Space
+        , Str "over-extended"
+        , Space
+        , Str "period"
+        , Space
+        , Str "of"
+        , Space
+        , Str "time"
+        , Space
+        , Str "[\8230]."
+        ]
+    , Para
+        [ Str "The"
+        , Space
+        , Str "repetition"
+        , Space
+        , Str "of"
+        , Space
+        , Str "the"
+        , Space
+        , Str "same,"
+        , Space
+        , Str "even"
+        , Space
+        , Str "innocuous"
+        , Space
+        , Str "per"
+        , Space
+        , Str "se,"
+        , Space
+        , Str "becomes"
+        , Space
+        , Str "a"
+        , Space
+        , Str "torment,"
+        , Space
+        , Str "as"
+        , Space
+        , Str "in"
+        , Space
+        , Str "the"
+        , Space
+        , Str "\"Chinese"
+        , Space
+        , Str "water"
+        , Space
+        , Str "torture\""
+        , Space
+        , Str "where"
+        , Space
+        , Str "the"
+        , Space
+        , Str "pain"
+        , Space
+        , Str "comes"
+        , Space
+        , Str "from"
+        , Space
+        , Str "a"
+        , Space
+        , Str "steady"
+        , Space
+        , Str "dripping"
+        , Space
+        , Str "of"
+        , Space
+        , Str "water"
+        , Space
+        , Str "droplets"
+        , Space
+        , Str "on"
+        , Space
+        , Str "the"
+        , Space
+        , Str "same"
+        , Space
+        , Str "part"
+        , Space
+        , Str "of"
+        , Space
+        , Str "the"
+        , Space
+        , Str "body."
+        , Space
+        , Str "And"
+        , Space
+        , Str "the"
+        , Space
+        , Str "classical"
+        , Space
+        , Str "image"
+        , Space
+        , Str "of"
+        , Space
+        , Str "the"
+        , Space
+        , Str "Fordist"
+        , Space
+        , Str "worker,"
+        , Space
+        , Str "chained"
+        , Space
+        , Str "to"
+        , Space
+        , Str "the"
+        , Space
+        , Str "assembly"
+        , Space
+        , Str "line"
+        , Space
+        , Str "so"
+        , Space
+        , Str "that"
+        , Space
+        , Str "he/she"
+        , Space
+        , Str "must"
+        , Space
+        , Str "repeat"
+        , Space
+        , Str "the"
+        , Space
+        , Str "same"
+        , Space
+        , Str "motion"
+        , Space
+        , Str "relentlessly,"
+        , Space
+        , Str "resembles"
+        , Space
+        , Str "that"
+        , Space
+        , Str "of"
+        , Space
+        , Str "the"
+        , Space
+        , Str "galley"
+        , Space
+        , Str "slave"
+        , Space
+        , Str "who"
+        , Space
+        , Str "does"
+        , Space
+        , Str "nothing"
+        , Space
+        , Str "but"
+        , Space
+        , Str "work"
+        , Space
+        , Str "the"
+        , Space
+        , Str "oars."
+        , Space
+        , Str "Relentless"
+        , Space
+        , Str "repetition"
+        , Space
+        , Str "of"
+        , Space
+        , Str "the"
+        , Space
+        , Str "same"
+        , Space
+        , Str "is"
+        , Space
+        , Str "what"
+        , Space
+        , Str "Thanatos"
+        , Space
+        , Str "(the"
+        , Space
+        , Str "death"
+        , Space
+        , Str "impulse"
+        , Space
+        , Str "identified"
+        , Space
+        , Str "by"
+        , Space
+        , Str "Freud)"
+        , Space
+        , Str "is"
+        , Space
+        , Str "about."
+        , Space
+        , Str "Relentlessness"
+        , Space
+        , Str "and"
+        , Space
+        , Str "endlessness"
+        , Space
+        , Str "are"
+        , Space
+        , Str "the"
+        , Space
+        , Str "two"
+        , Space
+        , Str "things"
+        , Space
+        , Str "that"
+        , Space
+        , Str "make"
+        , Space
+        , Str "hell"
+        , Space
+        , Str "hellish"
+        , Space
+        , Str "[\8230]"
+        ]
+    , Para
+        [ Str "All"
+        , Space
+        , Str "in"
+        , Space
+        , Str "all,"
+        , Space
+        , Str "man"
+        , Space
+        , Str "is"
+        , Space
+        , Str "living"
+        , Space
+        , Str "through"
+        , Space
+        , Str "and"
+        , Space
+        , Str "craving"
+        , Space
+        , Str "for"
+        , Space
+        , Str "variety,"
+        , Space
+        , Str "alternation"
+        , Space
+        , Str "and"
+        , Space
+        , Str "diversity."
+        , Space
+        , Str "Just"
+        , Space
+        , Str "as"
+        , Space
+        , Str "we"
+        , Space
+        , Str "alternate"
+        , Space
+        , Str "inhaling"
+        , Space
+        , Str "and"
+        , Space
+        , Str "exhaling,"
+        , Space
+        , Str "chewing"
+        , Space
+        , Str "and"
+        , Space
+        , Str "swallowing,"
+        , Space
+        , Str "sleeping"
+        , Space
+        , Str "and"
+        , Space
+        , Str "waking,"
+        , Space
+        , Str "we"
+        , Space
+        , Str "need"
+        , Space
+        , Str "to"
+        , Space
+        , Str "alternate"
+        , Space
+        , Str "our"
+        , Space
+        , Str "activities."
+        , Space
+        , Str "Post-Fordist"
+        , Space
+        , Str "human"
+        , Space
+        , Str "resources"
+        , Space
+        , Str "specialists"
+        , Space
+        , Str "of"
+        , Space
+        , Str "Internet"
+        , Space
+        , Str "work,"
+        , Space
+        , Str "who"
+        , Space
+        , Str "have"
+        , Space
+        , Str "understood"
+        , Space
+        , Str "this,"
+        , Space
+        , Str "would"
+        , Space
+        , Str "allow"
+        , Space
+        , Str "private"
+        , Space
+        , Str "Internet"
+        , Space
+        , Str "surfing"
+        , Space
+        , Str "(cyberloafing)"
+        , Space
+        , Str "to"
+        , Space
+        , Str "employees"
+        , Space
+        , Str "while"
+        , Space
+        , Str "at"
+        , Space
+        , Str "their"
+        , Space
+        , Str "workstation"
+        , Space
+        , Str "to"
+        , Space
+        , Str "increase"
+        , Space
+        , Str "productivity"
+        , Space
+        , Str "by"
+        , Space
+        , Str "lowering"
+        , Space
+        , Str "stress."
+        , Space
+        , Str "This"
+        , Space
+        , Str "raises"
+        , Space
+        , Str "the"
+        , Space
+        , Str "issue"
+        , Space
+        , Str "of"
+        , Space
+        , Str "rhythm."
+        , Space
+        , Str "Autonomous"
+        , Space
+        , Str "work"
+        , Space
+        , Str "(when"
+        , Space
+        , Str "I"
+        , Space
+        , Str "choose"
+        , Space
+        , Str "to"
+        , Space
+        , Str "work)"
+        , Space
+        , Str "is"
+        , Space
+        , Str "set"
+        , Space
+        , Str "to"
+        , Space
+        , Str "individual"
+        , Space
+        , Str "bio-rhythms,"
+        , Space
+        , Str "heteronomous"
+        , Space
+        , Str "work"
+        , Space
+        , Str "(when"
+        , Space
+        , Str "I"
+        , Space
+        , Str "have"
+        , Space
+        , Str "work"
+        , Space
+        , Str "imposed"
+        , Space
+        , Str "on"
+        , Space
+        , Str "me"
+        , Space
+        , Str "from"
+        , Space
+        , Str "outside,"
+        , Space
+        , Str "whether"
+        , Space
+        , Str "by"
+        , Space
+        , Str "necessity"
+        , Space
+        , Str "or"
+        , Space
+        , Str "violence)"
+        , Space
+        , Str "is"
+        , Space
+        , Str "set"
+        , Space
+        , Str "to"
+        , Space
+        , Str "extraneous"
+        , Space
+        , Str "rhythms:"
+        , Space
+        , Str "slaves"
+        , Space
+        , Str "on"
+        , Space
+        , Str "a"
+        , Space
+        , Str "galley"
+        , Space
+        , Str "pulling"
+        , Space
+        , Str "on"
+        , Space
+        , Str "the"
+        , Space
+        , Str "oars"
+        , Space
+        , Str "to"
+        , Space
+        , Str "the"
+        , Space
+        , Str "drum\8217s"
+        , Space
+        , Str "rhythm,"
+        , Space
+        , Str "marching"
+        , Space
+        , Str "soldiers,"
+        , Space
+        , Str "workers"
+        , Space
+        , Str "on"
+        , Space
+        , Str "the"
+        , Space
+        , Str "assembly-line,"
+        , Space
+        , Str "Internet"
+        , Space
+        , Str "slaves"
+        , Space
+        , Str "desperately"
+        , Space
+        , Str "trying"
+        , Space
+        , Str "to"
+        , Space
+        , Str "catch"
+        , Space
+        , Str "up"
+        , Space
+        , Str "with"
+        , Space
+        , Str "incoming"
+        , Space
+        , Str "emails"
+        , Space
+        , Str "are"
+        , Space
+        , Str "all"
+        , Space
+        , Str "subject"
+        , Space
+        , Str "to"
+        , Space
+        , Str "a"
+        , Space
+        , Str "form"
+        , Space
+        , Str "of"
+        , Space
+        , Str "torture."
+        , Space
+        , Str "In"
+        , Space
+        , Str "moderate"
+        , Space
+        , Str "doses,"
+        , Space
+        , Str "the"
+        , Space
+        , Str "extraneous"
+        , Space
+        , Str "rhythm"
+        , Space
+        , Str "energizes,"
+        , Space
+        , Str "as"
+        , Space
+        , Str "when"
+        , Space
+        , Str "dancing"
+        , Space
+        , Str "to"
+        , Space
+        , Str "a"
+        , Space
+        , Str "tune,"
+        , Space
+        , Str "while"
+        , Space
+        , Str "it"
+        , Space
+        , Str "becomes"
+        , Space
+        , Str "painful"
+        , Space
+        , Str "and"
+        , Space
+        , Str "even"
+        , Space
+        , Str "lethal"
+        , Space
+        , Str "in"
+        , Space
+        , Str "excessive"
+        , Space
+        , Str "doses,"
+        , Space
+        , Str "as"
+        , Space
+        , Str "any"
+        , Space
+        , Str "stimulus."
+        ]
+    , Para
+        [ Str "Olivier"
+        , Space
+        , Str "Frayss\233,"
+        , Space
+        , Str "Work"
+        , Space
+        , Str "and"
+        , Space
+        , Str "Labour"
+        , Space
+        , Str "as"
+        , Space
+        , Str "Metonymy"
+        , Space
+        , Str "and"
+        , Space
+        , Str "Metaphor"
+        , Space
+        , Str "(triple-C)"
+        ]
+    ]
+, Para
+    [ Str "That's" , Space , Str "all," , Space , Str "folks!" ]
+]
