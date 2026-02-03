@@ -8,13 +8,11 @@ import qualified Data.Text.IO as TIO
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath (takeDirectory, (<.>), (</>))
 import Test.Hspec (Spec, describe, it, shouldBe)
-import Test.Tasty (TestTree, testGroup)
+import Test.Tasty (TestTree)
 import Test.Tasty.Hspec (testSpec)
 
 tests :: IO TestTree
-tests = do
-  hspecTests <- testSpec "hspec" spec
-  return $ testGroup "Round-Trip Conversion" [hspecTests]
+tests = testSpec "Round-Trip Conversion" spec
 
 spec :: Spec
 spec = do
