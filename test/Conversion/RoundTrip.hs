@@ -44,25 +44,25 @@ buildPmFilePathForCase caseSubFolder = baseDir </> "pm.json"
 roundTripTestForInputFile :: Format -> Format -> (T.Text -> T.Text) -> FilePath -> Spec
 roundTripTestForInputFile ioFormat intermediaryFormat normalizer filePath = it filePath $ do
   inputText <- TIO.readFile filePath
-  let normaliedInput = normalizer inputText
+  let normalizedInput = normalizer inputText
   intermediaryFormatText <- toTextFormat ioFormat intermediaryFormat inputText
   outputText <- toTextFormat intermediaryFormat ioFormat intermediaryFormatText
   let normalizedOutput = normalizer outputText
 
   -- Write files on failure to keep test-output clean
-  when (inputText /= outputText) (writeTestArtifactsToFiles normaliedInput intermediaryFormatText normalizedOutput)
+  when (normalizedInput /= normalizedOutput) (writeTestArtifactsToFiles normalizedInput intermediaryFormatText normalizedOutput)
 
-  normaliedInput `shouldBe` normalizedOutput
+  normalizedInput `shouldBe` normalizedOutput
   where
     writeTestArtifactsToFiles :: T.Text -> T.Text -> T.Text -> IO ()
-    writeTestArtifactsToFiles inputText intermediaryFormatText outputText = do
+    writeTestArtifactsToFiles input intermediary output = do
       let caseDir = takeDirectory filePath
       let logDir = "failed-round-trip-tests" </> caseDir
 
       createDirectoryIfMissing True logDir
-      TIO.writeFile (logDir </> "input" <.> getFormatExtension ioFormat) inputText
-      TIO.writeFile (logDir </> "intermediary" <.> getFormatExtension intermediaryFormat) intermediaryFormatText
-      TIO.writeFile (logDir </> "output" <.> getFormatExtension ioFormat) outputText
+      TIO.writeFile (logDir </> "input" <.> getFormatExtension ioFormat) input
+      TIO.writeFile (logDir </> "intermediary" <.> getFormatExtension intermediaryFormat) intermediary
+      TIO.writeFile (logDir </> "output" <.> getFormatExtension ioFormat) output
 
     getFormatExtension :: Format -> String
     getFormatExtension Markdown = "md"

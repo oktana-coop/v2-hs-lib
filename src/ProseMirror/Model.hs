@@ -8,6 +8,7 @@ import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (toJSON), Value (..), ei
 import Data.Aeson.Types (Parser)
 import qualified Data.ByteString.Lazy as BL
 import Data.List.NonEmpty (NonEmpty)
+import Data.Maybe (catMaybes)
 import qualified Data.Text as T
 import ProseMirror.Utils.Json (parseNonEmpty)
 
@@ -52,7 +53,13 @@ instance ToJSON Mark where
 data TextNode = PMText {text :: T.Text, marks :: Maybe (NonEmpty Mark)} deriving (Show, Eq)
 
 instance ToJSON TextNode where
-  toJSON textNode = object $ ["type" .= T.pack "text", "text" .= text textNode, "marks" .= marks textNode]
+  toJSON textNode =
+    object $
+      catMaybes
+        [ Just $ "type" .= T.pack "text",
+          Just $ "text" .= text textNode,
+          fmap ("marks" .=) (marks textNode)
+        ]
 
 newtype HeadingLevel = HeadingLevel Int deriving (Show, Eq)
 

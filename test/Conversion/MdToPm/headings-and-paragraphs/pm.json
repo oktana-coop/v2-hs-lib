@@ -1,1 +1,1 @@
-{"content":[{"attrs":{"level":1},"content":[{"marks":null,"text":"A Heading 1","type":"text"}],"type":"heading"},{"content":[{"marks":null,"text":"A paragraph","type":"text"}],"type":"paragraph"},{"content":[{"marks":null,"text":"Another paragraph","type":"text"}],"type":"paragraph"}],"type":"doc"}
+{"content":[{"attrs":{"level":1},"content":[{"text":"A Heading 1","type":"text"}],"type":"heading"},{"content":[{"text":"A paragraph","type":"text"}],"type":"paragraph"},{"content":[{"text":"Another paragraph","type":"text"}],"type":"paragraph"}],"type":"doc"}
