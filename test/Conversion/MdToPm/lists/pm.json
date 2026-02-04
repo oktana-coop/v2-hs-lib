@@ -1,1 +1,717 @@
-{"content":[{"attrs":{"level":1},"content":[{"text":"Lists Testing","type":"text"}],"type":"heading"},{"content":[{"text":"Here is a simple unordered list:","type":"text"}],"type":"paragraph"},{"content":[{"content":[{"content":[{"text":"Item 1","type":"text"}],"type":"paragraph"}],"type":"list_item"},{"content":[{"content":[{"text":"Item 2","type":"text"}],"type":"paragraph"}],"type":"list_item"},{"content":[{"content":[{"text":"Item 3","type":"text"}],"type":"paragraph"}],"type":"list_item"}],"type":"bullet_list"},{"content":[{"text":"And a simple unordered one:","type":"text"}],"type":"paragraph"},{"content":[{"content":[{"content":[{"text":"Item 1","type":"text"}],"type":"paragraph"}],"type":"list_item"},{"content":[{"content":[{"text":"Item 2","type":"text"}],"type":"paragraph"}],"type":"list_item"},{"content":[{"content":[{"text":"Item 3","type":"text"}],"type":"paragraph"}],"type":"list_item"}],"type":"ordered_list"},{"attrs":{"level":2},"content":[{"text":"Nested Lists","type":"text"}],"type":"heading"},{"attrs":{"level":3},"content":[{"text":"Unordered","type":"text"}],"type":"heading"},{"content":[{"content":[{"content":[{"text":"Item 1","type":"text"}],"type":"paragraph"},{"content":[{"content":[{"content":[{"text":"Item 1.1","type":"text"}],"type":"paragraph"},{"content":[{"content":[{"content":[{"text":"Item 1.1.1","type":"text"}],"type":"paragraph"}],"type":"list_item"},{"content":[{"content":[{"text":"Item 1.1.2","type":"text"}],"type":"paragraph"}],"type":"list_item"}],"type":"bullet_list"}],"type":"list_item"},{"content":[{"content":[{"text":"Item 1.2","type":"text"}],"type":"paragraph"}],"type":"list_item"}],"type":"bullet_list"}],"type":"list_item"},{"content":[{"content":[{"text":"Item 2","type":"text"}],"type":"paragraph"}],"type":"list_item"},{"content":[{"content":[{"text":"Item 3","type":"text"}],"type":"paragraph"},{"content":[{"content":[{"content":[{"text":"Item 3.1","type":"text"}],"type":"paragraph"}],"type":"list_item"}],"type":"bullet_list"}],"type":"list_item"}],"type":"bullet_list"},{"attrs":{"level":3},"content":[{"text":"Ordered","type":"text"}],"type":"heading"},{"content":[{"content":[{"content":[{"text":"Item 1","type":"text"}],"type":"paragraph"},{"content":[{"content":[{"content":[{"text":"Item 1.1","type":"text"}],"type":"paragraph"},{"content":[{"content":[{"content":[{"text":"Item 1.1.1","type":"text"}],"type":"paragraph"}],"type":"list_item"}],"type":"ordered_list"}],"type":"list_item"},{"content":[{"content":[{"text":"Item 1.2","type":"text"}],"type":"paragraph"},{"content":[{"content":[{"content":[{"text":"Item 1.2.1","type":"text"}],"type":"paragraph"}],"type":"list_item"}],"type":"ordered_list"}],"type":"list_item"}],"type":"ordered_list"}],"type":"list_item"},{"content":[{"content":[{"text":"Item 2","type":"text"}],"type":"paragraph"},{"content":[{"content":[{"content":[{"text":"Item 2.1","type":"text"}],"type":"paragraph"}],"type":"list_item"}],"type":"ordered_list"}],"type":"list_item"}],"type":"ordered_list"},{"attrs":{"level":3},"content":[{"text":"List Items with Block Children","type":"text"}],"type":"heading"},{"content":[{"content":[{"content":[{"text":"Item 1","type":"text"}],"type":"paragraph"},{"content":[{"content":[{"content":[{"text":"Item 1.1","type":"text"}],"type":"paragraph"},{"content":[{"text":"A ","type":"text"},{"marks":[{"type":"strong"}],"text":"paragraph","type":"text"},{"text":" in item 1.1","type":"text"}],"type":"paragraph"},{"content":[{"content":[{"content":[{"text":"Item 1.1.1","type":"text"}],"type":"paragraph"}],"type":"list_item"},{"content":[{"content":[{"text":"Item 1.1.2","type":"text"}],"type":"paragraph"}],"type":"list_item"},{"content":[{"content":[{"text":"Item 1.1.3 (with ","type":"text"},{"marks":[{"attrs":{"href":"https://v2editor.com","title":"a link"},"type":"link"}],"text":"a link","type":"text"},{"text":")","type":"text"}],"type":"paragraph"}],"type":"list_item"}],"type":"ordered_list"}],"type":"list_item"},{"content":[{"content":[{"text":"Item 1.2","type":"text"}],"type":"paragraph"}],"type":"list_item"},{"content":[{"content":[{"text":"Item 1.3","type":"text"}],"type":"paragraph"},{"content":[{"content":[{"text":"A blockquote in a list item","type":"text"}],"type":"paragraph"}],"type":"blockquote"}],"type":"list_item"}],"type":"bullet_list"}],"type":"list_item"},{"content":[{"content":[{"text":"Item 2","type":"text"}],"type":"paragraph"}],"type":"list_item"}],"type":"bullet_list"},{"attrs":{"level":2},"content":[{"text":"Lists and Other Blocks","type":"text"}],"type":"heading"},{"content":[{"text":"Paragraphs above and below the list:","type":"text"}],"type":"paragraph"},{"content":[{"content":[{"content":[{"text":"Item 1.1","type":"text"}],"type":"paragraph"}],"type":"list_item"},{"content":[{"content":[{"text":"Item 1.2","type":"text"}],"type":"paragraph"}],"type":"list_item"}],"type":"bullet_list"},{"content":[{"text":"A code block under a list:","type":"text"}],"type":"paragraph"},{"content":[{"content":[{"content":[{"text":"Item 1.1","type":"text"}],"type":"paragraph"}],"type":"list_item"},{"content":[{"content":[{"text":"Item 1.2","type":"text"}],"type":"paragraph"}],"type":"list_item"}],"type":"ordered_list"},{"content":[{"text":"A code block","type":"text"}],"type":"code_block"}],"type":"doc"}
+{
+  "content": [
+    {
+      "attrs": {
+        "level": 1
+      },
+      "content": [
+        {
+          "text": "Lists Testing",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "Here is a simple unordered list:",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Item 1",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Item 2",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Item 3",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "And a simple unordered one:",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Item 1",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Item 2",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Item 3",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "Nested Lists",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "Unordered",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Item 1",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "text": "Item 1.1",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    },
+                    {
+                      "content": [
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "text": "Item 1.1.1",
+                                  "type": "text"
+                                }
+                              ],
+                              "type": "paragraph"
+                            }
+                          ],
+                          "type": "list_item"
+                        },
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "text": "Item 1.1.2",
+                                  "type": "text"
+                                }
+                              ],
+                              "type": "paragraph"
+                            }
+                          ],
+                          "type": "list_item"
+                        }
+                      ],
+                      "type": "bullet_list"
+                    }
+                  ],
+                  "type": "list_item"
+                },
+                {
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "text": "Item 1.2",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    }
+                  ],
+                  "type": "list_item"
+                }
+              ],
+              "type": "bullet_list"
+            }
+          ],
+          "type": "list_item"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Item 2",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Item 3",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "text": "Item 3.1",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    }
+                  ],
+                  "type": "list_item"
+                }
+              ],
+              "type": "bullet_list"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "Ordered",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Item 1",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "text": "Item 1.1",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    },
+                    {
+                      "content": [
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "text": "Item 1.1.1",
+                                  "type": "text"
+                                }
+                              ],
+                              "type": "paragraph"
+                            }
+                          ],
+                          "type": "list_item"
+                        }
+                      ],
+                      "type": "ordered_list"
+                    }
+                  ],
+                  "type": "list_item"
+                },
+                {
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "text": "Item 1.2",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    },
+                    {
+                      "content": [
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "text": "Item 1.2.1",
+                                  "type": "text"
+                                }
+                              ],
+                              "type": "paragraph"
+                            }
+                          ],
+                          "type": "list_item"
+                        }
+                      ],
+                      "type": "ordered_list"
+                    }
+                  ],
+                  "type": "list_item"
+                }
+              ],
+              "type": "ordered_list"
+            }
+          ],
+          "type": "list_item"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Item 2",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "text": "Item 2.1",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    }
+                  ],
+                  "type": "list_item"
+                }
+              ],
+              "type": "ordered_list"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "text": "List Items with Block Children",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Item 1",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "text": "Item 1.1",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    },
+                    {
+                      "content": [
+                        {
+                          "text": "A ",
+                          "type": "text"
+                        },
+                        {
+                          "marks": [
+                            {
+                              "type": "strong"
+                            }
+                          ],
+                          "text": "paragraph",
+                          "type": "text"
+                        },
+                        {
+                          "text": " in item 1.1",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    },
+                    {
+                      "content": [
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "text": "Item 1.1.1",
+                                  "type": "text"
+                                }
+                              ],
+                              "type": "paragraph"
+                            }
+                          ],
+                          "type": "list_item"
+                        },
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "text": "Item 1.1.2",
+                                  "type": "text"
+                                }
+                              ],
+                              "type": "paragraph"
+                            }
+                          ],
+                          "type": "list_item"
+                        },
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "text": "Item 1.1.3 (with ",
+                                  "type": "text"
+                                },
+                                {
+                                  "marks": [
+                                    {
+                                      "attrs": {
+                                        "href": "https://v2editor.com",
+                                        "title": "a link"
+                                      },
+                                      "type": "link"
+                                    }
+                                  ],
+                                  "text": "a link",
+                                  "type": "text"
+                                },
+                                {
+                                  "text": ")",
+                                  "type": "text"
+                                }
+                              ],
+                              "type": "paragraph"
+                            }
+                          ],
+                          "type": "list_item"
+                        }
+                      ],
+                      "type": "ordered_list"
+                    }
+                  ],
+                  "type": "list_item"
+                },
+                {
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "text": "Item 1.2",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    }
+                  ],
+                  "type": "list_item"
+                },
+                {
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "text": "Item 1.3",
+                          "type": "text"
+                        }
+                      ],
+                      "type": "paragraph"
+                    },
+                    {
+                      "content": [
+                        {
+                          "content": [
+                            {
+                              "text": "A blockquote in a list item",
+                              "type": "text"
+                            }
+                          ],
+                          "type": "paragraph"
+                        }
+                      ],
+                      "type": "blockquote"
+                    }
+                  ],
+                  "type": "list_item"
+                }
+              ],
+              "type": "bullet_list"
+            }
+          ],
+          "type": "list_item"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Item 2",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "Lists and Other Blocks",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "Paragraphs above and below the list:",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Item 1.1",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Item 1.2",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "bullet_list"
+    },
+    {
+      "content": [
+        {
+          "text": "A code block under a list:",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Item 1.1",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "text": "Item 1.2",
+                  "type": "text"
+                }
+              ],
+              "type": "paragraph"
+            }
+          ],
+          "type": "list_item"
+        }
+      ],
+      "type": "ordered_list"
+    },
+    {
+      "content": [
+        {
+          "text": "A code block",
+          "type": "text"
+        }
+      ],
+      "type": "code_block"
+    }
+  ],
+  "type": "doc"
+}

@@ -29,9 +29,9 @@ goldenCase caseSubFolderPath =
         [ goldenVsString
             "pandoc"
             pandocGolden
-            (readFileAndConvert ProseMirror Pandoc pmInput),
+            (readFileAndConvert ProseMirror Pandoc id pmInput),
           goldenVsString
             "markdown"
             mdGolden
-            (readFileAndConvert ProseMirror Markdown pmInput)
+            (readFileAndConvert ProseMirror Markdown id pmInput)
         ]

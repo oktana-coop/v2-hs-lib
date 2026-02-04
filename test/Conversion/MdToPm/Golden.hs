@@ -5,6 +5,7 @@ import Conversion.Utils (readFileAndConvert)
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden (goldenVsString)
+import Utils (normalizeJson)
 
 tests :: IO TestTree
 tests = do
@@ -29,9 +30,9 @@ goldenCase caseSubFolderPath =
         [ goldenVsString
             "pandoc"
             pandocGolden
-            (readFileAndConvert Markdown Pandoc mdInput),
+            (readFileAndConvert Markdown Pandoc id mdInput),
           goldenVsString
             "prosemirror"
             pmGolden
-            (readFileAndConvert Markdown ProseMirror mdInput)
+            (readFileAndConvert Markdown ProseMirror normalizeJson mdInput)
         ]

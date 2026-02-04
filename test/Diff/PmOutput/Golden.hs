@@ -5,6 +5,7 @@ import Diff.Utils (readFilesAndProducePmDiff)
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden (goldenVsString)
+import Utils (normalizeJson)
 
 tests :: IO TestTree
 tests = do
@@ -24,4 +25,4 @@ goldenCase caseSubFolderPath =
    in goldenVsString
         "prosemirror"
         pmGolden
-        (readFilesAndProducePmDiff Markdown md1Input md2Input)
+        (readFilesAndProducePmDiff Markdown normalizeJson md1Input md2Input)

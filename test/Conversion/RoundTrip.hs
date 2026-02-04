@@ -10,7 +10,7 @@ import System.FilePath (takeDirectory, (<.>), (</>))
 import Test.Hspec (Spec, describe, it, shouldBe)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hspec (testSpec)
-import Utils (normalizeJson)
+import Utils (normalizeJson, TextNormalizer)
 
 tests :: IO TestTree
 tests = testSpec "Round-Trip Conversion" spec
@@ -40,7 +40,7 @@ buildPmFilePathForCase caseSubFolder = baseDir </> "pm.json"
   where
     baseDir = "test/Conversion/PmToMd" </> caseSubFolder
 
-roundTripTestForInputFile :: Format -> Format -> (T.Text -> T.Text) -> FilePath -> Spec
+roundTripTestForInputFile :: Format -> Format -> TextNormalizer -> FilePath -> Spec
 roundTripTestForInputFile ioFormat intermediaryFormat normalizer filePath = it filePath $ do
   inputText <- TIO.readFile filePath
   let normalizedInput = normalizer inputText
