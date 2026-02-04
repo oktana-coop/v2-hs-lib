@@ -1,0 +1,44 @@
+{
+  "decorations": [
+    {
+      "attrs": {
+        "class": "bg-purple-100 dark:bg-purple-200 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 20,
+      "to": 29,
+      "type": "inline"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Diff Playground",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A ",
+            "type": "text"
+          },
+          {
+            "text": "paragraph",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  }
+}

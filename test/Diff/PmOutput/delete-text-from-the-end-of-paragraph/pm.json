@@ -1,0 +1,38 @@
+{
+  "decorations": [
+    {
+      "node": {
+        "text": " foo bar cat",
+        "type": "text"
+      },
+      "pos": 29,
+      "type": "widget"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Diff Playground",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  }
+}

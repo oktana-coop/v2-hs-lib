@@ -13,7 +13,15 @@ tests = do
     testGroup
       "Markdown Inputs → ProseMirror Diff (Golden)"
       [ goldenCase "add-paragraph-end",
-        goldenCase "add-paragraph-middle"
+        goldenCase "add-paragraph-middle",
+        goldenCase "add-strong-emphasis-to-word",
+        goldenCase "add-text-in-the-middle-of-paragraph",
+        goldenCase "append-text-to-paragraph",
+        goldenCase "delete-last-paragraph",
+        goldenCase "delete-paragraph-middle",
+        goldenCase "delete-text-from-the-end-of-paragraph",
+        goldenCase "delete-text-from-the-middle-of-paragraph",
+        goldenCase "remove-strong-emphasis-from-word"
       ]
 
 goldenCase :: FilePath -> TestTree

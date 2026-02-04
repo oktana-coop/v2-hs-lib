@@ -1,0 +1,48 @@
+{
+  "decorations": [
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 30,
+      "to": 42,
+      "type": "inline"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Diff Playground",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph ",
+            "type": "text"
+          },
+          {
+            "text": "lorem ipsum ",
+            "type": "text"
+          },
+          {
+            "text": "foo bar cat",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  }
+}

@@ -1,0 +1,3 @@
+# Diff Playground
+
+A paragraph

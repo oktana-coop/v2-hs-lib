@@ -1,0 +1,42 @@
+{
+  "decorations": [
+    {
+      "node": {
+        "text": "lorem ipsum ",
+        "type": "text"
+      },
+      "pos": 30,
+      "type": "widget"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Diff Playground",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph ",
+            "type": "text"
+          },
+          {
+            "text": "foo bar cat",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  }
+}

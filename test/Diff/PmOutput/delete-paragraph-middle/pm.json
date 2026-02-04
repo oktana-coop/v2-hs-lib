@@ -1,0 +1,52 @@
+{
+  "decorations": [
+    {
+      "node": {
+        "content": [
+          {
+            "text": "A paragraph in the middle",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      "pos": 30,
+      "type": "widget"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Diff Playground",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "Another paragraph",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  }
+}
