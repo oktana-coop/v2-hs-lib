@@ -23,6 +23,6 @@ goldenCase caseSubFolderPath =
       md2Input = baseDir </> "doc2.md"
       pmGolden = baseDir </> "pm.json"
    in goldenVsString
-        "prosemirror"
+        caseSubFolderPath
         pmGolden
         (readFilesAndProducePmDiff Markdown normalizeJson md1Input md2Input)
