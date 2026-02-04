@@ -7,7 +7,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.IO as TIO
 import Format (Format (..))
-import Utils ( TextNormalizer ) 
+import Utils (TextNormalizer)
 
 readFileAndConvert :: Format -> Format -> TextNormalizer -> FilePath -> IO BL.ByteString
 readFileAndConvert inputFormat outputFormat normalizer inputFilePath = do
@@ -23,4 +23,3 @@ toTextFormat inputFormat outputFormat inputText = do
   case eitherOutputText of
     Left errors -> fail ("Conversion failed: " <> (show $ Data.List.NonEmpty.head errors))
     Right outputText -> pure outputText
-

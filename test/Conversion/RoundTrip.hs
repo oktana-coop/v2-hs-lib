@@ -10,7 +10,7 @@ import System.FilePath (takeDirectory, (<.>), (</>))
 import Test.Hspec (Spec, describe, it, shouldBe)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hspec (testSpec)
-import Utils (normalizeJson, TextNormalizer)
+import Utils (TextNormalizer, normalizeJson)
 
 tests :: IO TestTree
 tests = testSpec "Round-Trip Conversion" spec

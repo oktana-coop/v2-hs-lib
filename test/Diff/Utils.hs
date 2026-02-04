@@ -1,18 +1,18 @@
 module Diff.Utils (readFilesAndProducePmDiff) where
 
 import Data.Aeson (ToJSON)
+import Data.Aeson.Text (encodeToLazyText)
 import qualified Data.ByteString.Lazy as BL
 import Data.List.NonEmpty (head)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import qualified Data.Text.IO as TIO
+import qualified Data.Text.Lazy as LT
 import Diff (proseMirrorDiff)
 import Format (Format)
 import Utils (TextNormalizer)
-import Data.Aeson.Text (encodeToLazyText)
-import qualified Data.Text.Lazy as LT
-import qualified Data.Text.Encoding as TE
 
-toJsonText :: ToJSON a => a -> T.Text
+toJsonText :: (ToJSON a) => a -> T.Text
 toJsonText = LT.toStrict . encodeToLazyText
 
 readFilesAndProducePmDiff :: Format -> TextNormalizer -> FilePath -> FilePath -> IO BL.ByteString
