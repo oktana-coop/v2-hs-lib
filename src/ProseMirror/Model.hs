@@ -197,7 +197,7 @@ instance ToJSON Node where
     BulletList -> object ["type" .= toJSON BulletListType, "content" .= children]
     OrderedList -> object ["type" .= toJSON OrderedListType, "content" .= children]
     ListItem -> object ["type" .= toJSON ListItemType, "content" .= children]
-    NoteRef (NoteId noteId) -> object ["type" .= toJSON NoteRefType, "content" .= children, "attrs" .= object ["id" .= toJSON noteId]]
+    NoteRef (NoteId noteId) -> object ["type" .= toJSON NoteRefType, "attrs" .= object ["id" .= toJSON noteId]]
     NoteContent (NoteId noteId) -> object ["type" .= toJSON NoteContentType, "content" .= children, "attrs" .= object ["id" .= toJSON noteId]]
 
 data PMDoc = PMDoc {doc :: Node} deriving (Show, Eq)

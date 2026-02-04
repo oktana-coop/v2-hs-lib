@@ -8,7 +8,15 @@ import Test.Tasty.Golden (goldenVsString)
 
 tests :: IO TestTree
 tests = do
-  return $ testGroup "ProseMirror → Markdown (Golden)" [goldenCase "blockquote", goldenCase "headings-and-paragraphs", goldenCase "marks", goldenCase "lists"]
+  return $
+    testGroup
+      "ProseMirror → Markdown (Golden)"
+      [ goldenCase "blockquote",
+        goldenCase "headings-and-paragraphs",
+        goldenCase "marks",
+        goldenCase "lists",
+        goldenCase "notes"
+      ]
 
 goldenCase :: FilePath -> TestTree
 goldenCase caseSubFolderPath =

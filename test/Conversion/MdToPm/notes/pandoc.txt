@@ -1,0 +1,1671 @@
+[ Header
+    1
+    ( "notes-testing" , [] , [] )
+    [ Str "Notes" , Space , Str "Testing" ]
+, Para
+    [ Str "It"
+    , Space
+    , Str "is"
+    , Space
+    , Str "always"
+    , Space
+    , Str "the"
+    , Space
+    , Str "case"
+    , Space
+    , Str "that"
+    , Space
+    , Str "certain"
+    , Space
+    , Str "foundational"
+    , Space
+    , Str "technologies"
+    , Space
+    , Str "and"
+    , Space
+    , Str "research,"
+    , Space
+    , Str "along"
+    , Space
+    , Str "of"
+    , Space
+    , Str "course"
+    , Space
+    , Str "with"
+    , Space
+    , Str "timing,"
+    , Space
+    , Str "play"
+    , Space
+    , Str "a"
+    , Space
+    , Str "role"
+    , Space
+    , Str "in"
+    , Space
+    , Str "shaping"
+    , Space
+    , Str "the"
+    , Space
+    , Str "terrain"
+    , Space
+    , Str "and"
+    , Space
+    , Str "the"
+    , Space
+    , Str "conditions"
+    , Space
+    , Str "of"
+    , Space
+    , Str "action."
+    , Space
+    , Str "For"
+    , Space
+    , Str "us"
+    , Space
+    , Str "and"
+    , Space
+    , Str "this"
+    , Space
+    , Str "project"
+    , Space
+    , Str "of"
+    , Space
+    , Str "collaborative"
+    , Space
+    , Str "rich"
+    , Space
+    , Str "text"
+    , Space
+    , Str "writing,"
+    , Space
+    , Str "it"
+    , Space
+    , Str "is"
+    , Space
+    , Str "very"
+    , Space
+    , Str "important"
+    , Space
+    , Str "that"
+    , Space
+    , Str "there"
+    , Space
+    , Str "is"
+    , Space
+    , Str "now"
+    , Space
+    , Str "an"
+    , Space
+    , Str "exciting"
+    , Space
+    , Str "movement"
+    , Space
+    , Str "in"
+    , Space
+    , Str "software"
+    , Space
+    , Str "development"
+    , Space
+    , Str "culture,"
+    , Space
+    , Link
+        ( "" , [] , [] )
+        [ Str "local-first" , Space , Str "software" ]
+        ( "https://www.inkandswitch.com/essay/local-first/" , "" )
+    , Str ","
+    , Space
+    , Str "sparked"
+    , Space
+    , Str "by"
+    , Space
+    , Str "a"
+    , Space
+    , Str "foundational"
+    , Space
+    , Str "technology"
+    , Space
+    , Str "relevant"
+    , Space
+    , Str "to"
+    , Space
+    , Str "collaborative"
+    , Space
+    , Str "applications,"
+    , Space
+    , Link
+        ( "" , [] , [] )
+        [ Str "CRDTs" ]
+        ( "https://crdt.tech/" , "" )
+    , Str "."
+    , Space
+    , Str "We"
+    , Space
+    , Str "are"
+    , Space
+    , Str "very"
+    , Space
+    , Str "much"
+    , Space
+    , Str "inspired"
+    , Space
+    , Str "by"
+    , Space
+    , Str "the"
+    , Space
+    , Str "relevant"
+    , Space
+    , Str "work"
+    , Space
+    , Str "developed"
+    , Space
+    , Str "and"
+    , Space
+    , Str "published"
+    , Space
+    , Str "by"
+    , Space
+    , Str "the"
+    , Space
+    , Link
+        ( "" , [] , [] )
+        [ Str "Ink" , Space , Str "and" , Space , Str "Switch" ]
+        ( "https://www.inkandswitch.com/" , "" )
+    , Space
+    , Str "industrial"
+    , Space
+    , Str "research"
+    , Space
+    , Str "lab"
+    , Space
+    , Str "and"
+    , Space
+    , Str "the"
+    , Space
+    , Str "thoughtful"
+    , Space
+    , Str "discussions"
+    , Space
+    , Str "in"
+    , Space
+    , Str "the"
+    , Space
+    , Link
+        ( "" , [] , [] )
+        [ Str "Metamuse" ]
+        ( "https://museapp.com/podcast/" , "" )
+    , Space
+    , Str "podcast."
+    , Space
+    , Str "We"
+    , Space
+    , Str "found"
+    , Space
+    , Str "there"
+    , Space
+    , Str "this"
+    , Space
+    , Str "missing"
+    , Space
+    , Str "element"
+    , Space
+    , Str "of"
+    , Space
+    , Str "utopian"
+    , Space
+    , Str "thinking"
+    , Space
+    , Str "for"
+    , Space
+    , Str "computing"
+    , Space
+    , Str "and"
+    , Space
+    , Str "digital"
+    , Space
+    , Str "media,"
+    , Space
+    , Str "a"
+    , Space
+    , Str "fertile"
+    , Space
+    , Str "critique"
+    , Space
+    , Str "of"
+    , Space
+    , Str "what"
+    , Space
+    , Str "computers"
+    , Space
+    , Str "have"
+    , Space
+    , Str "become"
+    , Space
+    , Str "in"
+    , Space
+    , Str "contrast"
+    , Space
+    , Str "to"
+    , Space
+    , Str "their"
+    , Space
+    , Str "great"
+    , Space
+    , Str "potential"
+    , Space
+    , Str "for"
+    , Space
+    , Str "being"
+    , Space
+    , Str "tools"
+    , Space
+    , Str "for"
+    , Space
+    , Str "thought"
+    , Space
+    , Str "and"
+    , Space
+    , Str "co-creation."
+    , Space
+    , Str "What\8217s"
+    , Space
+    , Str "more,"
+    , Space
+    , Str "there"
+    , Space
+    , Str "has"
+    , Space
+    , Str "been"
+    , Space
+    , Str "important"
+    , Space
+    , Str "and"
+    , Space
+    , Str "concrete"
+    , Space
+    , Str "research"
+    , Space
+    , Str "conducted"
+    , Space
+    , Str "within"
+    , Space
+    , Str "Ink"
+    , Space
+    , Str "and"
+    , Space
+    , Str "Switch"
+    , Space
+    , Str "for"
+    , Space
+    , Str "rich"
+    , Space
+    , Str "text"
+    , Space
+    , Str "collaborative"
+    , Space
+    , Str "writing\160"
+    , Note
+        [ Para
+            [ Str "Geoffrey"
+            , Space
+            , Str "Litt,"
+            , Space
+            , Str "Sarah"
+            , Space
+            , Str "Lim,"
+            , Space
+            , Str "Martin"
+            , Space
+            , Str "Kleppmann,"
+            , Space
+            , Str "and"
+            , Space
+            , Str "Peter"
+            , Space
+            , Str "van"
+            , Space
+            , Str "Hardenberg."
+            , Space
+            , Str "2022."
+            , Space
+            , Str "Peritext:"
+            , Space
+            , Str "A"
+            , Space
+            , Str "CRDT"
+            , Space
+            , Str "for"
+            , Space
+            , Str "Collaborative"
+            , Space
+            , Str "Rich"
+            , Space
+            , Str "Text"
+            , Space
+            , Str "Editing."
+            , Space
+            , Str "Proc."
+            , Space
+            , Str "ACM"
+            , Space
+            , Str "Hum.-Comput."
+            , Space
+            , Str "Interact."
+            , Space
+            , Str "6,"
+            , Space
+            , Str "CSCW2,"
+            , Space
+            , Str "Article"
+            , Space
+            , Str "531"
+            , Space
+            , Str "(November"
+            , Space
+            , Str "2022),"
+            , Space
+            , Str "36"
+            , Space
+            , Str "pages."
+            , Space
+            , Str "https://doi.org/10.1145/3555644"
+            ]
+        ]
+    , Space
+    , Note
+        [ Para
+            [ Str "Karissa"
+            , Space
+            , Str "Rae"
+            , Space
+            , Str "McKelvey,"
+            , Space
+            , Str "Scott"
+            , Space
+            , Str "Jenson,"
+            , Space
+            , Str "Eileen"
+            , Space
+            , Str "Wagner,"
+            , Space
+            , Str "Blaine"
+            , Space
+            , Str "Cook,"
+            , Space
+            , Str "Martin"
+            , Space
+            , Str "Kleppmann,"
+            , Space
+            , Str "March"
+            , Space
+            , Str "2023."
+            , Space
+            , Str "Upwelling:"
+            , Space
+            , Str "Combining"
+            , Space
+            , Str "real-time"
+            , Space
+            , Str "collaboration"
+            , Space
+            , Str "with"
+            , Space
+            , Str "version"
+            , Space
+            , Str "control"
+            , Space
+            , Str "for"
+            , Space
+            , Str "writers."
+            , Space
+            , Str "https://www.inkandswitch.com/upwelling/"
+            ]
+        ]
+    , Space
+    , Note
+        [ Para
+            [ Str "Geoffrey"
+            , Space
+            , Str "Litt,"
+            , Space
+            , Str "Paul"
+            , Space
+            , Str "Sonnentag,"
+            , Space
+            , Str "Max"
+            , Space
+            , Str "Sch\246ning,"
+            , Space
+            , Str "Adam"
+            , Space
+            , Str "Wiggins,"
+            , Space
+            , Str "Peter"
+            , Space
+            , Str "van"
+            , Space
+            , Str "Hardenberg,"
+            , Space
+            , Str "Orion"
+            , Space
+            , Str "Henry."
+            , Space
+            , Str "Patchwork:"
+            , Space
+            , Str "Version"
+            , Space
+            , Str "control"
+            , Space
+            , Str "for"
+            , Space
+            , Str "everything."
+            , Space
+            , Str "February"
+            , Space
+            , Str "2024."
+            , Space
+            , Str "https://www.inkandswitch.com/patchwork/notebook/"
+            ]
+        ]
+    , Str ","
+    , Space
+    , Str "upon"
+    , Space
+    , Str "which"
+    , Space
+    , Str "we"
+    , Space
+    , Str "are"
+    , Space
+    , Str "building"
+    , Space
+    , Str "and"
+    , Space
+    , Str "which"
+    , Space
+    , Str "we"
+    , Space
+    , Str "aim"
+    , Space
+    , Str "to"
+    , Space
+    , Str "continue"
+    , Space
+    , Str "and"
+    , Space
+    , Str "extend."
+    , Space
+    , Str "And"
+    , Space
+    , Str "we"
+    , Space
+    , Str "are"
+    , Space
+    , Str "very"
+    , Space
+    , Str "much"
+    , Space
+    , Str "aligned"
+    , Space
+    , Str "to"
+    , Space
+    , Str "the"
+    , Space
+    , Str "recurring"
+    , Space
+    , Str "theme"
+    , Space
+    , Str "that"
+    , Space
+    , Str "writing"
+    , Space
+    , Str "is"
+    , Space
+    , Str "a"
+    , Space
+    , Str "socio-technical"
+    , Space
+    , Str "process\160"
+    , Note
+        [ Para
+            [ Str "Sarah"
+            , Space
+            , Str "Lim,"
+            , Space
+            , Str "Marc"
+            , Space
+            , Str "McGranaghan,"
+            , Space
+            , Str "Sarah"
+            , Space
+            , Str "Lim\8217s"
+            , Space
+            , Str "interview"
+            , Space
+            , Str "with"
+            , Space
+            , Str "Adam"
+            , Space
+            , Str "Wiggins"
+            , Space
+            , Str "and"
+            , Space
+            , Str "Mark"
+            , Space
+            , Str "McGranaghan,"
+            , Space
+            , Str "Metamuse"
+            , Space
+            , Str "Episode"
+            , Space
+            , Str "48,"
+            , Space
+            , Str "Rich"
+            , Space
+            , Str "text"
+            , Space
+            , Str "with"
+            , Space
+            , Str "Slim"
+            , Space
+            , Str "Lim,"
+            , Space
+            , Str "00:14:23,"
+            , Space
+            , Str "podcast"
+            , Space
+            , Str "audio,"
+            , Space
+            , Str "January"
+            , Space
+            , Str "20,"
+            , Space
+            , Str "2022,"
+            , Space
+            , Str "https://museapp.com/podcast/48-rich-text/."
+            ]
+        ]
+    , Str ","
+    , Space
+    , Str "so"
+    , Space
+    , Str "alongside"
+    , Space
+    , Str "the"
+    , Space
+    , Str "technical"
+    , Space
+    , Str "challenges"
+    , Space
+    , Str "we"
+    , Space
+    , Str "have"
+    , Space
+    , Str "to"
+    , Space
+    , Str "talk"
+    , Space
+    , Str "to"
+    , Space
+    , Str "people"
+    , Space
+    , Str "to"
+    , Space
+    , Str "understand"
+    , Space
+    , Str "their"
+    , Space
+    , Str "workflows"
+    , Space
+    , Str "and"
+    , Space
+    , Str "also"
+    , Space
+    , Str "consider"
+    , Space
+    , Str "politico-economic"
+    , Space
+    , Str "factors"
+    , Space
+    , Str "and"
+    , Space
+    , Str "dynamics."
+    ]
+, Para
+    [ Str "The"
+    , Space
+    , Str "product"
+    , Space
+    , Str "we"
+    , Space
+    , Str "are"
+    , Space
+    , Str "launching"
+    , Space
+    , Str "today"
+    , Space
+    , Str "in"
+    , Space
+    , Str "an"
+    , Space
+    , Str "early"
+    , Space
+    , Str "Alpha"
+    , Space
+    , Str "release"
+    , Space
+    , Str "is"
+    , Space
+    , Str "a"
+    , Space
+    , Strong
+        [ Str "local-first"
+        , Space
+        , Str "rich"
+        , Space
+        , Str "text"
+        , Space
+        , Str "editor"
+        , Space
+        , Str "with"
+        , Space
+        , Str "version"
+        , Space
+        , Str "control"
+        , Space
+        , Str "capabilities,"
+        , Space
+        ]
+    , Link
+        ( "" , [] , [] )
+        [ Strong [ Str "v2" ] ]
+        ( "https://v2editor.com" , "v2" )
+    , Str "."
+    , Space
+    , Str "In"
+    , Space
+    , Str "the"
+    , Space
+    , Str "following"
+    , Space
+    , Str "paragraphs"
+    , Space
+    , Str "we\8217ll"
+    , Space
+    , Str "try"
+    , Space
+    , Str "to"
+    , Space
+    , Str "unpack"
+    , Space
+    , Str "this"
+    , Space
+    , Str "high-level"
+    , Space
+    , Str "description"
+    , Space
+    , Str "and"
+    , Space
+    , Str "highlight"
+    , Space
+    , Str "some"
+    , Space
+    , Str "important"
+    , Space
+    , Str "principles,"
+    , Space
+    , Str "design"
+    , Space
+    , Str "decisions"
+    , Space
+    , Str "and"
+    , Space
+    , Str "their"
+    , Space
+    , Str "consequences."
+    ]
+, Header
+    3
+    ( "focused-non-distracted-thinking" , [] , [] )
+    [ Str "Focused,"
+    , Space
+    , Str "Non-Distracted"
+    , Space
+    , Str "Thinking"
+    ]
+, Para
+    [ Str "Creative"
+    , Space
+    , Str "thinking"
+    , Space
+    , Str "and"
+    , Space
+    , Str "action,"
+    , Space
+    , Str "knowledge"
+    , Space
+    , Str "and"
+    , Space
+    , Str "artistic"
+    , Space
+    , Str "work,"
+    , Space
+    , Str "although"
+    , Space
+    , Str "sometimes"
+    , Space
+    , Str "perceived"
+    , Space
+    , Str "as"
+    , Space
+    , Str "floating"
+    , Space
+    , Str "apart"
+    , Space
+    , Str "from"
+    , Space
+    , Str "time"
+    , Space
+    , Str "or"
+    , Space
+    , Str "space,"
+    , Space
+    , Str "takes"
+    , Space
+    , Str "place"
+    , Space
+    , Str "through"
+    , Space
+    , Str "concrete,"
+    , Space
+    , Str "material"
+    , Space
+    , Str "mediums"
+    , Space
+    , Str "and"
+    , Space
+    , Str "processes:"
+    , Space
+    , Str "actual"
+    , Space
+    , Str "people"
+    , Space
+    , Str "produce"
+    , Space
+    , Str "it"
+    , Space
+    , Str "combining"
+    , Space
+    , Str "their"
+    , Space
+    , Str "physical"
+    , Space
+    , Str "and"
+    , Space
+    , Str "mental"
+    , Space
+    , Str "activity"
+    , Space
+    , Str "with"
+    , Space
+    , Str "tools"
+    , Space
+    , Str "that"
+    , Space
+    , Str "enable,"
+    , Space
+    , Str "facilitate"
+    , Space
+    , Str "or"
+    , Space
+    , Str "impose"
+    , Space
+    , Str "constraints"
+    , Space
+    , Str "on"
+    , Space
+    , Str "it."
+    , Space
+    , Str "And"
+    , Space
+    , Str "these"
+    , Space
+    , Str "tools"
+    , Space
+    , Str "have"
+    , Space
+    , Str "qualities"
+    , Space
+    , Str "and"
+    , Space
+    , Str "embody"
+    , Space
+    , Str "principles"
+    , Space
+    , Str "that"
+    , Space
+    , Str "leave"
+    , Space
+    , Str "their"
+    , Space
+    , Str "mark"
+    , Space
+    , Str "on"
+    , Space
+    , Str "the"
+    , Space
+    , Str "creative"
+    , Space
+    , Str "process"
+    , Space
+    , Str "and"
+    , Space
+    , Str "the"
+    , Space
+    , Str "artifacts"
+    , Space
+    , Str "themselves"
+    , Space
+    , Note
+        [ Para
+            [ Str "David"
+            , Space
+            , Str "Graeber,"
+            , Space
+            , Str "Toward"
+            , Space
+            , Str "An"
+            , Space
+            , Str "Anthropological"
+            , Space
+            , Str "Theory"
+            , Space
+            , Str "of"
+            , Space
+            , Str "Value,"
+            , Space
+            , Str "The"
+            , Space
+            , Str "False"
+            , Space
+            , Str "Coin"
+            , Space
+            , Str "of"
+            , Space
+            , Str "Our"
+            , Space
+            , Str "Own"
+            , Space
+            , Str "Dreams"
+            , Space
+            , Str "(Palgrave"
+            , Space
+            , Str "2001),"
+            , Space
+            , Str "54,"
+            , Space
+            , Str "83"
+            ]
+        ]
+    , Str "."
+    , Space
+    , Str "And"
+    , Space
+    , Str "today\8217s"
+    , Space
+    , Str "computing"
+    , Space
+    , Str "is"
+    , Space
+    , Str "all"
+    , Space
+    , Str "but"
+    , Space
+    , Str "helping"
+    , Space
+    , Str "us"
+    , Space
+    , Str "think"
+    , Space
+    , Str "and"
+    , Space
+    , Str "systematically"
+    , Space
+    , Str "apply"
+    , Space
+    , Str "knowledge:"
+    , Space
+    , Str "it"
+    , Space
+    , Str "favors"
+    , Space
+    , Str "superficial"
+    , Space
+    , Str "thinking,"
+    , Space
+    , Str "even"
+    , Space
+    , Str "completely"
+    , Space
+    , Str "resigning"
+    , Space
+    , Str "from"
+    , Space
+    , Str "the"
+    , Space
+    , Str "need"
+    , Space
+    , Str "to"
+    , Space
+    , Str "think"
+    , Space
+    , Str "by"
+    , Space
+    , Str "having"
+    , Space
+    , Str "a"
+    , Space
+    , Str "language"
+    , Space
+    , Str "model"
+    , Space
+    , Str "fake"
+    , Space
+    , Str "it."
+    , Space
+    , Str "It"
+    , Space
+    , Str "constantly"
+    , Space
+    , Str "tries"
+    , Space
+    , Str "to"
+    , Space
+    , Str "steal"
+    , Space
+    , Str "our"
+    , Space
+    , Str "attention,"
+    , Space
+    , Str "distract"
+    , Space
+    , Str "it"
+    , Space
+    , Str "from"
+    , Space
+    , Str "thinking"
+    , Space
+    , Str "and"
+    , Space
+    , Str "convert"
+    , Space
+    , Str "it"
+    , Space
+    , Str "to"
+    , Space
+    , Str "a"
+    , Space
+    , Str "desire"
+    , Space
+    , Str "to"
+    , Space
+    , Str "buy,"
+    , Space
+    , Str "flooding"
+    , Space
+    , Str "our"
+    , Space
+    , Str "inboxes"
+    , Space
+    , Str "with"
+    , Space
+    , Str "notifications"
+    , Space
+    , Str "and"
+    , Space
+    , Str "ads,"
+    , Space
+    , Str "or"
+    , Space
+    , Str "even"
+    , Space
+    , Str "just"
+    , Space
+    , Str "making"
+    , Space
+    , Str "us"
+    , Space
+    , Str "do"
+    , Space
+    , Str "its"
+    , Space
+    , Str "chores"
+    , Space
+    , Note
+        [ Para
+            [ Str "Adam"
+            , Space
+            , Str "Wiggins,"
+            , Space
+            , Str "Molly"
+            , Space
+            , Str "Mielke\8217s"
+            , Space
+            , Str "interview"
+            , Space
+            , Str "with"
+            , Space
+            , Str "Adam"
+            , Space
+            , Str "Wiggins"
+            , Space
+            , Str "and"
+            , Space
+            , Str "Marc"
+            , Space
+            , Str "McGranaghan,"
+            , Space
+            , Str "Metamuse"
+            , Space
+            , Str "Episode"
+            , Space
+            , Str "30,"
+            , Space
+            , Str "Computers"
+            , Space
+            , Str "and"
+            , Space
+            , Str "Creativity,"
+            , Space
+            , Str "00:25:30,"
+            , Space
+            , Str "podcast"
+            , Space
+            , Str "audio,"
+            , Space
+            , Str "May"
+            , Space
+            , Str "12,"
+            , Space
+            , Str "2021,"
+            , Space
+            , Str
+                "https://museapp.com/podcast/30-computers-and-creativity/."
+            ]
+        ]
+    , Str ","
+    , Space
+    , Str "leaving"
+    , Space
+    , Str "our"
+    , Space
+    , Str "mind"
+    , Space
+    , Str "in"
+    , Space
+    , Str "a"
+    , Space
+    , Str "state"
+    , Space
+    , Str "of"
+    , Space
+    , Str "exhaustion"
+    , Space
+    , Str "mixed"
+    , Space
+    , Str "with"
+    , Space
+    , Str "compulsion"
+    , Space
+    , Str "which"
+    , Space
+    , Str "Fisher"
+    , Space
+    , Str "calls"
+    , Space
+    , Emph [ Str "insomniac" , Space , Str "overstimulation" ]
+    , Str "\160"
+    , Note
+        [ Para
+            [ Str "Mark"
+            , Space
+            , Str "Fisher"
+            , Space
+            , Str "&"
+            , Space
+            , Str "Darren"
+            , Space
+            , Str "Ambrose"
+            , Space
+            , Str "(Editor),"
+            , Space
+            , Str "Time-Wars:"
+            , Space
+            , Str "Towards"
+            , Space
+            , Str "an"
+            , Space
+            , Str "Alternative"
+            , Space
+            , Str "for"
+            , Space
+            , Str "the"
+            , Space
+            , Str "Neo-Capitalist"
+            , Space
+            , Str "Era"
+            , Space
+            , Str "in"
+            , Space
+            , Str "K-Punk:"
+            , Space
+            , Str "The"
+            , Space
+            , Str "Collected"
+            , Space
+            , Str "and"
+            , Space
+            , Str "Unpublished"
+            , Space
+            , Str "Writings"
+            , Space
+            , Str "of"
+            , Space
+            , Str "Mark"
+            , Space
+            , Str "Fisher"
+            , Space
+            , Str "(Repeater"
+            , Space
+            , Str "Books"
+            , Space
+            , Str "2018)"
+            ]
+        ]
+    , Str "."
+    , Space
+    , Str "And"
+    , Space
+    , Str "it"
+    , Space
+    , Str "is"
+    , Space
+    , Str "really"
+    , Space
+    , Str "no"
+    , Space
+    , Str "surprise"
+    , Space
+    , Str "if"
+    , Space
+    , Str "we"
+    , Space
+    , Str "consider"
+    , Space
+    , Str "Marx\8217s"
+    , Space
+    , Str "critique"
+    , Space
+    , Str "of"
+    , Space
+    , Str "capitalism:"
+    , Space
+    , Str "machines"
+    , Space
+    , Str "become"
+    , Space
+    , Str "an"
+    , Space
+    , Str "alienating"
+    , Space
+    , Str "and"
+    , Space
+    , Str "dominating"
+    , Space
+    , Str "force"
+    , Space
+    , Str "to"
+    , Space
+    , Str "the"
+    , Space
+    , Str "worker,"
+    , Space
+    , Str "depriving"
+    , Space
+    , Str "them"
+    , Space
+    , Str "of"
+    , Space
+    , Str "all"
+    , Space
+    , Str "interest"
+    , Space
+    , Str "and"
+    , Space
+    , Str "creative"
+    , Space
+    , Str "activity,"
+    , Space
+    , Str "as"
+    , Space
+    , Str "best"
+    , Space
+    , Str "manifested"
+    , Space
+    , Str "in"
+    , Space
+    , Str "the"
+    , Space
+    , Str "factory"
+    , Space
+    , Str "floor"
+    , Space
+    , Note
+        [ Para
+            [ Str "Karl"
+            , Space
+            , Str "Marx,"
+            , Space
+            , Str "Capital,"
+            , Space
+            , Str "A"
+            , Space
+            , Str "Critique"
+            , Space
+            , Str "of"
+            , Space
+            , Str "Political"
+            , Space
+            , Str "Economy,"
+            , Space
+            , Str "Volume"
+            , Space
+            , Str "1"
+            , Space
+            , Str "(Penguin"
+            , Space
+            , Str "Books"
+            , Space
+            , Str "1976),"
+            , Space
+            , Str "548-49"
+            ]
+        ]
+    , Space
+    , Str "but"
+    , Space
+    , Str "really"
+    , Space
+    , Str "ubiquitous"
+    , Space
+    , Str "to"
+    , Space
+    , Str "all"
+    , Space
+    , Str "other"
+    , Space
+    , Str "domains"
+    , Space
+    , Str "or"
+    , Space
+    , Str "production,"
+    , Space
+    , Str "including"
+    , Space
+    , Str "knowledge"
+    , Space
+    , Str "and"
+    , Space
+    , Str "art."
+    , Space
+    , Str "In"
+    , Space
+    , Str "contemporary"
+    , Space
+    , Str "capitalism,"
+    , Space
+    , Str "this"
+    , Space
+    , Str "also"
+    , Space
+    , Str "extends"
+    , Space
+    , Str "to"
+    , Space
+    , Str "leisure"
+    , Space
+    , Str "activity,"
+    , Space
+    , Str "which"
+    , Space
+    , Str "increasingly"
+    , Space
+    , Str "resembles"
+    , Space
+    , Str "labor"
+    , Space
+    , Str "and"
+    , Space
+    , Str "produces"
+    , Space
+    , Str "data"
+    , Space
+    , Str "that"
+    , Space
+    , Str "big"
+    , Space
+    , Str "tech"
+    , Space
+    , Str "capitalizes"
+    , Space
+    , Str "on."
+    ]
+, Para
+    [ Str "v2"
+    , Space
+    , Str "is"
+    , Space
+    , Str "the"
+    , Space
+    , Str "first"
+    , Space
+    , Str "expression"
+    , Space
+    , Str "of"
+    , Space
+    , Str "our"
+    , Space
+    , Str "desire"
+    , Space
+    , Str "to"
+    , Space
+    , Str "reverse"
+    , Space
+    , Str "this"
+    , Space
+    , Str "trend,"
+    , Space
+    , Str "as"
+    , Space
+    , Str "it"
+    , Space
+    , Str "culturally"
+    , Space
+    , Str "belongs"
+    , Space
+    , Str "to"
+    , Space
+    , Str "the"
+    , Space
+    , Str "emerging"
+    , Space
+    , Str "ecosystem"
+    , Space
+    , Str "of"
+    , Space
+    , Emph
+        [ Str "tools" , Space , Str "for" , Space , Str "thought" ]
+    , Str "."
+    , Space
+    , Str "Such"
+    , Space
+    , Str "tools"
+    , Space
+    , Str "aim"
+    , Space
+    , Str "to"
+    , Space
+    , Str "enhance"
+    , Space
+    , Str "and"
+    , Space
+    , Str "augment"
+    , Space
+    , Str "the"
+    , Space
+    , Str "creative"
+    , Space
+    , Str "process"
+    , Space
+    , Str "and"
+    , Space
+    , Str "help"
+    , Space
+    , Str "us"
+    , Space
+    , Str "focus"
+    , Space
+    , Str "without"
+    , Space
+    , Str "distractions"
+    , Space
+    , Str "on"
+    , Space
+    , Str "the"
+    , Space
+    , Str "thoughts"
+    , Space
+    , Str "that"
+    , Space
+    , Str "matter,"
+    , Space
+    , Str "often"
+    , Space
+    , Str "just"
+    , Space
+    , Str "by"
+    , Space
+    , Str "offering"
+    , Space
+    , Str "an"
+    , Space
+    , Str "environment"
+    , Space
+    , Str "of"
+    , Space
+    , Str "serenity"
+    , Space
+    , Note
+        [ Para
+            [ Str "We"
+            , Space
+            , Str "are"
+            , Space
+            , Str "pretty"
+            , Space
+            , Str "aligned"
+            , Space
+            , Str "on"
+            , Space
+            , Str "the"
+            , Space
+            , Str "environment"
+            , Space
+            , Str "creative"
+            , Space
+            , Str "tools"
+            , Space
+            , Str "should"
+            , Space
+            , Str "offer"
+            , Space
+            , Str "with"
+            , Space
+            , Str "the"
+            , Space
+            , Str "vision"
+            , Space
+            , Str "Adam"
+            , Space
+            , Str "Wiggins"
+            , Space
+            , Str "and"
+            , Space
+            , Str "Mark"
+            , Space
+            , Str "McGranaghan"
+            , Space
+            , Str "present"
+            , Space
+            , Str "in"
+            , Space
+            , Str "Metamuse"
+            , Space
+            , Str "Episode"
+            , Space
+            , Str "30"
+            , Space
+            , Str "cited"
+            , Space
+            , Str "above,"
+            , Space
+            , Str "but"
+            , Space
+            , Str "also"
+            , Space
+            , Str "pervading"
+            , Space
+            , Str "their"
+            , Space
+            , Str "Metamuse"
+            , Space
+            , Str "podcast"
+            , Space
+            , Str "more"
+            , Space
+            , Str "generally."
+            ]
+        ]
+    , Str "."
+    , Space
+    , Str "This"
+    , Space
+    , Str "is"
+    , Space
+    , Str "why"
+    , Space
+    , Str "we"
+    , Space
+    , Str "consciously"
+    , Space
+    , Str "avoid"
+    , Space
+    , Str "cluttering"
+    , Space
+    , Str "the"
+    , Space
+    , Str "user"
+    , Space
+    , Str "interface"
+    , Space
+    , Str "with"
+    , Space
+    , Str "ribbons"
+    , Space
+    , Str "and"
+    , Space
+    , Str "a"
+    , Space
+    , Str "million"
+    , Space
+    , Str "controls"
+    , Space
+    , Str "that"
+    , Space
+    , Str "would"
+    , Space
+    , Str "distract"
+    , Space
+    , Str "us"
+    , Space
+    , Str "from"
+    , Space
+    , Str "focused"
+    , Space
+    , Str "thinking"
+    , Space
+    , Str "and"
+    , Space
+    , Str "writing."
+    , Space
+    , Str "And,"
+    , Space
+    , Str "of"
+    , Space
+    , Str "course,"
+    , Space
+    , Str "we"
+    , Space
+    , Str "will"
+    , Space
+    , Str "be"
+    , Space
+    , Str "very"
+    , Space
+    , Str "careful"
+    , Space
+    , Str "not"
+    , Space
+    , Str "to"
+    , Space
+    , Str "add"
+    , Space
+    , Str "redundant"
+    , Space
+    , Str "notifications"
+    , Space
+    , Str "as"
+    , Space
+    , Str "we"
+    , Space
+    , Str "are"
+    , Space
+    , Str "adding"
+    , Space
+    , Str "features"
+    , Space
+    , Str "related"
+    , Space
+    , Str "to"
+    , Space
+    , Str "collaboration."
+    , Space
+    , Str "Finally,"
+    , Space
+    , Str "we"
+    , Space
+    , Str "are"
+    , Space
+    , Str "statutorily"
+    , Space
+    , Str "opposed"
+    , Space
+    , Str "to"
+    , Space
+    , Str "advertising,"
+    , Space
+    , Str "so"
+    , Space
+    , Str "our"
+    , Space
+    , Str "plan"
+    , Space
+    , Str "is"
+    , Space
+    , Str "to"
+    , Space
+    , Str "resist"
+    , Space
+    , Str "polluting"
+    , Space
+    , Str "our"
+    , Space
+    , Str "products"
+    , Space
+    , Str "with"
+    , Space
+    , Str "annoying"
+    , Space
+    , Str "ads."
+    ]
+]
