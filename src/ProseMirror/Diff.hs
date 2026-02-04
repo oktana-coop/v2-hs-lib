@@ -16,7 +16,6 @@ import qualified DocTree.LeafTextSpans as PandocTree
 import ProseMirror.Decoration (Decoration (..), DecorationAttrs (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), undecorate)
 import qualified ProseMirror.Model as PM (Node (..), TextNode (..), isAtomNode, isRootBlockNode, wrapChildrenToBlock)
 import ProseMirror.Tree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode, pmNodeFromInlineSpan, treeTextSpanNodeToPMTextNode)
-import ProseMirror.Utils.Debug (traceTree)
 import RichTextDiffOp (RichTextDiffOp (..), RichTextDiffOpType (UpdateHeadingLevelType), getDiffOpType)
 
 -- Alias to the function exposed from the PMTree module
@@ -33,7 +32,7 @@ instance ToJSON DecoratedPMDoc where
 type PMIndex = Int
 
 toDecoratedPMDoc :: Tree (RichTextDiffOp PandocTree.DocNode) -> DecoratedPMDoc
-toDecoratedPMDoc = pmDocFromPMTree . traceTree . toProseMirrorTreeWithDiffDecorations
+toDecoratedPMDoc = pmDocFromPMTree . toProseMirrorTreeWithDiffDecorations
 
 toProseMirrorTreeWithDiffDecorations :: Tree (RichTextDiffOp PandocTree.DocNode) -> DecoratedPMTree
 toProseMirrorTreeWithDiffDecorations diffTree = evalState (walkDiffTree diffTree) 0
