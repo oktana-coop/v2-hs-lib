@@ -84,6 +84,9 @@ test-suite v2-hs-lib-test
       Conversion.PmToMd.Golden
       Conversion.RoundTrip
       Conversion.Utils
+      Diff.Golden
+      Diff.PmOutput.Golden
+      Diff.Utils
       Paths_v2_hs_lib
   hs-source-dirs:
       test
