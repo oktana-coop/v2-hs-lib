@@ -1,0 +1,142 @@
+{
+  "decorations": [
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 28,
+      "to": 34,
+      "type": "inline"
+    },
+    {
+      "node": {
+        "content": [
+          {
+            "text": "Item 1",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      "pos": 35,
+      "type": "widget"
+    },
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 37,
+      "to": 48,
+      "type": "inline"
+    },
+    {
+      "node": {
+        "content": [
+          {
+            "text": "Item 2",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      "pos": 52,
+      "type": "widget"
+    },
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 53,
+      "to": 59,
+      "type": "inline"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "List Diffs",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "Item 1",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "lorem ipsum",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "blockquote"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "Item 2",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph after the list",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  }
+}

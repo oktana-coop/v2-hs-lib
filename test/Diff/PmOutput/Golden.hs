@@ -14,7 +14,8 @@ tests = do
       "Markdown Inputs → ProseMirror Diff (Golden)"
     $ [ testGroup
           "adding-and-removing-paragraphs"
-          [ goldenCase $ "adding-and-removing-paragraphs" </> "add-paragraph-end",
+          [ goldenCase $ "adding-and-removing-paragraphs" </> "add-paragraph-after-list",
+            goldenCase $ "adding-and-removing-paragraphs" </> "add-paragraph-end",
             goldenCase $ "adding-and-removing-paragraphs" </> "add-paragraph-middle",
             goldenCase $ "adding-and-removing-paragraphs" </> "delete-last-paragraph",
             goldenCase $ "adding-and-removing-paragraphs" </> "delete-paragraph-middle"
@@ -25,6 +26,23 @@ tests = do
             goldenCase $ "inline-text-updates" </> "append-text-to-paragraph",
             goldenCase $ "inline-text-updates" </> "delete-text-from-the-end-of-paragraph",
             goldenCase $ "inline-text-updates" </> "delete-text-from-the-middle-of-paragraph"
+          ],
+        testGroup
+          "lists"
+          [ goldenCase $ "lists" </> "add-bullet-list",
+            goldenCase $ "lists" </> "add-deeply-nested-list",
+            goldenCase $ "lists" </> "add-item-in-the-middle-of-list",
+            goldenCase $ "lists" </> "add-item-in-the-middle-of-list-and-rename-next-item",
+            goldenCase $ "lists" </> "add-nested-blockquote-under-list-item",
+            goldenCase $ "lists" </> "add-nested-list",
+            goldenCase $ "lists" </> "add-nested-paragraph-under-list-item",
+            goldenCase $ "lists" </> "add-second-nested-paragraph-under-list-item",
+            goldenCase $ "lists" </> "append-item-to-list",
+            goldenCase $ "lists" </> "delete-bullet-list",
+            goldenCase $ "lists" </> "delete-last-item",
+            goldenCase $ "lists" </> "delete-list-item-in-the-middle",
+            goldenCase $ "lists" </> "delete-nested-lists",
+            goldenCase $ "lists" </> "delete-paragraphs-nested-in-list-item"
           ],
         testGroup
           "marks"

@@ -1,0 +1,144 @@
+{
+  "decorations": [
+    {
+      "node": {
+        "content": [
+          {
+            "text": "Item 1",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      "pos": 27,
+      "type": "widget"
+    },
+    {
+      "node": {
+        "content": [
+          {
+            "text": "A paragraph within a list item",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      "pos": 27,
+      "type": "widget"
+    },
+    {
+      "node": {
+        "content": [
+          {
+            "text": "Another paragraph within a list item",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      "pos": 27,
+      "type": "widget"
+    },
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 28,
+      "to": 34,
+      "type": "inline"
+    },
+    {
+      "node": {
+        "content": [
+          {
+            "text": "Item 2",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      "pos": 37,
+      "type": "widget"
+    },
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 38,
+      "to": 44,
+      "type": "inline"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "List Diffs",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "Item 1",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "Item 2",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph after the list",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  }
+}
