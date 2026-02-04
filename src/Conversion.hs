@@ -1,11 +1,14 @@
-module Conversion (convertFromAutomerge, convertToAutomerge, convertToBinary, convertToText, readFrom, Format (..)) where
+module Conversion (convertFromAutomerge, convertToAutomerge, convertToBinary, convertToText, readFrom, pandocReaderOptions, pandocWriterOptions, Format (..)) where
 
 import Control.Monad.Catch (MonadMask)
 import Control.Monad.Except (throwError)
 import Control.Monad.Trans (MonadIO (..))
+import Data.Bifunctor (first)
 import qualified Data.ByteString.Lazy.Char8 as BL
+import Data.List.NonEmpty (NonEmpty)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
+import Format (Format (..))
 import PandocReader as AutomergePandoc.PandocReader (readAutomerge)
 import PandocWriter as AutomergePandoc.PandocWriter (writeAutomerge)
 import ProseMirror.PandocReader (readProseMirror)
@@ -16,8 +19,6 @@ import Text.Pandoc.Error (handleError)
 import Text.Pandoc.Extensions (Extension (Ext_fenced_code_blocks, Ext_footnotes), enableExtension, pandocExtensions)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Writers (writeDocx, writeHtml5String, writeJSON, writeLaTeX, writeMarkdown, writeNative)
-
-data Format = Pandoc | Markdown | Html | Json | Automerge | ProseMirror | Docx | Pdf deriving (Show)
 
 writeToBytes :: (PandocMonad m, MonadIO m, MonadMask m) => Format -> WriterOptions -> Pandoc -> m BL.ByteString
 writeToBytes format = case format of
@@ -57,22 +58,30 @@ readFrom format = case format of
   Pdf -> undefined
   Docx -> undefined
 
+-- Explicitly enabling the fenced code blocks and footnotes extensions. For some reason they aren't included when
+-- we're just using `def` in the reader/writer options.
+-- TODO: Investigate why, in theory `def` includes fenced code blocks too,
+-- so we must understand why it needs this special treatment.
+pandocReaderOptions :: ReaderOptions
+pandocReaderOptions = def {readerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks pandocExtensions}
+
+pandocWriterOptions :: WriterOptions
+pandocWriterOptions = def {writerWrapText = WrapPreserve, writerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks pandocExtensions}
+
 convert :: Format -> Format -> String -> IO (Either PandocError BL.ByteString)
 convert inputFormat outputFormat input = do
   runIO $ do
-    doc <- readFrom inputFormat readerOpts (T.pack input)
-    writeToBytes outputFormat writerOpts doc
-  where
-    -- Explicitly enabling the fenced code blocks and footnotes extensions. For some reason they aren't included when
-    -- we're just using `def` in the reader/writer options.
-    -- TODO: Investigate why, in theory `def` includes fenced code blocks too,
-    -- so we must understand why it needs this special treatment.
-    readerOpts = def {readerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks pandocExtensions}
-    writerOpts = def {writerWrapText = WrapPreserve, writerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks pandocExtensions}
+    doc <- readFrom inputFormat pandocReaderOptions (T.pack input)
+    writeToBytes outputFormat pandocWriterOptions doc
 
-convertToText :: Format -> Format -> String -> IO (Either PandocError T.Text)
-convertToText inputFormat outputFormat input = (fmap . fmap) byteStringToText (convert inputFormat outputFormat input)
+convertToText :: Format -> Format -> String -> IO (Either (NonEmpty PandocError) T.Text)
+convertToText inputFormat outputFormat input = (fmap . fmap) byteStringToText (wrapErrorToNonEmptyList $ convert inputFormat outputFormat input)
   where
+    wrapErrorToNonEmptyList :: IO (Either PandocError BL.ByteString) -> IO (Either (NonEmpty PandocError) BL.ByteString)
+    -- `first` acts on the first argument of a BiFunctor like Either (the Left value in our case).
+    -- `pure` wraps the error in the NonEmpty list structure.
+    wrapErrorToNonEmptyList = fmap (first pure)
+
     byteStringToText :: BL.ByteString -> T.Text
     byteStringToText = TE.decodeUtf8 . BL.toStrict
 
@@ -82,8 +91,8 @@ convertToBinary inputFormat outputFormat input = do
   successBytes <- handleError result
   return successBytes
 
-convertFromAutomerge :: Format -> String -> IO (Either PandocError T.Text)
+convertFromAutomerge :: Format -> String -> IO (Either (NonEmpty PandocError) T.Text)
 convertFromAutomerge outputFormat = convertToText Automerge outputFormat
 
-convertToAutomerge :: Format -> String -> IO (Either PandocError T.Text)
+convertToAutomerge :: Format -> String -> IO (Either (NonEmpty PandocError) T.Text)
 convertToAutomerge inputFormat = convertToText inputFormat Automerge

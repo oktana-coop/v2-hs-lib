@@ -1,10 +1,10 @@
 module Conversion.RoundTrip (tests) where
 
 import Control.Monad (when)
-import Conversion (Format (Markdown, Pandoc, ProseMirror))
 import Conversion.Utils (normalizeJson, toTextFormat)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
+import Format (Format (Markdown, Pandoc, ProseMirror))
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath (takeDirectory, (<.>), (</>))
 import Test.Hspec (Spec, describe, it, shouldBe)

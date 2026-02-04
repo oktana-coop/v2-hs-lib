@@ -28,6 +28,8 @@ library
       ProseMirror.PandocWriter
       ProseMirror.PandocReader
       Conversion
+      Diff
+      Format
   other-modules:
       ProseMirror.Model
       ProseMirror.Decoration
