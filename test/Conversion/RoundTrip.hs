@@ -1,7 +1,7 @@
 module Conversion.RoundTrip (tests) where
 
 import Control.Monad (when)
-import Conversion.Utils (normalizeJson, toTextFormat)
+import Conversion.Utils (toTextFormat)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Format (Format (Markdown, Pandoc, ProseMirror))
@@ -10,6 +10,7 @@ import System.FilePath (takeDirectory, (<.>), (</>))
 import Test.Hspec (Spec, describe, it, shouldBe)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hspec (testSpec)
+import Utils (normalizeJson)
 
 tests :: IO TestTree
 tests = testSpec "Round-Trip Conversion" spec

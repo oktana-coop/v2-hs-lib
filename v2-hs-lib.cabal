@@ -87,6 +87,7 @@ test-suite v2-hs-lib-test
       Diff.Golden
       Diff.PmOutput.Golden
       Diff.Utils
+      Utils
       Paths_v2_hs_lib
   hs-source-dirs:
       test
