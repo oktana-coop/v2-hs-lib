@@ -1,0 +1,188 @@
+{
+  "decorations": [
+    {
+      "node": {
+        "content": [
+          {
+            "text": "A ",
+            "type": "text"
+          },
+          {
+            "attrs": {
+              "id": "1"
+            },
+            "type": "note_ref"
+          },
+          {
+            "text": " paragraph ",
+            "type": "text"
+          },
+          {
+            "attrs": {
+              "id": "2"
+            },
+            "type": "note_ref"
+          },
+          {
+            "text": " ",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      "pos": 12,
+      "type": "widget"
+    },
+    {
+      "node": {
+        "text": "Another paragraph ",
+        "type": "text"
+      },
+      "pos": 13,
+      "type": "widget"
+    },
+    {
+      "node": {
+        "attrs": {
+          "id": "3"
+        },
+        "type": "note_ref"
+      },
+      "pos": 13,
+      "type": "widget"
+    },
+    {
+      "node": {
+        "text": " ",
+        "type": "text"
+      },
+      "pos": 13,
+      "type": "widget"
+    },
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 13,
+      "to": 15,
+      "type": "inline"
+    },
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 15,
+      "to": 16,
+      "type": "inline"
+    },
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 16,
+      "to": 21,
+      "type": "inline"
+    },
+    {
+      "node": {
+        "attrs": {
+          "id": "2"
+        },
+        "content": [
+          {
+            "content": [
+              {
+                "text": "lorem ipsum",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "note_content"
+      },
+      "pos": 39,
+      "type": "widget"
+    },
+    {
+      "node": {
+        "attrs": {
+          "id": "3"
+        },
+        "content": [
+          {
+            "content": [
+              {
+                "text": "sit amet",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "note_content"
+      },
+      "pos": 39,
+      "type": "widget"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Note Diffs",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A ",
+            "type": "text"
+          },
+          {
+            "attrs": {
+              "id": "1"
+            },
+            "type": "note_ref"
+          },
+          {
+            "text": " para",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "id": "1"
+        },
+        "content": [
+          {
+            "content": [
+              {
+                "text": "footnote text",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "note_content"
+      }
+    ],
+    "type": "doc"
+  }
+}

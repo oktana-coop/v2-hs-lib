@@ -1,0 +1,255 @@
+{
+  "decorations": [
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 13,
+      "to": 15,
+      "type": "inline"
+    },
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 15,
+      "to": 16,
+      "type": "inline"
+    },
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 16,
+      "to": 17,
+      "type": "inline"
+    },
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 17,
+      "to": 18,
+      "type": "inline"
+    },
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 18,
+      "to": 19,
+      "type": "inline"
+    },
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 19,
+      "to": 20,
+      "type": "inline"
+    },
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 20,
+      "to": 25,
+      "type": "inline"
+    },
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 28,
+      "to": 31,
+      "type": "inline"
+    },
+    {
+      "node": {
+        "content": [
+          {
+            "text": "A ",
+            "type": "text"
+          },
+          {
+            "attrs": {
+              "id": "1"
+            },
+            "type": "note_ref"
+          },
+          {
+            "text": " para",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      "pos": 33,
+      "type": "widget"
+    },
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 35,
+      "to": 46,
+      "type": "inline"
+    },
+    {
+      "node": {
+        "attrs": {
+          "id": "1"
+        },
+        "content": [
+          {
+            "content": [
+              {
+                "text": "lorem ipsum",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "note_content"
+      },
+      "pos": 48,
+      "type": "widget"
+    },
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 50,
+      "to": 53,
+      "type": "inline"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Note Diffs",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A ",
+            "type": "text"
+          },
+          {
+            "attrs": {
+              "id": "1"
+            },
+            "type": "note_ref"
+          },
+          {
+            "text": " ",
+            "type": "text"
+          },
+          {
+            "attrs": {
+              "id": "2"
+            },
+            "type": "note_ref"
+          },
+          {
+            "text": " ",
+            "type": "text"
+          },
+          {
+            "attrs": {
+              "id": "3"
+            },
+            "type": "note_ref"
+          },
+          {
+            "text": " para",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "id": "1"
+        },
+        "content": [
+          {
+            "content": [
+              {
+                "text": "foo",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "note_content"
+      },
+      {
+        "attrs": {
+          "id": "2"
+        },
+        "content": [
+          {
+            "content": [
+              {
+                "text": "lorem ipsum",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "note_content"
+      },
+      {
+        "attrs": {
+          "id": "3"
+        },
+        "content": [
+          {
+            "content": [
+              {
+                "text": "bar",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "note_content"
+      }
+    ],
+    "type": "doc"
+  }
+}

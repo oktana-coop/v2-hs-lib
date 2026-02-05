@@ -1,0 +1,86 @@
+{
+  "decorations": [
+    {
+      "node": {
+        "text": " ",
+        "type": "text"
+      },
+      "pos": 24,
+      "type": "widget"
+    },
+    {
+      "node": {
+        "attrs": {
+          "id": "1"
+        },
+        "type": "note_ref"
+      },
+      "pos": 24,
+      "type": "widget"
+    },
+    {
+      "node": {
+        "text": " ",
+        "type": "text"
+      },
+      "pos": 24,
+      "type": "widget"
+    },
+    {
+      "node": {
+        "attrs": {
+          "id": "1"
+        },
+        "content": [
+          {
+            "content": [
+              {
+                "text": "lorem ipsum",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "note_content"
+      },
+      "pos": 44,
+      "type": "widget"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Note Diffs",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "Another paragraph",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  }
+}

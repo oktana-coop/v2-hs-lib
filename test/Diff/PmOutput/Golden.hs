@@ -48,6 +48,17 @@ tests = do
           "marks"
           [ goldenCase $ "marks" </> "add-strong-emphasis-to-word",
             goldenCase $ "marks" </> "remove-strong-emphasis-from-word"
+          ],
+        testGroup
+          "notes"
+          [ goldenCase $ "notes" </> "add-note-in-the-end-of-document",
+            goldenCase $ "notes" </> "add-note-in-the-end-of-paragraph",
+            goldenCase $ "notes" </> "add-notes-just-before-and-after-another",
+            goldenCase $ "notes" </> "delete-first-note",
+            goldenCase $ "notes" </> "delete-note",
+            goldenCase $ "notes" </> "delete-paragraphs-which-include-notes",
+            goldenCase $ "notes" </> "edit-note-content",
+            goldenCase $ "notes" </> "prepend-note"
           ]
       ]
 
