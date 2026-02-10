@@ -1,7 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.Model (BlockNode (..), Block (..), TextNode (..), Mark (..), Link (..), Node (..), NoteId (..), HeadingLevel (..), PMDoc (..), NodeType (..), assertRootNodeIsDoc, isRootBlockNode, isAtomNode, wrapChildrenToBlock, parseProseMirror, parseProseMirrorText) where
+module ProseMirror.Model (BlockNode (..), Block (..), TextNode (..), Mark (..), Link (..), Node (..), NoteId (..), HeadingLevel (..), PMDoc (..), NodeType (..), CodeBlockLanguage (..), assertRootNodeIsDoc, isRootBlockNode, isAtomNode, wrapChildrenToBlock, parseProseMirror, parseProseMirrorText) where
 
 import Control.Monad ((>=>))
 import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (toJSON), Value (..), eitherDecode, eitherDecodeStrictText, object, withObject, withScientific, withText, (.:), (.:?), (.=))
@@ -70,6 +70,11 @@ instance FromJSON HeadingLevel where
       then pure $ HeadingLevel level
       else fail "Invalid heading level"
 
+newtype CodeBlockLanguage = CodeBlockLanguage T.Text deriving (Show, Eq)
+
+instance FromJSON CodeBlockLanguage where
+  parseJSON = withText "CodeBlockLanguage" $ \language -> pure $ CodeBlockLanguage language
+
 newtype NoteId = NoteId T.Text deriving (Show, Eq)
 
 instance FromJSON NoteId where
@@ -122,7 +127,7 @@ instance ToJSON NodeType where
     NoteRefType -> String "note_ref"
     NoteContentType -> String "note_content"
 
-data Block = Doc | Paragraph | Heading HeadingLevel | CodeBlock | BlockQuote | BulletList | OrderedList | ListItem | NoteRef NoteId | NoteContent NoteId deriving (Show, Eq)
+data Block = Doc | Paragraph | Heading HeadingLevel | CodeBlock (Maybe CodeBlockLanguage) | BlockQuote | BulletList | OrderedList | ListItem | NoteRef NoteId | NoteContent NoteId deriving (Show, Eq)
 
 data BlockNode = PMBlock {block :: Block, content :: Maybe [Node]} deriving (Show, Eq)
 
@@ -132,7 +137,7 @@ nodeType :: Node -> NodeType
 nodeType (BlockNode (PMBlock Doc _)) = DocType
 nodeType (BlockNode (PMBlock Paragraph _)) = ParagraphType
 nodeType (BlockNode (PMBlock (Heading _) _)) = HeadingType
-nodeType (BlockNode (PMBlock CodeBlock _)) = CodeBlockType
+nodeType (BlockNode (PMBlock (CodeBlock _) _)) = CodeBlockType
 nodeType (BlockNode (PMBlock BlockQuote _)) = BlockQuoteType
 nodeType (BlockNode (PMBlock BulletList _)) = BulletListType
 nodeType (BlockNode (PMBlock OrderedList _)) = OrderedListType
@@ -166,7 +171,13 @@ instance FromJSON Node where
             level <- (attrs .: "level" :: Parser HeadingLevel)
             pure $ BlockNode $ PMBlock {block = Heading level, content = children}
           Nothing -> fail "Could not find heading attrs"
-      CodeBlockType -> pure $ BlockNode $ PMBlock {block = CodeBlock, content = children}
+      CodeBlockType -> do
+        nAttrs <- (v .:? "attrs" :: Parser (Maybe Object))
+        case nAttrs of
+          Just attrs -> do
+            language <- (attrs .:? "language" :: Parser (Maybe CodeBlockLanguage))
+            pure $ BlockNode $ PMBlock {block = CodeBlock language, content = children}
+          Nothing -> pure $ BlockNode $ PMBlock {block = CodeBlock Nothing, content = children}
       BlockQuoteType -> pure $ BlockNode $ PMBlock {block = BlockQuote, content = children}
       BulletListType -> pure $ BlockNode $ PMBlock {block = BulletList, content = children}
       OrderedListType -> pure $ BlockNode $ PMBlock {block = OrderedList, content = children}
@@ -192,7 +203,8 @@ instance ToJSON Node where
     Doc -> object ["type" .= toJSON DocType, "content" .= children]
     Paragraph -> object ["type" .= toJSON ParagraphType, "content" .= children]
     Heading (HeadingLevel level) -> object ["type" .= toJSON HeadingType, "content" .= children, "attrs" .= object ["level" .= toJSON level]]
-    CodeBlock -> object ["type" .= toJSON CodeBlockType, "content" .= children]
+    CodeBlock Nothing -> object ["type" .= toJSON CodeBlockType, "content" .= children]
+    CodeBlock (Just (CodeBlockLanguage language)) -> object ["type" .= toJSON CodeBlockType, "content" .= children, "attrs" .= object ["language" .= toJSON language]]
     BlockQuote -> object ["type" .= toJSON BlockQuoteType, "content" .= children]
     BulletList -> object ["type" .= toJSON BulletListType, "content" .= children]
     OrderedList -> object ["type" .= toJSON OrderedListType, "content" .= children]

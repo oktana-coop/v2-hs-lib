@@ -12,6 +12,7 @@ tests = do
     testGroup
       "ProseMirror → Markdown (Golden)"
       [ goldenCase "blockquote",
+        goldenCase "code-blocks",
         goldenCase "headings-and-paragraphs",
         goldenCase "marks",
         goldenCase "lists",

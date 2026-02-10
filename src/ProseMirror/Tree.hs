@@ -10,9 +10,11 @@ import DocTree.Common as RichText (BlockNode (..), InlineSpan (..), LinkMark (..
 import qualified DocTree.GroupedInlines as GroupedInlinesTree
 import qualified DocTree.LeafTextSpans as LeafTextSpansTree
 import GHC.Base (NonEmpty)
-import qualified ProseMirror.Model as PM (Block (..), BlockNode (..), HeadingLevel (..), Link (..), Mark (..), Node (..), NoteId (..), PMDoc (..), TextNode (..), assertRootNodeIsDoc, wrapChildrenToBlock)
+import ProseMirror.Model (CodeBlockLanguage)
+import qualified ProseMirror.Model as PM (Block (..), BlockNode (..), CodeBlockLanguage (..), HeadingLevel (..), Link (..), Mark (..), Node (..), NoteId (..), PMDoc (..), TextNode (..), assertRootNodeIsDoc, wrapChildrenToBlock)
 import Text.Pandoc.Builder as Pandoc
-  ( Block (..),
+  ( Attr,
+    Block (..),
     ListNumberDelim (DefaultDelim),
     ListNumberStyle (DefaultStyle),
     nullAttr,
@@ -70,7 +72,7 @@ treeBlockNodeToPMBlockNode :: RichText.BlockNode -> PMTreeNode
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Plain _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Paragraph, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Para _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Paragraph, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Header level _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Heading $ PM.HeadingLevel level, PM.content = Nothing}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.CodeBlock _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.CodeBlock, PM.content = Nothing}
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.CodeBlock attr _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.CodeBlock $ codeBlockLanguageFromPandocAttr attr, PM.content = Nothing}
 -- TODO: Potentially handle raw blocks with format "prosemirror" or "html"".
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.RawBlock _ _)) = UnrepresentableNode
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BulletList _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.BulletList, PM.content = Nothing}
@@ -81,6 +83,12 @@ treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Div _ _)) = WrapperBloc
 treeBlockNodeToPMBlockNode (RichText.NoteContent (NoteId noteId) _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.NoteContent $ PM.NoteId noteId, PM.content = Nothing}
 -- TODO: Incrementally handle more blocks
 treeBlockNodeToPMBlockNode _ = undefined
+
+codeBlockLanguageFromPandocAttr :: Pandoc.Attr -> Maybe CodeBlockLanguage
+codeBlockLanguageFromPandocAttr (_, classes, _) = case classes of
+  [] -> Nothing
+  -- Assuming language is the first class in Pandoc class attributes.
+  language : _ -> Just $ PM.CodeBlockLanguage language
 
 -- TODO: Use ProseMirror schema as a parameter
 treeTextSpanNodeToPMTextNode :: RichText.TextSpan -> PM.TextNode
@@ -110,8 +118,10 @@ pmNodeToGroupedInlinesNodeFolder (PMNode (PM.BlockNode (PM.PMBlock (PM.Paragraph
   Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.Para []) (concatAdjacentInlineNodes childTrees)
 pmNodeToGroupedInlinesNodeFolder (PMNode (PM.BlockNode (PM.PMBlock (PM.Heading (PM.HeadingLevel level)) _))) childTrees =
   Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.Header level nullAttr []) (concatAdjacentInlineNodes childTrees)
-pmNodeToGroupedInlinesNodeFolder (PMNode (PM.BlockNode (PM.PMBlock (PM.CodeBlock) _))) childTrees =
+pmNodeToGroupedInlinesNodeFolder (PMNode (PM.BlockNode (PM.PMBlock (PM.CodeBlock Nothing) _))) childTrees =
   Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.CodeBlock nullAttr T.empty) (concatAdjacentInlineNodes childTrees)
+pmNodeToGroupedInlinesNodeFolder (PMNode (PM.BlockNode (PM.PMBlock (PM.CodeBlock (Just (PM.CodeBlockLanguage language))) _))) childTrees =
+  Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.CodeBlock ("", [language], []) T.empty) (concatAdjacentInlineNodes childTrees)
 pmNodeToGroupedInlinesNodeFolder (PMNode (PM.BlockNode (PM.PMBlock (PM.BulletList) _))) childTrees =
   Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.BulletList []) childTrees
 pmNodeToGroupedInlinesNodeFolder (PMNode (PM.BlockNode (PM.PMBlock (PM.OrderedList) _))) childTrees =

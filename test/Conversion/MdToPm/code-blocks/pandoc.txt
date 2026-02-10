@@ -1,0 +1,45 @@
+[ Header
+    1
+    ( "code-block-testing" , [] , [] )
+    [ Str "Code" , Space , Str "Block" , Space , Str "Testing" ]
+, Header
+    2
+    ( "no-language-attribute" , [] , [] )
+    [ Str "No"
+    , Space
+    , Str "language"
+    , Space
+    , Str "attribute"
+    ]
+, CodeBlock
+    ( "" , [] , [] )
+    "\"publish\": [\n  {\n    \"provider\": \"github\",\n    \"owner\": \"oktana-coop\",\n    \"repo\": \"v2\"\n  }\n]"
+, Header
+    2
+    ( "language-set-to-plain-text" , [] , [] )
+    [ Str "Language"
+    , Space
+    , Str "set"
+    , Space
+    , Str "to"
+    , Space
+    , Str "plain"
+    , Space
+    , Str "text"
+    ]
+, CodeBlock ( "" , [ "plaintext" ] , [] ) "foo\nbar"
+, Header
+    2
+    ( "language-set-to-json" , [] , [] )
+    [ Str "language"
+    , Space
+    , Str "set"
+    , Space
+    , Str "to"
+    , Space
+    , Str "JSON"
+    ]
+, CodeBlock
+    ( "" , [ "json" ] , [] )
+    "\"publish\": [\n  {\n    \"provider\": \"github\",\n    \"owner\": \"oktana-coop\",\n    \"repo\": \"v2\"\n  }\n]"
+]

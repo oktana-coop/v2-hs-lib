@@ -1,0 +1,86 @@
+{
+  "content": [
+    {
+      "attrs": {
+        "level": 1
+      },
+      "content": [
+        {
+          "text": "Code Block Testing",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "No language attribute",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "\"publish\": [\n  {\n    \"provider\": \"github\",\n    \"owner\": \"oktana-coop\",\n    \"repo\": \"v2\"\n  }\n]",
+          "type": "text"
+        }
+      ],
+      "type": "code_block"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "Language set to plain text",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "language": "plaintext"
+      },
+      "content": [
+        {
+          "text": "foo\nbar",
+          "type": "text"
+        }
+      ],
+      "type": "code_block"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "language set to JSON",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "language": "json"
+      },
+      "content": [
+        {
+          "text": "\"publish\": [\n  {\n    \"provider\": \"github\",\n    \"owner\": \"oktana-coop\",\n    \"repo\": \"v2\"\n  }\n]",
+          "type": "text"
+        }
+      ],
+      "type": "code_block"
+    }
+  ],
+  "type": "doc"
+}
