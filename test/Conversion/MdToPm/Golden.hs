@@ -17,6 +17,7 @@ tests = do
         goldenCase "headings-and-paragraphs",
         goldenCase "marks",
         goldenCase "lists",
+        goldenCase "meta",
         goldenCase "notes"
       ]
 

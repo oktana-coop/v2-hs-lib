@@ -92,6 +92,9 @@ walkDiffTreeNode (Delete node) = do
   pure $ Right $ WidgetDecoration $ wrapInWidgetDecoration pmNode position
   where
     pmNode = pandocTreeNodeToPMNode node
+-- We currently ignore meta diffs.
+-- TODO: Handle meta diffs in ProseMirror.
+walkDiffTreeNode (UpdateMeta _ node) = pure $ Left $ pandocTreeNodeToPMNode node
 walkDiffTreeNode (UpdateMarks _ (PandocTree.TreeNode (PandocTree.InlineContent inlineSpan))) = walkInlineNodeAddingDecoration inlineSpan "bg-purple-100 dark:bg-purple-200 dark:text-black"
 -- Just transform non-text nodes to their PM equivalent (without decoration).
 -- We shouldn't really get this diff op for block nodes. TODO: Express this in the type system.

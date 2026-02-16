@@ -13,11 +13,12 @@ import PandocReader as AutomergePandoc.PandocReader (readAutomerge)
 import PandocWriter as AutomergePandoc.PandocWriter (writeAutomerge)
 import ProseMirror.PandocReader (readProseMirror)
 import ProseMirror.PandocWriter (writeProseMirror)
-import Text.Pandoc (Pandoc, PandocError (PandocSomeError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readMarkdown, readNative, readerExtensions, writerExtensions)
+import Text.Pandoc (Pandoc, PandocError (PandocSomeError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readMarkdown, readNative, readerExtensions, writerExtensions, writerTemplate)
 import Text.Pandoc.Class (runIO)
 import Text.Pandoc.Error (handleError)
-import Text.Pandoc.Extensions (Extension (Ext_fenced_code_blocks, Ext_footnotes), enableExtension, pandocExtensions)
+import Text.Pandoc.Extensions (Extension (Ext_fenced_code_blocks, Ext_footnotes, Ext_yaml_metadata_block), enableExtension, pandocExtensions)
 import Text.Pandoc.PDF (makePDF)
+import Text.Pandoc.Templates (compileDefaultTemplate)
 import Text.Pandoc.Writers (writeDocx, writeHtml5String, writeJSON, writeLaTeX, writeMarkdown, writeNative)
 
 writeToBytes :: (PandocMonad m, MonadIO m, MonadMask m) => Format -> WriterOptions -> Pandoc -> m BL.ByteString
@@ -63,16 +64,28 @@ readFrom format = case format of
 -- TODO: Investigate why, in theory `def` includes fenced code blocks too,
 -- so we must understand why it needs this special treatment.
 pandocReaderOptions :: ReaderOptions
-pandocReaderOptions = def {readerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks pandocExtensions}
+pandocReaderOptions = def {readerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks $ enableExtension Ext_yaml_metadata_block pandocExtensions}
 
 pandocWriterOptions :: WriterOptions
-pandocWriterOptions = def {writerWrapText = WrapPreserve, writerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks pandocExtensions}
+pandocWriterOptions = def {writerWrapText = WrapPreserve, writerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks $ enableExtension Ext_yaml_metadata_block pandocExtensions}
 
 convert :: Format -> Format -> String -> IO (Either PandocError BL.ByteString)
 convert inputFormat outputFormat input = do
   runIO $ do
     doc <- readFrom inputFormat pandocReaderOptions (T.pack input)
-    writeToBytes outputFormat pandocWriterOptions doc
+    opts <- addTemplate outputFormat pandocWriterOptions
+    writeToBytes outputFormat opts doc
+
+-- Without the template metadata is not included in the output document, even if the extension is present.
+addTemplate :: (PandocMonad m) => Format -> WriterOptions -> m WriterOptions
+addTemplate format opts = case format of
+  Markdown -> setTemplate (T.pack "markdown") opts
+  _ -> return opts
+  where
+    setTemplate :: (PandocMonad m) => T.Text -> WriterOptions -> m WriterOptions
+    setTemplate fmt options = do
+      tmpl <- compileDefaultTemplate fmt
+      return options {writerTemplate = Just tmpl}
 
 convertToText :: Format -> Format -> String -> IO (Either (NonEmpty PandocError) T.Text)
 convertToText inputFormat outputFormat input = (fmap . fmap) byteStringToText (wrapErrorToNonEmptyList $ convert inputFormat outputFormat input)

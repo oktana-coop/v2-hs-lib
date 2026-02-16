@@ -1,0 +1,7 @@
+[ Header
+    1
+    ( "a-heading-1" , [] , [] )
+    [ Str "A" , Space , Str "Heading" , Space , Str "1" ]
+, Para [ Str "A" , Space , Str "paragraph" ]
+, Para [ Str "Another" , Space , Str "paragraph" ]
+]
