@@ -1,0 +1,39 @@
+{
+  "content": [
+    {
+      "attrs": {
+        "level": 1
+      },
+      "content": [
+        {
+          "text": "A Heading 1",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "A paragraph",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": null,
+      "type": "horizontal_rule"
+    },
+    {
+      "content": [
+        {
+          "text": "Another paragraph",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    }
+  ],
+  "type": "doc"
+}

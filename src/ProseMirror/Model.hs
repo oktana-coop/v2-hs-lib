@@ -94,6 +94,7 @@ data NodeType
   | BulletListType
   | OrderedListType
   | ListItemType
+  | HorizontalRuleType
   | NoteRefType
   | NoteContentType
   deriving (Show, Eq)
@@ -110,6 +111,7 @@ instance FromJSON NodeType where
     "bullet_list" -> pure BulletListType
     "ordered_list" -> pure OrderedListType
     "list_item" -> pure ListItemType
+    "horizontal_rule" -> pure HorizontalRuleType
     "note_ref" -> pure NoteRefType
     "note_content" -> pure NoteContentType
     _ -> fail "Invalid block type"
@@ -126,10 +128,11 @@ instance ToJSON NodeType where
     BulletListType -> String "bullet_list"
     OrderedListType -> String "ordered_list"
     ListItemType -> String "list_item"
+    HorizontalRuleType -> String "horizontal_rule"
     NoteRefType -> String "note_ref"
     NoteContentType -> String "note_content"
 
-data Block = Doc (Maybe Meta) | Paragraph | Heading HeadingLevel | CodeBlock (Maybe CodeBlockLanguage) | BlockQuote | BulletList | OrderedList | ListItem | NoteRef NoteId | NoteContent NoteId deriving (Show, Eq)
+data Block = Doc (Maybe Meta) | Paragraph | Heading HeadingLevel | CodeBlock (Maybe CodeBlockLanguage) | BlockQuote | BulletList | OrderedList | ListItem | HorizontalRule | NoteRef NoteId | NoteContent NoteId deriving (Show, Eq)
 
 data BlockNode = PMBlock {block :: Block, content :: Maybe [Node]} deriving (Show, Eq)
 
@@ -144,6 +147,7 @@ nodeType (BlockNode (PMBlock BlockQuote _)) = BlockQuoteType
 nodeType (BlockNode (PMBlock BulletList _)) = BulletListType
 nodeType (BlockNode (PMBlock OrderedList _)) = OrderedListType
 nodeType (BlockNode (PMBlock ListItem _)) = ListItemType
+nodeType (BlockNode (PMBlock HorizontalRule _)) = HorizontalRuleType
 nodeType (BlockNode (PMBlock (NoteRef _) _)) = NoteRefType
 nodeType (BlockNode (PMBlock (NoteContent _) _)) = NoteContentType
 nodeType (TextNode _) = TextType
@@ -190,6 +194,7 @@ instance FromJSON Node where
       BulletListType -> pure $ BlockNode $ PMBlock {block = BulletList, content = children}
       OrderedListType -> pure $ BlockNode $ PMBlock {block = OrderedList, content = children}
       ListItemType -> pure $ BlockNode $ PMBlock {block = ListItem, content = children}
+      HorizontalRuleType -> pure $ BlockNode $ PMBlock {block = HorizontalRule, content = Nothing}
       NoteRefType -> do
         nAttrs <- (v .:? "attrs" :: Parser (Maybe Object))
         case nAttrs of
@@ -218,6 +223,7 @@ instance ToJSON Node where
     BulletList -> object ["type" .= toJSON BulletListType, "content" .= children]
     OrderedList -> object ["type" .= toJSON OrderedListType, "content" .= children]
     ListItem -> object ["type" .= toJSON ListItemType, "content" .= children]
+    HorizontalRule -> object ["type" .= toJSON HorizontalRuleType, "content" .= (Nothing :: Maybe [Node])]
     NoteRef (NoteId noteId) -> object ["type" .= toJSON NoteRefType, "attrs" .= object ["id" .= toJSON noteId]]
     NoteContent (NoteId noteId) -> object ["type" .= toJSON NoteContentType, "content" .= children, "attrs" .= object ["id" .= toJSON noteId]]
 

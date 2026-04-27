@@ -1,0 +1,5 @@
+[ Header 1 ( "" , [] , [] ) [ Str "A Heading 1" ]
+, Para [ Str "A paragraph" ]
+, HorizontalRule
+, Para [ Str "Another paragraph" ]
+]
