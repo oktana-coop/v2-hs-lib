@@ -15,6 +15,7 @@ tests = do
       [ goldenCase "blockquote",
         goldenCase "code-blocks",
         goldenCase "headings-and-paragraphs",
+        goldenCase "horizontal-rule",
         goldenCase "marks",
         goldenCase "lists",
         goldenCase "meta",

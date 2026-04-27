@@ -90,6 +90,7 @@ treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.OrderedList _ _)) = PMN
 treeBlockNodeToPMBlockNode (RichText.ListItem _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.ListItem, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BlockQuote _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.BlockQuote, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Div _ _)) = WrapperBlockNode
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.HorizontalRule)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.HorizontalRule, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.NoteContent (NoteId noteId) _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.NoteContent $ PM.NoteId noteId, PM.content = Nothing}
 -- TODO: Incrementally handle more blocks
 treeBlockNodeToPMBlockNode _ = undefined
@@ -149,6 +150,8 @@ pmNodeToGroupedInlinesNodeFolder pmTreeNode eitherSubtrees = do
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.ListItem []) (compactListIfPossible $ concatAdjacentInlineNodes childTrees)
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.BlockQuote) _))) childTrees =
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.BlockQuote []) (concatAdjacentInlineNodes childTrees)
+    pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.HorizontalRule) _))) _ =
+      Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.HorizontalRule) []
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.NoteContent (PM.NoteId noteId)) _))) childTrees =
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.NoteContent (RichText.NoteId noteId) []) (concatAdjacentInlineNodes childTrees)
     pmNodeToGroupedInlinesNode WrapperBlockNode childTrees =
