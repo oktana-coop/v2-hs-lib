@@ -8,15 +8,15 @@ module ProseMirror.Diff (toDecoratedPMDoc, DecoratedPMDoc) where
 import Control.Monad (when)
 import Control.Monad.State (State, evalState, get, modify)
 import Data.Aeson (ToJSON, object, toJSON, (.=))
-import Data.Maybe (listToMaybe)
+import Data.Maybe (isJust, listToMaybe)
 import qualified Data.Text as T
 import Data.Tree (Tree (..), foldTree)
 import DocTree.Common as RichText (InlineSpan (..), TextSpan (..))
 import qualified DocTree.LeafTextSpans as PandocTree
 import ProseMirror.Decoration (Decoration (..), DecorationAttrs (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), undecorate)
-import qualified ProseMirror.Model as PM (Node (..), TextNode (..), isAtomNode, isRootBlockNode, wrapChildrenToBlock)
+import qualified ProseMirror.Model as PM (Node (..), TextNode (..), isAtomNode, isLeafBlockNode, isRootBlockNode, wrapChildrenToBlock)
 import ProseMirror.Tree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode, pmNodeFromInlineSpan, treeTextSpanNodeToPMTextNode)
-import RichTextDiffOp (RichTextDiffOp (..), RichTextDiffOpType (UpdateHeadingLevelType), getDiffOpType)
+import RichTextDiffOp (RichTextDiffOp (..), RichTextDiffOpType (InsertType, UpdateHeadingLevelType), getDiffOpType)
 
 -- Alias to the function exposed from the PMTree module
 pandocTreeNodeToPMNode :: PandocTree.DocNode -> PMTreeNode
@@ -40,20 +40,24 @@ toProseMirrorTreeWithDiffDecorations diffTree = evalState (walkDiffTree diffTree
 walkDiffTree :: Tree (RichTextDiffOp PandocTree.DocNode) -> State PMIndex DecoratedPMTree
 walkDiffTree (Node nodeWithDiff subTrees) = do
   pmNode <- walkDiffTreeNode nodeWithDiff
-  notDeletedBlockNode <- pure $ isNotDeletedPMBlockNode pmNode
+
+  let maybeNonDeletedNode = getNonDeletedPMBlockNode pmNode
+  let nonDeletedBlockNode = isJust maybeNonDeletedNode
+  let isAtom = maybe False PM.isAtomNode maybeNonDeletedNode
+  let isLeafBlock = maybe False PM.isLeafBlockNode maybeNonDeletedNode
 
   -- These conditional state updates are ugly.
   -- Unfortunately, ProseMirror indexing increases by 1 both before and after block nodes so I wasn't able to think of a good way to avoid it.
 
   -- Update state before processing children
   beforeNodeIndex <- get
-  incrementIndexIf notDeletedBlockNode
+  incrementIndexIf (nonDeletedBlockNode && not isAtom)
 
   -- Process children
   childTrees <- mapM (walkDiffTree) subTrees
 
   -- Update state after processing children
-  incrementIndexIf notDeletedBlockNode
+  incrementIndexIf (nonDeletedBlockNode && not isAtom && not isLeafBlock)
   afterNodeIndex <- get
 
   -- Build the node tree, conditionally adding a node decoration.
@@ -62,7 +66,7 @@ walkDiffTree (Node nodeWithDiff subTrees) = do
   -- Unfortunately, this is ugly; didn't think of a way to avoid it.
   case pmNode of
     Left undecoratedPMNode ->
-      if mustWrapToNodeDecoration nodeWithDiff
+      if mustWrapToNodeDecoration nodeWithDiff isLeafBlock
         then pure $ Node {rootLabel = Right $ decorateNode undecoratedPMNode beforeNodeIndex afterNodeIndex diffOpType, subForest = childTrees}
         else pure $ Node {rootLabel = pmNode, subForest = childTrees}
       where
@@ -72,11 +76,16 @@ walkDiffTree (Node nodeWithDiff subTrees) = do
     incrementIndexIf :: Bool -> State PMIndex ()
     incrementIndexIf condition = when condition (modify (+ 1))
 
-mustWrapToNodeDecoration :: RichTextDiffOp PandocTree.DocNode -> Bool
-mustWrapToNodeDecoration (UpdateHeadingLevel _ _) = True
-mustWrapToNodeDecoration _ = False
+-- Inserted leaf blocks (e.g. horizontal rule) have no inline children to carry an insert
+-- decoration, so we wrap the block itself in a node decoration instead.
+mustWrapToNodeDecoration :: RichTextDiffOp PandocTree.DocNode -> Bool -> Bool
+mustWrapToNodeDecoration (UpdateHeadingLevel _ _) _ = True
+mustWrapToNodeDecoration (Insert _) isLeafBlock = isLeafBlock
+mustWrapToNodeDecoration _ _ = False
 
 decorateNode :: PMTreeNode -> PMIndex -> PMIndex -> RichTextDiffOpType -> Decoration PMTreeNode
+decorateNode pmNode beforeNodeIndex afterNodeIndex InsertType =
+  NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-green-300 dark:text-black"
 decorateNode pmNode beforeNodeIndex afterNodeIndex UpdateHeadingLevelType =
   NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-purple-100 dark:bg-purple-200 dark:text-black"
 decorateNode pmNode beforeNodeIndex afterNodeIndex _ = NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-purple-100 dark:bg-purple-200 dark:text-black"
@@ -181,18 +190,18 @@ wrapInWidgetDecoration pmNode position =
       widgetDecContent = pmNode
     }
 
-isNotDeletedPMBlockNode :: Either PMTreeNode (Decoration PMTreeNode) -> Bool
-isNotDeletedPMBlockNode (Left (PMNode node@(PM.BlockNode _))) = not (PM.isRootBlockNode node || PM.isAtomNode node)
-isNotDeletedPMBlockNode (Left _) = False
+getNonDeletedPMBlockNode :: Either PMTreeNode (Decoration PMTreeNode) -> Maybe PM.Node
+getNonDeletedPMBlockNode (Left (PMNode node@(PM.BlockNode _))) | not (PM.isRootBlockNode node) = Just node
+getNonDeletedPMBlockNode (Left _) = Nothing
 -- Inline decorations wrap text nodes, not block nodes.
 -- TODO: Capture this properly in the type system.
-isNotDeletedPMBlockNode (Right (InlineDecoration _)) = False
+getNonDeletedPMBlockNode (Right (InlineDecoration _)) = Nothing
 -- Widget decorations capture deleted content in our case.
 -- TODO: Capture this properly in the type system.
-isNotDeletedPMBlockNode (Right (WidgetDecoration _)) = False
-isNotDeletedPMBlockNode (Right (NodeDecoration dec)) = case nodeDecContent dec of
-  PMNode node@(PM.BlockNode _) -> not (PM.isRootBlockNode node || PM.isAtomNode node)
-  _ -> False
+getNonDeletedPMBlockNode (Right (WidgetDecoration _)) = Nothing
+getNonDeletedPMBlockNode (Right (NodeDecoration dec)) = case nodeDecContent dec of
+  PMNode node@(PM.BlockNode _) | not (PM.isRootBlockNode node) -> Just node
+  _ -> Nothing
 
 pmDocFromPMTree :: DecoratedPMTree -> DecoratedPMDoc
 pmDocFromPMTree pmTree = DecoratedPMDoc {doc = pmDoc, decorations = pmDecorations}

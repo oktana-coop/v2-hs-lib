@@ -1,7 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.Model (BlockNode (..), Block (..), TextNode (..), Mark (..), Link (..), Meta, Node (..), NoteId (..), HeadingLevel (..), PMDoc (..), NodeType (..), CodeBlockLanguage (..), assertRootNodeIsDoc, isRootBlockNode, isAtomNode, wrapChildrenToBlock, parseProseMirror, parseProseMirrorText) where
+module ProseMirror.Model (BlockNode (..), Block (..), TextNode (..), Mark (..), Link (..), Meta, Node (..), NoteId (..), HeadingLevel (..), PMDoc (..), NodeType (..), CodeBlockLanguage (..), assertRootNodeIsDoc, isRootBlockNode, isAtomNode, isLeafBlockNode, wrapChildrenToBlock, parseProseMirror, parseProseMirrorText) where
 
 import Control.Monad ((>=>))
 import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (toJSON), Value (..), eitherDecode, eitherDecodeStrictText, object, withObject, withScientific, withText, (.:), (.:?), (.=))
@@ -158,6 +158,10 @@ nodeType (TextNode _) = TextType
 isAtomNode :: Node -> Bool
 isAtomNode (BlockNode (PMBlock (NoteRef _) _)) = True
 isAtomNode _ = False
+
+isLeafBlockNode :: Node -> Bool
+isLeafBlockNode (BlockNode (PMBlock HorizontalRule _)) = True
+isLeafBlockNode _ = False
 
 instance FromJSON Node where
   parseJSON = withObject "Node" $ \v -> do

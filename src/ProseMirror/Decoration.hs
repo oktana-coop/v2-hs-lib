@@ -18,7 +18,7 @@ instance ToJSON (InlineDecoration a) where
 data NodeDecoration a = PMNodeDecoration {nodeDecFrom :: Int, nodeDecTo :: Int, nodeDecAttrs :: DecorationAttrs, nodeDecContent :: a} deriving (Show, Eq)
 
 instance ToJSON (NodeDecoration a) where
-  toJSON dec = object ["type" .= T.pack "inline", "from" .= nodeDecFrom dec, "to" .= nodeDecTo dec, "attrs" .= nodeDecAttrs dec]
+  toJSON dec = object ["type" .= T.pack "node", "from" .= nodeDecFrom dec, "to" .= nodeDecTo dec, "attrs" .= nodeDecAttrs dec]
 
 data WidgetDecoration a = PMWidgetDecoration {pos :: Int, widgetDecContent :: a} deriving (Show, Eq)
 

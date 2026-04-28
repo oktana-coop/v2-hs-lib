@@ -18,7 +18,7 @@
       },
       "from": 15,
       "to": 16,
-      "type": "inline"
+      "type": "node"
     },
     {
       "attrs": {
@@ -38,7 +38,7 @@
       },
       "from": 17,
       "to": 18,
-      "type": "inline"
+      "type": "node"
     },
     {
       "attrs": {
@@ -58,7 +58,7 @@
       },
       "from": 19,
       "to": 20,
-      "type": "inline"
+      "type": "node"
     },
     {
       "attrs": {

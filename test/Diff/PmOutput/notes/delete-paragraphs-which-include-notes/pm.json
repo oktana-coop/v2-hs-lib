@@ -77,7 +77,7 @@
       },
       "from": 15,
       "to": 16,
-      "type": "inline"
+      "type": "node"
     },
     {
       "attrs": {

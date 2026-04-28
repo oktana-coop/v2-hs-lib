@@ -26,7 +26,7 @@
       },
       "from": 15,
       "to": 16,
-      "type": "inline"
+      "type": "node"
     },
     {
       "attrs": {
@@ -56,7 +56,7 @@
       },
       "from": 27,
       "to": 28,
-      "type": "inline"
+      "type": "node"
     },
     {
       "attrs": {

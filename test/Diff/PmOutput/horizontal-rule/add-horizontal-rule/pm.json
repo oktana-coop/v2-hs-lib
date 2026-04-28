@@ -1,0 +1,53 @@
+{
+  "decorations": [
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 26,
+      "to": 27,
+      "type": "node"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "A Heading 1",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": null,
+        "type": "horizontal_rule"
+      },
+      {
+        "content": [
+          {
+            "text": "Another paragraph",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  }
+}

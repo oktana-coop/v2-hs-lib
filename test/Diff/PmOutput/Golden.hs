@@ -21,6 +21,11 @@ tests = do
             goldenCase $ "adding-and-removing-paragraphs" </> "delete-paragraph-middle"
           ],
         testGroup
+          "horizontal-rule"
+          [ goldenCase $ "horizontal-rule" </> "add-horizontal-rule",
+            goldenCase $ "horizontal-rule" </> "delete-horizontal-rule"
+          ],
+        testGroup
           "inline-text-updates"
           [ goldenCase $ "inline-text-updates" </> "add-text-in-the-middle-of-paragraph",
             goldenCase $ "inline-text-updates" </> "append-text-to-paragraph",
