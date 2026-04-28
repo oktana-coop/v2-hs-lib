@@ -15,16 +15,19 @@ import ProseMirror.PandocReader (readProseMirror)
 import ProseMirror.PandocWriter (writeProseMirror)
 import Text.Pandoc (Pandoc, PandocError (PandocSomeError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readMarkdown, readNative, readerExtensions, writerExtensions, writerTemplate)
 import Text.Pandoc.Class (runIO)
+import Text.Pandoc.Definition (Block (HorizontalRule, Para), Inline (RawInline))
+import qualified Text.Pandoc.Definition as PandocDef
 import Text.Pandoc.Error (handleError)
 import Text.Pandoc.Extensions (Extension (Ext_fenced_code_blocks, Ext_footnotes, Ext_yaml_metadata_block), enableExtension, pandocExtensions)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Templates (compileDefaultTemplate)
+import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Writers (writeDocx, writeHtml5String, writeJSON, writeLaTeX, writeMarkdown, writeNative)
 
 writeToBytes :: (PandocMonad m, MonadIO m, MonadMask m) => Format -> WriterOptions -> Pandoc -> m BL.ByteString
 writeToBytes format = case format of
   Pandoc -> encodeTextWriter writeNative
-  Markdown -> encodeTextWriter writeMarkdown
+  Markdown -> encodeTextWriter writeNormalizedMarkdown
   Html -> encodeTextWriter writeHtml5String
   Json -> encodeTextWriter writeJSON
   Automerge -> encodeTextWriter writeAutomerge
@@ -34,6 +37,17 @@ writeToBytes format = case format of
 
 encodeTextWriter :: (PandocMonad m) => (WriterOptions -> Pandoc -> m T.Text) -> WriterOptions -> Pandoc -> m BL.ByteString
 encodeTextWriter writer opts doc = fmap (BL.fromStrict . TE.encodeUtf8) (writer opts doc)
+
+-- Wraps Pandoc's Markdown writer to canonicalize the output via project-local AST tweaks
+-- applied just before serialization.
+writeNormalizedMarkdown :: (PandocMonad m) => WriterOptions -> Pandoc -> m T.Text
+writeNormalizedMarkdown opts = writeMarkdown opts . walk shortHr
+  where
+    -- Emit `---` instead of `writerColumns` dashes (default 72) without touching
+    -- `writerColumns`, which also drives table layout and image alt-text wrapping.
+    shortHr :: Block -> Block
+    shortHr HorizontalRule = Para [RawInline (PandocDef.Format (T.pack "markdown")) (T.pack "---")]
+    shortHr block = block
 
 -- This seems to need some more work because we get an error when trying to convert with `pdflatex` (the default).
 -- TODO: Explore emulating the --standalone argument in code, or passing a default Latex template.
