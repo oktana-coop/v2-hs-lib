@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module ProseMirror.Decoration (Decoration (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), DecorationAttrs (..), undecorate) where
@@ -10,22 +11,22 @@ data DecorationAttrs = DecorationAttrs {nodeName :: Maybe T.Text, cssClass :: Ma
 instance ToJSON DecorationAttrs where
   toJSON decAttrs = object ["nodeName" .= nodeName decAttrs, "class" .= cssClass decAttrs, "style" .= style decAttrs]
 
-data InlineDecoration a = PMInlineDecoration {inlineDecFrom :: Int, inlineDecTo :: Int, inlineDecAttrs :: DecorationAttrs, inlineDecContent :: a} deriving (Show, Eq)
+data InlineDecoration a = PMInlineDecoration {inlineDecFrom :: Int, inlineDecTo :: Int, inlineDecAttrs :: DecorationAttrs, inlineDecContent :: a} deriving (Show, Eq, Functor)
 
 instance ToJSON (InlineDecoration a) where
   toJSON dec = object ["type" .= T.pack "inline", "from" .= inlineDecFrom dec, "to" .= inlineDecTo dec, "attrs" .= inlineDecAttrs dec]
 
-data NodeDecoration a = PMNodeDecoration {nodeDecFrom :: Int, nodeDecTo :: Int, nodeDecAttrs :: DecorationAttrs, nodeDecContent :: a} deriving (Show, Eq)
+data NodeDecoration a = PMNodeDecoration {nodeDecFrom :: Int, nodeDecTo :: Int, nodeDecAttrs :: DecorationAttrs, nodeDecContent :: a} deriving (Show, Eq, Functor)
 
 instance ToJSON (NodeDecoration a) where
   toJSON dec = object ["type" .= T.pack "node", "from" .= nodeDecFrom dec, "to" .= nodeDecTo dec, "attrs" .= nodeDecAttrs dec]
 
-data WidgetDecoration a = PMWidgetDecoration {pos :: Int, widgetDecContent :: a} deriving (Show, Eq)
+data WidgetDecoration a = PMWidgetDecoration {pos :: Int, widgetDecContent :: a} deriving (Show, Eq, Functor)
 
 instance (ToJSON a) => ToJSON (WidgetDecoration a) where
   toJSON dec = object ["type" .= T.pack "widget", "pos" .= pos dec, "node" .= toJSON (widgetDecContent dec)]
 
-data Decoration a = InlineDecoration (InlineDecoration a) | NodeDecoration (NodeDecoration a) | WidgetDecoration (WidgetDecoration a) deriving (Show, Eq)
+data Decoration a = InlineDecoration (InlineDecoration a) | NodeDecoration (NodeDecoration a) | WidgetDecoration (WidgetDecoration a) deriving (Show, Eq, Functor)
 
 undecorate :: Decoration a -> a
 undecorate (InlineDecoration dec) = inlineDecContent dec

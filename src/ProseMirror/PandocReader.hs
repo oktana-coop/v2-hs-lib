@@ -6,6 +6,8 @@ import qualified Data.Text as T
 import Data.Tree (Tree (..))
 import qualified DocTree.GroupedInlines as GroupedInlinesTree
 import ProseMirror.Model (PMDoc, parseProseMirrorText)
+import ProseMirror.PandocTreeShape.FigureContent.GroupedInlines (wrapFigureContentInlinesToPlain)
+import ProseMirror.PandocTreeShape.ImplicitFigure (addCaptionEqualToAlt)
 import ProseMirror.Tree (pmTreeFromPMDoc, pmTreeToGroupedInlinesTree)
 import Text.Pandoc (PandocError (PandocParseError), ReaderOptions)
 import Text.Pandoc.Builder as Pandoc (Pandoc)
@@ -15,8 +17,8 @@ import Text.Pandoc.Sources (ToSources, sourcesToText, toSources)
 -- Although ReaderOptions are not used, the function is written like this so that it's consistent with the other Pandoc reader functions.
 readProseMirror :: (PandocMonad m, ToSources a) => ReaderOptions -> a -> m Pandoc
 readProseMirror _ =
-  -- Using Kleisli composition to compose the 2 smaller functions in the monadic context (PandocMonad)
-  parsePMJSONAndConvertToGroupedInlinesTree >=> GroupedInlinesTree.toPandoc
+  -- Using Kleisli composition to compose the functions in the monadic context (PandocMonad)
+  parsePMJSONAndConvertToGroupedInlinesTree >=> pure . wrapFigureContentInlinesToPlain >=> GroupedInlinesTree.toPandoc >=> pure . addCaptionEqualToAlt
   where
     -- Parse ProseMirror JSON and convert to GroupedInlines tree.
     -- Lifts the Either-based computation into the PandocMonad, wrapping errors as PandocParseError

@@ -1,7 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.Model (BlockNode (..), Block (..), TextNode (..), Mark (..), Link (..), Meta, Node (..), NoteId (..), HeadingLevel (..), PMDoc (..), NodeType (..), CodeBlockLanguage (..), assertRootNodeIsDoc, isRootBlockNode, isAtomNode, isLeafBlockNode, wrapChildrenToBlock, parseProseMirror, parseProseMirrorText) where
+module ProseMirror.Model (BlockNode (..), Block (..), TextNode (..), InlineNode (..), Mark (..), Link (..), Meta, Node (..), NoteId (..), HeadingLevel (..), PMDoc (..), NodeType (..), CodeBlockLanguage (..), Image (..), assertRootNodeIsDoc, isRootBlockNode, isAtomNode, isLeafBlockNode, wrapChildrenToBlock, parseProseMirror, parseProseMirrorText) where
 
 import Control.Monad ((>=>))
 import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (toJSON), Value (..), eitherDecode, eitherDecodeStrictText, object, withObject, withScientific, withText, (.:), (.:?), (.=))
@@ -12,19 +12,31 @@ import Data.Maybe (catMaybes)
 import qualified Data.Text as T
 import ProseMirror.Utils.Json (parseNonEmpty)
 
--- TODO: Make title optional
-data Link = Link {url :: T.Text, title :: T.Text} deriving (Show, Eq)
+-- TODO: Make linkTitle optional
+data Link = Link {url :: T.Text, linkTitle :: T.Text} deriving (Show, Eq)
 
 type Meta = T.Text
 
 instance FromJSON Link where
   parseJSON = withObject "Link" $ \v -> do
     linkUrl <- v .: "href" >>= parseNonEmpty "href"
-    linkTitle <- v .: "title"
-    pure Link {url = linkUrl, title = linkTitle}
+    title <- v .: "title"
+    pure Link {url = linkUrl, linkTitle = title}
 
 instance ToJSON Link where
-  toJSON link = object ["href" .= url link, "title" .= title link]
+  toJSON link = object ["href" .= url link, "title" .= linkTitle link]
+
+data Image = Image {src :: T.Text, alt :: Maybe T.Text, imageTitle :: Maybe T.Text} deriving (Show, Eq)
+
+instance FromJSON Image where
+  parseJSON = withObject "Image" $ \v -> do
+    imgSrc <- v .: "src" >>= parseNonEmpty "src"
+    imgAlt <- v .:? "alt"
+    imgTitle <- v .:? "title"
+    pure Image {src = imgSrc, alt = imgAlt, imageTitle = imgTitle}
+
+instance ToJSON Image where
+  toJSON img = object ["src" .= src img, "alt" .= alt img, "title" .= imageTitle img]
 
 data Mark
   = Strong
@@ -95,6 +107,10 @@ data NodeType
   | OrderedListType
   | ListItemType
   | HorizontalRuleType
+  | ImageType
+  | FigureType
+  | FigureContentType
+  | CaptionType
   | NoteRefType
   | NoteContentType
   deriving (Show, Eq)
@@ -112,6 +128,10 @@ instance FromJSON NodeType where
     "ordered_list" -> pure OrderedListType
     "list_item" -> pure ListItemType
     "horizontal_rule" -> pure HorizontalRuleType
+    "image" -> pure ImageType
+    "figure" -> pure FigureType
+    "figure_content" -> pure FigureContentType
+    "caption" -> pure CaptionType
     "note_ref" -> pure NoteRefType
     "note_content" -> pure NoteContentType
     _ -> fail "Invalid block type"
@@ -129,14 +149,22 @@ instance ToJSON NodeType where
     OrderedListType -> String "ordered_list"
     ListItemType -> String "list_item"
     HorizontalRuleType -> String "horizontal_rule"
+    ImageType -> String "image"
+    FigureType -> String "figure"
+    FigureContentType -> String "figure_content"
+    CaptionType -> String "caption"
     NoteRefType -> String "note_ref"
     NoteContentType -> String "note_content"
 
-data Block = Doc (Maybe Meta) | Paragraph | Heading HeadingLevel | CodeBlock (Maybe CodeBlockLanguage) | BlockQuote | BulletList | OrderedList | ListItem | HorizontalRule | NoteRef NoteId | NoteContent NoteId deriving (Show, Eq)
+data Block = Doc (Maybe Meta) | Paragraph | Heading HeadingLevel | CodeBlock (Maybe CodeBlockLanguage) | BlockQuote | BulletList | OrderedList | ListItem | HorizontalRule | Figure | FigureContent | Caption | NoteContent NoteId deriving (Show, Eq)
 
 data BlockNode = PMBlock {block :: Block, content :: Maybe [Node]} deriving (Show, Eq)
 
-data Node = BlockNode BlockNode | TextNode TextNode deriving (Show, Eq)
+-- Mirrors PM's inline group: a text run plus the inline-typed nodes that carry attrs.
+-- These are leaf nodes — they don't hold child content — so this is a flat sum, not a record.
+data InlineNode = InlineText TextNode | InlineImage Image | NoteRef NoteId deriving (Show, Eq)
+
+data Node = BlockNode BlockNode | InlineNode InlineNode deriving (Show, Eq)
 
 nodeType :: Node -> NodeType
 nodeType (BlockNode (PMBlock (Doc _) _)) = DocType
@@ -148,15 +176,20 @@ nodeType (BlockNode (PMBlock BulletList _)) = BulletListType
 nodeType (BlockNode (PMBlock OrderedList _)) = OrderedListType
 nodeType (BlockNode (PMBlock ListItem _)) = ListItemType
 nodeType (BlockNode (PMBlock HorizontalRule _)) = HorizontalRuleType
-nodeType (BlockNode (PMBlock (NoteRef _) _)) = NoteRefType
+nodeType (BlockNode (PMBlock Figure _)) = FigureType
+nodeType (BlockNode (PMBlock FigureContent _)) = FigureContentType
+nodeType (BlockNode (PMBlock Caption _)) = CaptionType
 nodeType (BlockNode (PMBlock (NoteContent _) _)) = NoteContentType
-nodeType (TextNode _) = TextType
+nodeType (InlineNode (InlineText _)) = TextType
+nodeType (InlineNode (InlineImage _)) = ImageType
+nodeType (InlineNode (NoteRef _)) = NoteRefType
 
--- In ProseMirror nodes like note refs which don't have directly editable content and
--- should be treated as a single unit in the view have the `atom` property set to `true`.
+-- In ProseMirror nodes like note refs and images which don't have directly editable content
+-- and should be treated as a single unit in the view have the `atom` property set to `true`.
 -- https://prosemirror.net/docs/ref/#model.NodeSpec.atom
 isAtomNode :: Node -> Bool
-isAtomNode (BlockNode (PMBlock (NoteRef _) _)) = True
+isAtomNode (InlineNode (InlineImage _)) = True
+isAtomNode (InlineNode (NoteRef _)) = True
 isAtomNode _ = False
 
 isLeafBlockNode :: Node -> Bool
@@ -178,7 +211,7 @@ instance FromJSON Node where
       TextType -> do
         nText <- v .: "text" >>= parseNonEmpty "text"
         nMarks <- v .:? "marks"
-        pure $ TextNode $ PMText {text = nText, marks = nMarks}
+        pure $ InlineNode $ InlineText $ PMText {text = nText, marks = nMarks}
       ParagraphType -> pure $ BlockNode $ PMBlock {block = Paragraph, content = children}
       HeadingType -> do
         nAttrs <- (v .:? "attrs" :: Parser (Maybe Object))
@@ -199,12 +232,20 @@ instance FromJSON Node where
       OrderedListType -> pure $ BlockNode $ PMBlock {block = OrderedList, content = children}
       ListItemType -> pure $ BlockNode $ PMBlock {block = ListItem, content = children}
       HorizontalRuleType -> pure $ BlockNode $ PMBlock {block = HorizontalRule, content = Nothing}
+      ImageType -> do
+        nAttrs <- v .:? "attrs"
+        case nAttrs of
+          Just attrs -> fmap (InlineNode . InlineImage) (parseJSON attrs)
+          Nothing -> fail "Could not find image attrs"
+      FigureType -> pure $ BlockNode $ PMBlock {block = Figure, content = children}
+      FigureContentType -> pure $ BlockNode $ PMBlock {block = FigureContent, content = children}
+      CaptionType -> pure $ BlockNode $ PMBlock {block = Caption, content = children}
       NoteRefType -> do
         nAttrs <- (v .:? "attrs" :: Parser (Maybe Object))
         case nAttrs of
           Just attrs -> do
             noteId <- (attrs .: "id" :: Parser NoteId)
-            pure $ BlockNode $ PMBlock {block = NoteRef noteId, content = children}
+            pure $ InlineNode $ NoteRef noteId
           Nothing -> fail "Could not find note ref attrs"
       NoteContentType -> do
         nAttrs <- (v .:? "attrs" :: Parser (Maybe Object))
@@ -215,7 +256,7 @@ instance FromJSON Node where
           Nothing -> fail "Could not find note ref attrs"
 
 instance ToJSON Node where
-  toJSON (TextNode textNode) = toJSON textNode
+  toJSON (InlineNode inlineNode) = toJSON inlineNode
   toJSON (BlockNode (PMBlock bl children)) = case bl of
     Doc Nothing -> object ["type" .= toJSON DocType, "content" .= children]
     Doc meta -> object ["type" .= toJSON DocType, "content" .= children, "attrs" .= object ["pandocMeta" .= toJSON meta]]
@@ -228,8 +269,15 @@ instance ToJSON Node where
     OrderedList -> object ["type" .= toJSON OrderedListType, "content" .= children]
     ListItem -> object ["type" .= toJSON ListItemType, "content" .= children]
     HorizontalRule -> object ["type" .= toJSON HorizontalRuleType, "content" .= (Nothing :: Maybe [Node])]
-    NoteRef (NoteId noteId) -> object ["type" .= toJSON NoteRefType, "attrs" .= object ["id" .= toJSON noteId]]
+    Figure -> object ["type" .= toJSON FigureType, "content" .= children]
+    FigureContent -> object ["type" .= toJSON FigureContentType, "content" .= children]
+    Caption -> object ["type" .= toJSON CaptionType, "content" .= children]
     NoteContent (NoteId noteId) -> object ["type" .= toJSON NoteContentType, "content" .= children, "attrs" .= object ["id" .= toJSON noteId]]
+
+instance ToJSON InlineNode where
+  toJSON (InlineText textNode) = toJSON textNode
+  toJSON (InlineImage img) = object ["type" .= toJSON ImageType, "attrs" .= toJSON img]
+  toJSON (NoteRef (NoteId noteId)) = object ["type" .= toJSON NoteRefType, "attrs" .= object ["id" .= toJSON noteId]]
 
 data PMDoc = PMDoc {doc :: Node} deriving (Show, Eq)
 

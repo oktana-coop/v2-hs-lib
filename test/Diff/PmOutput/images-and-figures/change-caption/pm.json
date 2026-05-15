@@ -1,0 +1,70 @@
+{
+  "decorations": [
+    {
+      "node": {
+        "attrs": {
+          "alt": "Old caption",
+          "src": "figure.png",
+          "title": "Figure title"
+        },
+        "type": "image"
+      },
+      "pos": 26,
+      "type": "widget"
+    },
+    {
+      "attrs": {
+        "class": "bg-green-300 dark:text-black",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 26,
+      "to": 27,
+      "type": "node"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Document",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "attrs": {
+                  "alt": "New caption",
+                  "src": "figure.png",
+                  "title": "Figure title"
+                },
+                "type": "image"
+              }
+            ],
+            "type": "figure_content"
+          }
+        ],
+        "type": "figure"
+      }
+    ],
+    "type": "doc"
+  }
+}

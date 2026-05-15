@@ -1,0 +1,44 @@
+[ Header
+    1
+    ( "images-and-figures" , [] , [] )
+    [ Str "Images" , Space , Str "and" , Space , Str "figures" ]
+, Para
+    [ Str "A"
+    , Space
+    , Str "paragraph"
+    , Space
+    , Str "with"
+    , Space
+    , Str "an"
+    , Space
+    , Str "inline"
+    , Space
+    , Image
+        ( "" , [] , [] )
+        [ Str "alt" , Space , Str "text" ]
+        ( "inline.png" , "Inline title" )
+    , Space
+    , Str "embedded"
+    , Space
+    , Str "among"
+    , Space
+    , Str "other"
+    , Space
+    , Str "words."
+    ]
+, Para [ Image ( "" , [] , [] ) [] ( "no-alt.png" , "" ) ]
+, Figure
+    ( "" , [] , [] )
+    (Caption
+       Nothing
+       [ Plain
+           [ Str "A" , Space , Str "figure" , Space , Str "caption" ]
+       ])
+    [ Plain
+        [ Image
+            ( "" , [] , [] )
+            [ Str "A" , Space , Str "figure" , Space , Str "caption" ]
+            ( "figure.png" , "Figure title" )
+        ]
+    ]
+]

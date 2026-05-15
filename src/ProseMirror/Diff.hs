@@ -14,9 +14,10 @@ import Data.Tree (Tree (..), foldTree)
 import DocTree.Common as RichText (InlineSpan (..), TextSpan (..))
 import qualified DocTree.LeafTextSpans as PandocTree
 import ProseMirror.Decoration (Decoration (..), DecorationAttrs (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), undecorate)
-import qualified ProseMirror.Model as PM (Node (..), TextNode (..), isAtomNode, isLeafBlockNode, isRootBlockNode, wrapChildrenToBlock)
+import qualified ProseMirror.Model as PM (InlineNode (..), Node (..), TextNode (..), isAtomNode, isLeafBlockNode, isRootBlockNode, wrapChildrenToBlock)
+import ProseMirror.PandocTreeShape.FigureContent.LeafTextSpans (unwrapFigureContentParaOrPlain)
 import ProseMirror.Tree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode, pmNodeFromInlineSpan, treeTextSpanNodeToPMTextNode)
-import RichTextDiffOp (RichTextDiffOp (..), RichTextDiffOpType (InsertType, UpdateHeadingLevelType), getDiffOpType)
+import RichTextDiffOp (RichTextDiffOp (..), RichTextDiffOpType (InsertType, UpdateHeadingLevelType), getDiffOpType, unpackDiffOpValue)
 
 -- Alias to the function exposed from the PMTree module
 pandocTreeNodeToPMNode :: PandocTree.DocNode -> PMTreeNode
@@ -32,7 +33,7 @@ instance ToJSON DecoratedPMDoc where
 type PMIndex = Int
 
 toDecoratedPMDoc :: Tree (RichTextDiffOp PandocTree.DocNode) -> DecoratedPMDoc
-toDecoratedPMDoc = pmDocFromPMTree . toProseMirrorTreeWithDiffDecorations
+toDecoratedPMDoc = pmDocFromPMTree . toProseMirrorTreeWithDiffDecorations . unwrapFigureContentParaOrPlain unpackDiffOpValue
 
 toProseMirrorTreeWithDiffDecorations :: Tree (RichTextDiffOp PandocTree.DocNode) -> DecoratedPMTree
 toProseMirrorTreeWithDiffDecorations diffTree = evalState (walkDiffTree diffTree) 0
@@ -134,7 +135,7 @@ walkTextNode textSpan = do
   pure pmNode
   where
     pmTextNode = treeTextSpanNodeToPMTextNode textSpan
-    pmNode = PMNode $ PM.TextNode $ pmTextNode
+    pmNode = PMNode $ PM.InlineNode $ PM.InlineText pmTextNode
     textLength = T.length $ PM.text pmTextNode
 
 walkInlineNodeAddingDecoration :: InlineSpan -> T.Text -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
@@ -217,8 +218,8 @@ pmDocFromPMTree pmTree = DecoratedPMDoc {doc = pmDoc, decorations = pmDecoration
     assertRootNodeIsBlock _ = undefined
 
 pmTreeNodeFolder :: Either PMTreeNode (Decoration PMTreeNode) -> [([PM.Node], [Decoration PM.Node])] -> ([PM.Node], [Decoration PM.Node])
--- Undecorated text node
-pmTreeNodeFolder (Left (PMNode pmNode@(PM.TextNode _))) _ = ([pmNode], [])
+-- Undecorated inline node (text / image / note ref)
+pmTreeNodeFolder (Left (PMNode pmNode@(PM.InlineNode _))) _ = ([pmNode], [])
 -- Undecorated (wrapper) inline node
 pmTreeNodeFolder (Left (WrapperInlineNode)) childNodesWithDecorations = splitNodesAndDecorations childNodesWithDecorations
 -- Undecorated wrapper block node (div)
@@ -227,12 +228,12 @@ pmTreeNodeFolder (Left (WrapperBlockNode)) childNodesWithDecorations = splitNode
 pmTreeNodeFolder (Left (PMNode (PM.BlockNode blockNode))) childNodesWithDecorations = ([PM.BlockNode $ PM.wrapChildrenToBlock blockNode childNodes], childDecorations)
   where
     (childNodes, childDecorations) = splitNodesAndDecorations childNodesWithDecorations
--- Inline decoration for text node.
+-- Inline decoration for inline node (typically text).
 -- TODO: See if making decoration a functor makes this case easier to write because in the second slot of the tuple we just want to map over the decoration structure.
-pmTreeNodeFolder (Right (InlineDecoration (PMInlineDecoration decFrom decTo decAttrs (PMNode pmNode@(PM.TextNode _))))) _ =
+pmTreeNodeFolder (Right (InlineDecoration (PMInlineDecoration decFrom decTo decAttrs (PMNode pmNode@(PM.InlineNode _))))) _ =
   ([pmNode], [InlineDecoration $ PMInlineDecoration decFrom decTo decAttrs pmNode])
--- Widget decoration for text node. Don't add the content as a node (the content has been deleted), just add the widget decoration.
-pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration decPos (PMNode pmNode@(PM.TextNode _))))) _ =
+-- Widget decoration for inline node. Don't add the content as a node (the content has been deleted), just add the widget decoration.
+pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration decPos (PMNode pmNode@(PM.InlineNode _))))) _ =
   ([], [WidgetDecoration $ PMWidgetDecoration decPos pmNode])
 -- Widget decoration for wrapper inline node. Just return the children nodes and decorations (they will contain the decoration themselves)
 pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration _ (WrapperInlineNode)))) childNodesWithDecorations = splitNodesAndDecorations childNodesWithDecorations
@@ -246,12 +247,15 @@ pmTreeNodeFolder (Right (WidgetDecoration (PMWidgetDecoration decPos (PMNode (PM
     blockDecoration = WidgetDecoration $ PMWidgetDecoration decPos blockNodeWithChildren
     blockNodeWithChildren = PM.BlockNode $ PM.wrapChildrenToBlock blockNode $ map undecorate decoratedChildNodes
     (_, decoratedChildNodes) = splitNodesAndDecorations childNodesWithDecorations
--- Node decoration
+-- Node decoration for block node
 pmTreeNodeFolder (Right (NodeDecoration (PMNodeDecoration decFrom decTo decAttrs (PMNode (PM.BlockNode blockNode))))) childNodesWithDecorations =
   ([pmNode], [NodeDecoration $ PMNodeDecoration decFrom decTo decAttrs pmNode])
   where
     pmNode = PM.BlockNode $ PM.wrapChildrenToBlock blockNode childNodes
     (childNodes, _) = splitNodesAndDecorations childNodesWithDecorations
+-- Node decoration for inline atom (image, note ref) — emitted by walkNodeMappingToPMAtomAddingDecoration.
+pmTreeNodeFolder (Right (NodeDecoration (PMNodeDecoration decFrom decTo decAttrs (PMNode pmNode@(PM.InlineNode _))))) _ =
+  ([pmNode], [NodeDecoration $ PMNodeDecoration decFrom decTo decAttrs pmNode])
 -- TODO: There are cases we didn't handle, like an inline decoration wrapping blocks.
 -- These are failure cases and we should guard against them, ideally in the type system (with more accurate/specific types).
 pmTreeNodeFolder _ _ = undefined

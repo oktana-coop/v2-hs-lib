@@ -1,0 +1,69 @@
+{
+  "content": [
+    {
+      "attrs": {
+        "level": 1
+      },
+      "content": [
+        {
+          "text": "Images and figures",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "content": [
+        {
+          "text": "A paragraph with an inline ",
+          "type": "text"
+        },
+        {
+          "attrs": {
+            "alt": "alt text",
+            "src": "inline.png",
+            "title": "Inline title"
+          },
+          "type": "image"
+        },
+        {
+          "text": " embedded among other words.",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "alt": null,
+            "src": "no-alt.png",
+            "title": null
+          },
+          "type": "image"
+        }
+      ],
+      "type": "paragraph"
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "attrs": {
+                "alt": "A figure caption",
+                "src": "figure.png",
+                "title": "Figure title"
+              },
+              "type": "image"
+            }
+          ],
+          "type": "figure_content"
+        }
+      ],
+      "type": "figure"
+    }
+  ],
+  "type": "doc"
+}

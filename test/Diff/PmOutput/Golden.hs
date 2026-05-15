@@ -26,6 +26,12 @@ tests = do
             goldenCase $ "horizontal-rule" </> "delete-horizontal-rule"
           ],
         testGroup
+          "images-and-figures"
+          [ goldenCase $ "images-and-figures" </> "add-figure",
+            goldenCase $ "images-and-figures" </> "change-caption",
+            goldenCase $ "images-and-figures" </> "change-image-src"
+          ],
+        testGroup
           "inline-text-updates"
           [ goldenCase $ "inline-text-updates" </> "add-text-in-the-middle-of-paragraph",
             goldenCase $ "inline-text-updates" </> "append-text-to-paragraph",

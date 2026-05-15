@@ -15,6 +15,7 @@ tests = do
         goldenCase "code-blocks",
         goldenCase "headings-and-paragraphs",
         goldenCase "horizontal-rule",
+        goldenCase "images-and-figures",
         goldenCase "marks",
         goldenCase "lists",
         goldenCase "meta",

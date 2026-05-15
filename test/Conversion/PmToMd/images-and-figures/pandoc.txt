@@ -1,0 +1,21 @@
+[ Header 1 ( "" , [] , [] ) [ Str "Images and figures" ]
+, Para
+    [ Str "A paragraph with an inline "
+    , Image
+        ( "" , [] , [] )
+        [ Str "alt text" ]
+        ( "inline.png" , "Inline title" )
+    , Str " embedded among other words."
+    ]
+, Para [ Image ( "" , [] , [] ) [] ( "no-alt.png" , "" ) ]
+, Figure
+    ( "" , [] , [] )
+    (Caption Nothing [ Plain [ Str "A figure caption" ] ])
+    [ Plain
+        [ Image
+            ( "" , [] , [] )
+            [ Str "A figure caption" ]
+            ( "figure.png" , "Figure title" )
+        ]
+    ]
+]

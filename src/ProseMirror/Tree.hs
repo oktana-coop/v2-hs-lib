@@ -3,26 +3,30 @@
 module ProseMirror.Tree (PMTree, PMTreeNode (..), groupedInlinesPandocTreeToPMTree, pmDocFromPMTree, leafTextSpansPandocTreeNodeToPMNode, treeTextSpanNodeToPMTextNode, pmNodeFromInlineSpan, pmTreeFromPMDoc, pmTreeToGroupedInlinesTree) where
 
 import Data.List.NonEmpty (nonEmpty, toList)
-import Data.Maybe (listToMaybe, maybeToList)
+import Data.Maybe (fromMaybe, listToMaybe, maybeToList)
 import qualified Data.Text as T
 import Data.Tree (Tree (..), foldTree, unfoldTree)
-import DocTree.Common as RichText (BlockNode (..), InlineSpan (..), LinkMark (..), Mark (..), NoteId (..), TextSpan (..))
+import DocTree.Common as RichText (BlockNode (..), Image (..), InlineSpan (..), LinkMark (..), Mark (..), NoteId (..), TextSpan (..))
 import qualified DocTree.GroupedInlines as GroupedInlinesTree
 import qualified DocTree.LeafTextSpans as LeafTextSpansTree
 import GHC.Base (NonEmpty)
 import ProseMirror.Model (CodeBlockLanguage)
-import qualified ProseMirror.Model as PM (Block (..), BlockNode (..), CodeBlockLanguage (..), HeadingLevel (..), Link (..), Mark (..), Node (..), NoteId (..), PMDoc (..), TextNode (..), assertRootNodeIsDoc, wrapChildrenToBlock)
+import qualified ProseMirror.Model as PM (Block (..), BlockNode (..), CodeBlockLanguage (..), HeadingLevel (..), Image (..), InlineNode (..), Link (..), Mark (..), Node (..), NoteId (..), PMDoc (..), TextNode (..), assertRootNodeIsDoc, wrapChildrenToBlock)
 import ProseMirror.Utils.Json (fromJsonText, toJsonText)
-import Text.Pandoc.Builder as Pandoc
+import qualified Text.Pandoc.Builder as Pandoc
   ( Attr,
     Block (..),
+    Caption (..),
+    Inline (..),
     ListNumberDelim (DefaultDelim),
     ListNumberStyle (DefaultStyle),
     Meta,
+    emptyCaption,
     isNullMeta,
     nullAttr,
     nullMeta,
   )
+import qualified Text.Pandoc.Shared as Pandoc (stringify)
 
 data PMTreeNode
   = PMNode PM.Node
@@ -43,7 +47,7 @@ pmDocFromPMTree pmTree = extractRootBlock $ foldTree pmTreeNodeFolder pmTree
       Nothing -> Left "No root node found."
 
 pmTreeNodeFolder :: PMTreeNode -> [[PM.Node]] -> [PM.Node]
-pmTreeNodeFolder (PMNode pmNode@(PM.TextNode _)) _ = [pmNode]
+pmTreeNodeFolder (PMNode pmNode@(PM.InlineNode _)) _ = [pmNode]
 pmTreeNodeFolder WrapperInlineNode childNodes = concat childNodes
 pmTreeNodeFolder (WrapperBlockNode) childNodes = concat childNodes
 -- Ignore nodes that cannot be represented in ProseMirror
@@ -52,17 +56,62 @@ pmTreeNodeFolder (PMNode (PM.BlockNode blockNode)) childNodes = [PM.BlockNode $ 
 
 docWithMetaIfExists :: Pandoc.Meta -> PM.Block
 docWithMetaIfExists meta =
-  if isNullMeta meta
+  if Pandoc.isNullMeta meta
     then PM.Doc Nothing
     else PM.Doc $ Just $ toJsonText meta
 
-groupedInlinesPandocTreeToPMTree :: Tree GroupedInlinesTree.DocNode -> PMTree
-groupedInlinesPandocTreeToPMTree (Node (GroupedInlinesTree.Root meta) childTrees) =
-  Node (PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = docWithMetaIfExists meta, PM.content = Nothing}) (map groupedInlinesPandocTreeToPMTree childTrees)
-groupedInlinesPandocTreeToPMTree (Node (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode blockNode)) childTrees) =
-  Node (treeBlockNodeToPMBlockNode blockNode) (map groupedInlinesPandocTreeToPMTree childTrees)
+groupedInlinesPandocTreeToPMTree :: Tree GroupedInlinesTree.DocNode -> Either String PMTree
+groupedInlinesPandocTreeToPMTree (Node (GroupedInlinesTree.Root meta) childTrees) = do
+  pmChildren <- traverse groupedInlinesPandocTreeToPMTree childTrees
+  Right $ Node (PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = docWithMetaIfExists meta, PM.content = Nothing}) pmChildren
+-- Figure is special-cased: PM's `figure { figure_content { image? }, caption? }` shape
+-- constrains its children, which the generic block clause below can't validate.
+groupedInlinesPandocTreeToPMTree (Node (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode blockNode@(RichText.PandocBlock (Pandoc.Figure _ _ _)))) childTrees) = do
+  (maybeContentTree, maybeCaptionTree) <- parseFigureSubtrees childTrees
+  pmContent <- traverse groupedInlinesPandocTreeToPMTree maybeContentTree
+  pmCaption <- traverse groupedInlinesPandocTreeToPMTree maybeCaptionTree
+  Right $ Node (treeBlockNodeToPMBlockNode blockNode) (maybeToList pmContent ++ maybeToList pmCaption)
+groupedInlinesPandocTreeToPMTree (Node (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode blockNode)) childTrees) = do
+  pmChildren <- traverse groupedInlinesPandocTreeToPMTree childTrees
+  Right $ Node (treeBlockNodeToPMBlockNode blockNode) pmChildren
 groupedInlinesPandocTreeToPMTree (Node (GroupedInlinesTree.TreeNode (GroupedInlinesTree.InlineNode (GroupedInlinesTree.InlineContent inlineSpans))) _) =
-  Node WrapperInlineNode (map pmTreeFromInlineSpan inlineSpans)
+  Right $ Node WrapperInlineNode (map pmTreeFromInlineSpan inlineSpans)
+
+-- pandoc-tree always lifts a Figure's list of blocks into a FigureContent and (when non-empty)
+-- the caption into a Caption sibling, body first. Both are optional in the result. The
+-- parser accepts those shapes and rejects anything else (multi-content, wrong order, unexpected child types).
+-- The at-most-one-image constraint is also enforced here (figure_content { image? }).
+parseFigureSubtrees :: [Tree GroupedInlinesTree.DocNode] -> Either String (Maybe (Tree GroupedInlinesTree.DocNode), Maybe (Tree GroupedInlinesTree.DocNode))
+parseFigureSubtrees [] = Right (Nothing, Nothing)
+parseFigureSubtrees [c]
+  | isCaptionTree c = Right (Nothing, Just c)
+  | isFigureContentTree c, hasAtMostOneImage c = Right (Just c, Nothing)
+  | isFigureContentTree c = Left "The figure content must contain at most one image (no other inline content)"
+  | otherwise = Left "Figure child must be a FigureContent or a Caption"
+parseFigureSubtrees [c1, c2]
+  | isFigureContentTree c1, isCaptionTree c2, hasAtMostOneImage c1 = Right (Just c1, Just c2)
+  | isFigureContentTree c1, isCaptionTree c2 = Left "The figure content must contain at most one image (no other inline content)"
+parseFigureSubtrees _ = Left "The figure must have at most one content block followed by at most one caption"
+
+hasAtMostOneImage :: Tree GroupedInlinesTree.DocNode -> Bool
+hasAtMostOneImage (Node (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode (RichText.FigureContent _))) []) = True
+hasAtMostOneImage
+  ( Node
+      (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode (RichText.FigureContent _)))
+      [Node (GroupedInlinesTree.TreeNode (GroupedInlinesTree.InlineNode (GroupedInlinesTree.InlineContent spans))) _]
+    ) = case spans of
+    [] -> True
+    [RichText.InlineImage _] -> True
+    _ -> False
+hasAtMostOneImage _ = False
+
+isCaptionTree :: Tree GroupedInlinesTree.DocNode -> Bool
+isCaptionTree (Node (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode (RichText.Caption _))) _) = True
+isCaptionTree _ = False
+
+isFigureContentTree :: Tree GroupedInlinesTree.DocNode -> Bool
+isFigureContentTree (Node (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode (RichText.FigureContent _))) _) = True
+isFigureContentTree _ = False
 
 leafTextSpansPandocTreeNodeToPMNode :: LeafTextSpansTree.DocNode -> PMTreeNode
 leafTextSpansPandocTreeNodeToPMNode (LeafTextSpansTree.Root meta) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = docWithMetaIfExists meta, PM.content = Nothing}
@@ -74,8 +123,24 @@ pmTreeFromInlineSpan :: InlineSpan -> Tree PMTreeNode
 pmTreeFromInlineSpan inlineSpan = Node (pmNodeFromInlineSpan inlineSpan) []
 
 pmNodeFromInlineSpan :: InlineSpan -> PMTreeNode
-pmNodeFromInlineSpan (InlineText textSpan) = PMNode (PM.TextNode (treeTextSpanNodeToPMTextNode textSpan))
-pmNodeFromInlineSpan (NoteRef (NoteId noteId)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.NoteRef $ PM.NoteId noteId, PM.content = Nothing}
+pmNodeFromInlineSpan (InlineText textSpan) = PMNode (PM.InlineNode (PM.InlineText (treeTextSpanNodeToPMTextNode textSpan)))
+pmNodeFromInlineSpan (NoteRef (NoteId noteId)) = PMNode $ PM.InlineNode $ PM.NoteRef $ PM.NoteId noteId
+pmNodeFromInlineSpan (InlineImage image) = PMNode $ PM.InlineNode $ PM.InlineImage $ treeImageToPMImage image
+
+treeImageToPMImage :: RichText.Image -> PM.Image
+treeImageToPMImage (RichText.Image _attr alts (imgUrl, imgTtl)) =
+  PM.Image
+    { PM.src = imgUrl,
+      PM.alt = textToMaybe (Pandoc.stringify alts),
+      PM.imageTitle = textToMaybe imgTtl
+    }
+  where
+    textToMaybe t = if T.null t then Nothing else Just t
+
+pmImageToTreeImage :: PM.Image -> RichText.Image
+pmImageToTreeImage (PM.Image imgSrc imgAlt imgTitle) = RichText.Image Pandoc.nullAttr altInlines (imgSrc, fromMaybe T.empty imgTitle)
+  where
+    altInlines = maybe [] (\t -> [Pandoc.Str t]) imgAlt
 
 -- TODO: Use ProseMirror schema as a parameter
 treeBlockNodeToPMBlockNode :: RichText.BlockNode -> PMTreeNode
@@ -91,6 +156,9 @@ treeBlockNodeToPMBlockNode (RichText.ListItem _) = PMNode $ PM.BlockNode $ PM.PM
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BlockQuote _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.BlockQuote, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Div _ _)) = WrapperBlockNode
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.HorizontalRule)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.HorizontalRule, PM.content = Nothing}
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Figure _ _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Figure, PM.content = Nothing}
+treeBlockNodeToPMBlockNode (RichText.FigureContent _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.FigureContent, PM.content = Nothing}
+treeBlockNodeToPMBlockNode (RichText.Caption _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Caption, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.NoteContent (NoteId noteId) _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.NoteContent $ PM.NoteId noteId, PM.content = Nothing}
 -- TODO: Incrementally handle more blocks
 treeBlockNodeToPMBlockNode _ = undefined
@@ -108,7 +176,7 @@ treeTextSpanNodeToPMTextNode textSpan = PM.PMText {PM.text = value textSpan, PM.
     toPMMark :: RichText.Mark -> PM.Mark
     toPMMark RichText.EmphMark = PM.Emphasis
     toPMMark RichText.StrongMark = PM.Strong
-    toPMMark (RichText.LinkMark (RichText.Link _ (linkUrl, linkTitle))) = PM.LinkMark $ PM.Link {PM.url = linkUrl, PM.title = linkTitle}
+    toPMMark (RichText.LinkMark (RichText.Link _ (linkUrl, linkTitle))) = PM.LinkMark PM.Link {PM.url = linkUrl, PM.linkTitle = linkTitle}
     toPMMark RichText.CodeMark = PM.Code
 
 pmTreeFromPMDoc :: PM.PMDoc -> PMTree
@@ -117,7 +185,7 @@ pmTreeFromPMDoc (PM.PMDoc rootNode) = unfoldTree pmTreeFromPMDocUnfolder rootNod
 pmTreeFromPMDocUnfolder :: PM.Node -> (PMTreeNode, [PM.Node])
 pmTreeFromPMDocUnfolder (PM.BlockNode (PM.PMBlock bl children)) =
   (PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = bl, PM.content = Nothing}, concat $ maybeToList children)
-pmTreeFromPMDocUnfolder textNode@(PM.TextNode _) = (PMNode textNode, [])
+pmTreeFromPMDocUnfolder inlineNode@(PM.InlineNode _) = (PMNode inlineNode, [])
 
 pmTreeToGroupedInlinesTree :: PMTree -> Either String (Tree GroupedInlinesTree.DocNode)
 pmTreeToGroupedInlinesTree = foldTree pmNodeToGroupedInlinesNodeFolder
@@ -130,37 +198,45 @@ pmNodeToGroupedInlinesNodeFolder pmTreeNode eitherSubtrees = do
     pmNodeToGroupedInlinesNode :: PMTreeNode -> [Tree GroupedInlinesTree.DocNode] -> Either String (Tree GroupedInlinesTree.DocNode)
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.Doc maybeMeta) _))) childTrees =
       case maybeMeta of
-        Nothing -> Right $ Node (GroupedInlinesTree.Root nullMeta) childTrees
+        Nothing -> Right $ Node (GroupedInlinesTree.Root Pandoc.nullMeta) childTrees
         Just pmMeta -> case fromJsonText pmMeta of
           (Left err) -> Left err
           (Right pandocMeta) -> Right $ Node (GroupedInlinesTree.Root pandocMeta) childTrees
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.Paragraph) _))) childTrees =
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.Para []) (concatAdjacentInlineNodes childTrees)
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.Heading (PM.HeadingLevel level)) _))) childTrees =
-      Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.Header level nullAttr []) (concatAdjacentInlineNodes childTrees)
+      Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.Header level Pandoc.nullAttr []) (concatAdjacentInlineNodes childTrees)
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.CodeBlock Nothing) _))) childTrees =
-      Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.CodeBlock nullAttr T.empty) (concatAdjacentInlineNodes childTrees)
+      Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.CodeBlock Pandoc.nullAttr T.empty) (concatAdjacentInlineNodes childTrees)
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.CodeBlock (Just (PM.CodeBlockLanguage language))) _))) childTrees =
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.CodeBlock ("", [language], []) T.empty) (concatAdjacentInlineNodes childTrees)
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.BulletList) _))) childTrees =
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.BulletList []) childTrees
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.OrderedList) _))) childTrees =
-      Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.OrderedList (1, DefaultStyle, DefaultDelim) []) childTrees
+      Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.OrderedList (1, Pandoc.DefaultStyle, Pandoc.DefaultDelim) []) childTrees
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.ListItem) _))) childTrees =
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.ListItem []) (compactListIfPossible $ concatAdjacentInlineNodes childTrees)
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.BlockQuote) _))) childTrees =
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.BlockQuote []) (concatAdjacentInlineNodes childTrees)
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.HorizontalRule) _))) _ =
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.HorizontalRule) []
+    pmNodeToGroupedInlinesNode (PMNode (PM.InlineNode (PM.InlineImage img))) _ =
+      Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.InlineNode $ GroupedInlinesTree.InlineContent [RichText.InlineImage $ pmImageToTreeImage img]) []
+    pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock PM.Figure _))) childTrees =
+      Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.Figure Pandoc.nullAttr Pandoc.emptyCaption []) childTrees
+    pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock PM.FigureContent _))) childTrees =
+      Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.FigureContent []) childTrees
+    pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock PM.Caption _))) childTrees =
+      Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.Caption (Pandoc.Caption Nothing [])) childTrees
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.NoteContent (PM.NoteId noteId)) _))) childTrees =
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.NoteContent (RichText.NoteId noteId) []) (concatAdjacentInlineNodes childTrees)
     pmNodeToGroupedInlinesNode WrapperBlockNode childTrees =
-      Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.Div nullAttr []) (concatAdjacentInlineNodes childTrees)
+      Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.Div Pandoc.nullAttr []) (concatAdjacentInlineNodes childTrees)
     -- In the case of inline nodes we produce an `InlineNode` with a list of a single inline span when processing the node.
     -- When processing container blocks we are concatenating adjacent inline nodes, so we end up with a single `InlineNode` containing a list of inline spans.
-    pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.NoteRef (PM.NoteId noteId)) _))) _ =
+    pmNodeToGroupedInlinesNode (PMNode (PM.InlineNode (PM.NoteRef (PM.NoteId noteId)))) _ =
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.InlineNode $ GroupedInlinesTree.InlineContent [RichText.NoteRef (RichText.NoteId noteId)]) []
-    pmNodeToGroupedInlinesNode (PMNode (PM.TextNode textNode)) _ =
+    pmNodeToGroupedInlinesNode (PMNode (PM.InlineNode (PM.InlineText textNode))) _ =
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.InlineNode $ GroupedInlinesTree.InlineContent [RichText.InlineText $ pmTextNodeToTreeTextSpan textNode]) []
     pmNodeToGroupedInlinesNode WrapperInlineNode childTrees =
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.InlineNode $ GroupedInlinesTree.InlineContent []) (concatAdjacentInlineNodes childTrees)
@@ -177,7 +253,7 @@ pmTextNodeToTreeTextSpan (PM.PMText t pmMarks) = RichText.TextSpan t (map toTree
     toTreeMark :: PM.Mark -> RichText.Mark
     toTreeMark PM.Strong = RichText.StrongMark
     toTreeMark PM.Emphasis = RichText.EmphMark
-    toTreeMark (PM.LinkMark (PM.Link url title)) = RichText.LinkMark $ RichText.Link nullAttr (url, title)
+    toTreeMark (PM.LinkMark (PM.Link url title)) = RichText.LinkMark $ RichText.Link Pandoc.nullAttr (url, title)
     toTreeMark PM.Code = RichText.CodeMark
 
 concatAdjacentInlineNodes :: [Tree GroupedInlinesTree.DocNode] -> [Tree GroupedInlinesTree.DocNode]
