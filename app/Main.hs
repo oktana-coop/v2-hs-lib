@@ -6,6 +6,7 @@ import Data.Aeson (ToJSON, encode)
 import qualified Data.ByteString.Lazy.Char8 as BL
 import Data.List.NonEmpty (NonEmpty, toList)
 import Diff (proseMirrorDiff)
+import Query (extractAssetUrls)
 import Response (ErrorOutput (..), Response (..))
 import Text.Pandoc (PandocError)
 import Text.Pandoc.Error (renderError)
@@ -27,3 +28,4 @@ main = do
     ConvertToText from to str -> convertToText from to str >>= wrapToReponseAndPrint
     ConvertToBinary from to str -> convertToBinary from to str >>= BL.putStr
     ProseMirrorDiff format str1 str2 -> proseMirrorDiff format str1 str2 >>= wrapToReponseAndPrint
+    ExtractAssetUrls format str -> extractAssetUrls format str >>= wrapToReponseAndPrint

@@ -57,6 +57,7 @@ library:
     - Conversion
     - Diff
     - Format
+    - Query
   other-modules:
     - ProseMirror.Model
     - ProseMirror.Decoration

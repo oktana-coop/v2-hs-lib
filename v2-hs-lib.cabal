@@ -30,6 +30,7 @@ library
       Conversion
       Diff
       Format
+      Query
   other-modules:
       ProseMirror.Model
       ProseMirror.Decoration
@@ -90,6 +91,7 @@ test-suite v2-hs-lib-test
       Diff.Golden
       Diff.PmOutput.Golden
       Diff.Utils
+      Query.Spec
       Utils
       Paths_v2_hs_lib
   hs-source-dirs:
