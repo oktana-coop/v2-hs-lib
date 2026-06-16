@@ -39,20 +39,27 @@ data PMTreeNode
 type PMTree = Tree PMTreeNode
 
 pmDocFromPMTree :: PMTree -> Either String PM.PMDoc
-pmDocFromPMTree pmTree = extractRootBlock $ foldTree pmTreeNodeFolder pmTree
+pmDocFromPMTree pmTree = foldTree pmTreeNodeFolder pmTree >>= extractRootBlock
   where
     extractRootBlock :: [PM.Node] -> Either String PM.PMDoc
     extractRootBlock nodes = case listToMaybe nodes of
       Just node -> PM.assertRootNodeIsDoc node
       Nothing -> Left "No root node found."
 
-pmTreeNodeFolder :: PMTreeNode -> [[PM.Node]] -> [PM.Node]
-pmTreeNodeFolder (PMNode pmNode@(PM.InlineNode _)) _ = [pmNode]
-pmTreeNodeFolder WrapperInlineNode childNodes = concat childNodes
-pmTreeNodeFolder (WrapperBlockNode) childNodes = concat childNodes
--- Ignore nodes that cannot be represented in ProseMirror
-pmTreeNodeFolder (UnrepresentableNode) _ = []
-pmTreeNodeFolder (PMNode (PM.BlockNode blockNode)) childNodes = [PM.BlockNode $ PM.wrapChildrenToBlock blockNode $ concat childNodes]
+pmTreeNodeFolder :: PMTreeNode -> [Either String [PM.Node]] -> Either String [PM.Node]
+pmTreeNodeFolder pmTreeNode eitherChildNodes = do
+  childNodes <- sequenceA eitherChildNodes
+  pmTreeNodeToPMNodes pmTreeNode childNodes
+  where
+    pmTreeNodeToPMNodes :: PMTreeNode -> [[PM.Node]] -> Either String [PM.Node]
+    pmTreeNodeToPMNodes (PMNode pmNode@(PM.InlineNode _)) _ = Right [pmNode]
+    pmTreeNodeToPMNodes WrapperInlineNode childNodes = Right $ concat childNodes
+    pmTreeNodeToPMNodes WrapperBlockNode childNodes = Right $ concat childNodes
+    pmTreeNodeToPMNodes UnrepresentableNode _ = Left unrepresentableNodeErrorMessage
+    pmTreeNodeToPMNodes (PMNode (PM.BlockNode blockNode)) childNodes = Right [PM.BlockNode $ PM.wrapChildrenToBlock blockNode $ concat childNodes]
+
+unrepresentableNodeErrorMessage :: String
+unrepresentableNodeErrorMessage = "Cannot convert input to ProseMirror: it contains content with no ProseMirror representation."
 
 docWithMetaIfExists :: Pandoc.Meta -> PM.Block
 docWithMetaIfExists meta =
@@ -148,7 +155,7 @@ treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Plain _)) = PMNode $ PM
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Para _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Paragraph, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Header level _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Heading $ PM.HeadingLevel level, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.CodeBlock attr _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.CodeBlock $ codeBlockLanguageFromPandocAttr attr, PM.content = Nothing}
--- TODO: Potentially handle raw blocks with format "prosemirror" or "html"".
+-- Raw blocks have no ProseMirror representation and are surfaced as a conversion error.
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.RawBlock _ _)) = UnrepresentableNode
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BulletList _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.BulletList, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.OrderedList _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.OrderedList, PM.content = Nothing}

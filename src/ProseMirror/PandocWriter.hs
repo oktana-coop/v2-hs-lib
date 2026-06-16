@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module ProseMirror.PandocWriter (writeProseMirror) where
 
 import Control.Monad ((<=<))
@@ -14,19 +16,42 @@ import ProseMirror.PandocTreeShape.ImplicitFigure (stripCaptionEqualToAlt)
 import ProseMirror.Tree (groupedInlinesPandocTreeToPMTree, pmDocFromPMTree)
 import Text.Pandoc (PandocError (PandocParseError), WriterOptions)
 import Text.Pandoc.Class (PandocMonad)
-import Text.Pandoc.Definition as Pandoc (Pandoc)
+import Text.Pandoc.Definition as Pandoc (Block (RawBlock), Format (..), Pandoc)
+import Text.Pandoc.Walk (walk)
 
 writeProseMirror :: (PandocMonad m) => WriterOptions -> Pandoc.Pandoc -> m T.Text
--- Note that convertTreeToPMDocAndHandleErrors wraps the PM doc in the Pandoc monad.
--- Therefore, to compose we need Kleisli composition instead of the normal composition operator.
-writeProseMirror _ = pure . pmDocToJSONText <=< convertTreeToPMDocAndHandleErrors . unwrapFigureContentParaOrPlain . GroupedInlinesTree.toTree . stripCaptionEqualToAlt
+-- `convertTreeToPMDoc` yields the PM doc inside the Pandoc monad, so we compose with Kleisli (`<=<`).
+writeProseMirror _ = pure . pmDocToJSONText <=< convertTreeToPMDoc . buildDocTree . preprocessPandoc
   where
-    -- Chains the two `Either String`-returning conversions (tree → PMTree → PMDoc) before wrapping in the Pandoc monad.
-    convertTreeToPMDocAndHandleErrors :: (PandocMonad m) => Tree GroupedInlinesTree.DocNode -> m PM.PMDoc
-    convertTreeToPMDocAndHandleErrors = either handlePMConversionErrorMessage pure . (pmDocFromPMTree <=< groupedInlinesPandocTreeToPMTree)
+    -- TODO: reconstruct supported raw HTML (e.g. `<figure>` with a caption) into native Pandoc
+    -- blocks here, so it flows through the normal conversion path instead of erroring downstream.
+    preprocessPandoc :: Pandoc.Pandoc -> Pandoc.Pandoc
+    preprocessPandoc = dropHtmlComments . stripCaptionEqualToAlt
+
+    buildDocTree :: Pandoc.Pandoc -> Tree GroupedInlinesTree.DocNode
+    buildDocTree = unwrapFigureContentParaOrPlain . GroupedInlinesTree.toTree
+
+    convertTreeToPMDoc :: (PandocMonad m) => Tree GroupedInlinesTree.DocNode -> m PM.PMDoc
+    convertTreeToPMDoc = either handlePMConversionErrorMessage pure . (pmDocFromPMTree <=< groupedInlinesPandocTreeToPMTree)
 
     handlePMConversionErrorMessage :: (PandocMonad m) => String -> m a
     handlePMConversionErrorMessage = throwError . PandocParseError . T.pack
 
 pmDocToJSONText :: PM.PMDoc -> T.Text
 pmDocToJSONText = decodeUtf8 . BSL8.toStrict . encode
+
+-- Pandoc represents HTML comments (notably its `<!-- -->` block separator) as raw blocks that
+-- carry no document content. They have no ProseMirror representation but are safe to discard, so we
+-- drop them before tree conversion. Any *other* raw block survives and becomes a conversion error.
+dropHtmlComments :: Pandoc.Pandoc -> Pandoc.Pandoc
+dropHtmlComments = walk (filter (not . isHtmlCommentBlock))
+  where
+    isHtmlCommentBlock :: Pandoc.Block -> Bool
+    isHtmlCommentBlock (Pandoc.RawBlock format content) = isHtmlComment format content
+    isHtmlCommentBlock _ = False
+
+isHtmlComment :: Pandoc.Format -> T.Text -> Bool
+isHtmlComment (Pandoc.Format formatName) content =
+  formatName == "html" && "<!--" `T.isPrefixOf` strippedContent && "-->" `T.isSuffixOf` strippedContent
+  where
+    strippedContent = T.strip content

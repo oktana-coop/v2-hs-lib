@@ -87,6 +87,7 @@ test-suite v2-hs-lib-test
       Conversion.MdToPm.Golden
       Conversion.PmToMd.Golden
       Conversion.RoundTrip
+      Conversion.Unsupported
       Conversion.Utils
       Diff.Golden
       Diff.PmOutput.Golden
