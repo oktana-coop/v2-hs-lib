@@ -84,18 +84,24 @@ mustWrapToNodeDecoration (UpdateHeadingLevel _ _) _ = True
 mustWrapToNodeDecoration (Insert _) isLeafBlock = isLeafBlock
 mustWrapToNodeDecoration _ _ = False
 
+diffInsertClass :: T.Text
+diffInsertClass = "diff-insert"
+
+diffModifyClass :: T.Text
+diffModifyClass = "diff-modify"
+
 decorateNode :: PMTreeNode -> PMIndex -> PMIndex -> RichTextDiffOpType -> Decoration PMTreeNode
 decorateNode pmNode beforeNodeIndex afterNodeIndex InsertType =
-  NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-green-300 dark:text-black"
+  NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex diffInsertClass
 decorateNode pmNode beforeNodeIndex afterNodeIndex UpdateHeadingLevelType =
-  NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-purple-100 dark:bg-purple-200 dark:text-black"
-decorateNode pmNode beforeNodeIndex afterNodeIndex _ = NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex "bg-purple-100 dark:bg-purple-200 dark:text-black"
+  NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex diffModifyClass
+decorateNode pmNode beforeNodeIndex afterNodeIndex _ = NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex diffModifyClass
 
 walkDiffTreeNode :: RichTextDiffOp PandocTree.DocNode -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
 walkDiffTreeNode (Copy (PandocTree.TreeNode (PandocTree.InlineContent inlineSpan))) = walkInlineNode inlineSpan >>= pure . Left
 -- Just transform non-text nodes to their PM equivalent (without decoration). For block nodes, increasing the index is handled in another function (`walkDiffTree`).
 walkDiffTreeNode (Copy node) = pure $ Left $ pandocTreeNodeToPMNode node
-walkDiffTreeNode (Insert (PandocTree.TreeNode (PandocTree.InlineContent inlineSpan))) = walkInlineNodeAddingDecoration inlineSpan "bg-green-300 dark:text-black"
+walkDiffTreeNode (Insert (PandocTree.TreeNode (PandocTree.InlineContent inlineSpan))) = walkInlineNodeAddingDecoration inlineSpan diffInsertClass
 walkDiffTreeNode (Insert node) = pure $ Left $ pandocTreeNodeToPMNode node
 walkDiffTreeNode (Delete node) = do
   position <- get
@@ -105,7 +111,7 @@ walkDiffTreeNode (Delete node) = do
 -- We currently ignore meta diffs.
 -- TODO: Handle meta diffs in ProseMirror.
 walkDiffTreeNode (UpdateMeta _ node) = pure $ Left $ pandocTreeNodeToPMNode node
-walkDiffTreeNode (UpdateMarks _ (PandocTree.TreeNode (PandocTree.InlineContent inlineSpan))) = walkInlineNodeAddingDecoration inlineSpan "bg-purple-100 dark:bg-purple-200 dark:text-black"
+walkDiffTreeNode (UpdateMarks _ (PandocTree.TreeNode (PandocTree.InlineContent inlineSpan))) = walkInlineNodeAddingDecoration inlineSpan diffModifyClass
 -- Just transform non-text nodes to their PM equivalent (without decoration).
 -- We shouldn't really get this diff op for block nodes. TODO: Express this in the type system.
 walkDiffTreeNode (UpdateMarks _ node) = pure $ Left $ pandocTreeNodeToPMNode node

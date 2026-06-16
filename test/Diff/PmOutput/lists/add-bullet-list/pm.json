@@ -2,7 +2,7 @@
   "decorations": [
     {
       "attrs": {
-        "class": "bg-green-300 dark:text-black",
+        "class": "diff-insert",
         "nodeName": null,
         "style": null
       },
@@ -12,7 +12,7 @@
     },
     {
       "attrs": {
-        "class": "bg-green-300 dark:text-black",
+        "class": "diff-insert",
         "nodeName": null,
         "style": null
       },

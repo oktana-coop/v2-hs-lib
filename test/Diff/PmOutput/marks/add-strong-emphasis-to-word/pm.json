@@ -2,7 +2,7 @@
   "decorations": [
     {
       "attrs": {
-        "class": "bg-purple-100 dark:bg-purple-200 dark:text-black",
+        "class": "diff-modify",
         "nodeName": null,
         "style": null
       },
