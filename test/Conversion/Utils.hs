@@ -12,14 +12,14 @@ import Utils (TextNormalizer)
 readFileAndConvert :: Format -> Format -> TextNormalizer -> FilePath -> IO BL.ByteString
 readFileAndConvert inputFormat outputFormat normalizer inputFilePath = do
   inputText <- TIO.readFile inputFilePath
-  eitherOutputText <- convertToText inputFormat outputFormat (T.unpack inputText)
+  eitherOutputText <- convertToText inputFormat outputFormat Nothing (T.unpack inputText)
   case eitherOutputText of
     Left errors -> fail ("Conversion failed: " <> (show $ Data.List.NonEmpty.head errors))
     Right outputText -> (return . BL.fromStrict . TE.encodeUtf8) (normalizer outputText)
 
 toTextFormat :: Format -> Format -> T.Text -> IO T.Text
 toTextFormat inputFormat outputFormat inputText = do
-  eitherOutputText <- convertToText inputFormat outputFormat (T.unpack inputText)
+  eitherOutputText <- convertToText inputFormat outputFormat Nothing (T.unpack inputText)
   case eitherOutputText of
     Left errors -> fail ("Conversion failed: " <> (show $ Data.List.NonEmpty.head errors))
     Right outputText -> pure outputText

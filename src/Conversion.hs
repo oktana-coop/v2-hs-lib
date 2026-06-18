@@ -14,26 +14,34 @@ import PandocWriter as AutomergePandoc.PandocWriter (writeAutomerge)
 import ProseMirror.PandocReader (readProseMirror)
 import ProseMirror.PandocWriter (writeProseMirror)
 import Text.Pandoc (Pandoc, PandocError (PandocSomeError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readMarkdown, readNative, readerExtensions, writerExtensions, writerTemplate)
-import Text.Pandoc.Class (runIO)
+import Text.Pandoc.Class (runIO, setResourcePath)
 import Text.Pandoc.Definition (Block (HorizontalRule, Para), Inline (RawInline))
 import qualified Text.Pandoc.Definition as PandocDef
 import Text.Pandoc.Error (handleError)
 import Text.Pandoc.Extensions (Extension (Ext_fenced_code_blocks, Ext_footnotes, Ext_yaml_metadata_block), enableExtension, pandocExtensions)
 import Text.Pandoc.PDF (makePDF)
+import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.Templates (compileDefaultTemplate)
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Writers (writeDocx, writeHtml5String, writeJSON, writeLaTeX, writeMarkdown, writeNative)
 
-writeToBytes :: (PandocMonad m, MonadIO m, MonadMask m) => Format -> WriterOptions -> Pandoc -> m BL.ByteString
-writeToBytes format = case format of
+writeToBytes :: (PandocMonad m, MonadIO m, MonadMask m) => Bool -> Format -> WriterOptions -> Pandoc -> m BL.ByteString
+writeToBytes embedResources format = case format of
   Pandoc -> encodeTextWriter writeNative
   Markdown -> encodeTextWriter writeNormalizedMarkdown
-  Html -> encodeTextWriter writeHtml5String
+  Html -> encodeTextWriter (writeHtml embedResources)
   Json -> encodeTextWriter writeJSON
   Automerge -> encodeTextWriter writeAutomerge
   ProseMirror -> encodeTextWriter writeProseMirror
   Pdf -> writePdf
   Docx -> writeDocx
+
+-- When embedding is requested, inline referenced local resources (e.g. images)
+-- resolved via the resource path as data URIs, producing self-contained HTML.
+writeHtml :: (PandocMonad m) => Bool -> WriterOptions -> Pandoc -> m T.Text
+writeHtml embedResources opts doc = do
+  html <- writeHtml5String opts doc
+  if embedResources then makeSelfContained html else pure html
 
 encodeTextWriter :: (PandocMonad m) => (WriterOptions -> Pandoc -> m T.Text) -> WriterOptions -> Pandoc -> m BL.ByteString
 encodeTextWriter writer opts doc = fmap (BL.fromStrict . TE.encodeUtf8) (writer opts doc)
@@ -83,12 +91,18 @@ pandocReaderOptions = def {readerExtensions = enableExtension Ext_footnotes $ en
 pandocWriterOptions :: WriterOptions
 pandocWriterOptions = def {writerWrapText = WrapPreserve, writerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks $ enableExtension Ext_yaml_metadata_block pandocExtensions}
 
-convert :: Format -> Format -> String -> IO (Either PandocError BL.ByteString)
-convert inputFormat outputFormat input = do
+convert :: Format -> Format -> Maybe FilePath -> String -> IO (Either PandocError BL.ByteString)
+convert inputFormat outputFormat maybeResourcePath input = do
   runIO $ do
+    -- Tell Pandoc where to resolve referenced assets from when it later embeds them (HTML/Docx).
+    mapM_ (\dir -> setResourcePath [dir]) maybeResourcePath
     doc <- readFrom inputFormat pandocReaderOptions (T.pack input)
     opts <- addTemplate outputFormat pandocWriterOptions
-    writeToBytes outputFormat opts doc
+    writeToBytes (shouldEmbedResources outputFormat maybeResourcePath) outputFormat opts doc
+  where
+    shouldEmbedResources :: Format -> Maybe FilePath -> Bool
+    shouldEmbedResources Html (Just _) = True
+    shouldEmbedResources _ _ = False
 
 -- Without the template metadata is not included in the output document, even if the extension is present.
 addTemplate :: (PandocMonad m) => Format -> WriterOptions -> m WriterOptions
@@ -101,8 +115,8 @@ addTemplate format opts = case format of
       tmpl <- compileDefaultTemplate fmt
       return options {writerTemplate = Just tmpl}
 
-convertToText :: Format -> Format -> String -> IO (Either (NonEmpty PandocError) T.Text)
-convertToText inputFormat outputFormat input = (fmap . fmap) byteStringToText (wrapErrorToNonEmptyList $ convert inputFormat outputFormat input)
+convertToText :: Format -> Format -> Maybe FilePath -> String -> IO (Either (NonEmpty PandocError) T.Text)
+convertToText inputFormat outputFormat maybeResourcePath input = (fmap . fmap) byteStringToText (wrapErrorToNonEmptyList $ convert inputFormat outputFormat maybeResourcePath input)
   where
     wrapErrorToNonEmptyList :: IO (Either PandocError BL.ByteString) -> IO (Either (NonEmpty PandocError) BL.ByteString)
     -- `first` acts on the first argument of a BiFunctor like Either (the Left value in our case).
@@ -112,14 +126,14 @@ convertToText inputFormat outputFormat input = (fmap . fmap) byteStringToText (w
     byteStringToText :: BL.ByteString -> T.Text
     byteStringToText = TE.decodeUtf8 . BL.toStrict
 
-convertToBinary :: Format -> Format -> String -> IO BL.ByteString
-convertToBinary inputFormat outputFormat input = do
-  result <- convert inputFormat outputFormat input
+convertToBinary :: Format -> Format -> Maybe FilePath -> String -> IO BL.ByteString
+convertToBinary inputFormat outputFormat maybeResourcePath input = do
+  result <- convert inputFormat outputFormat maybeResourcePath input
   successBytes <- handleError result
   return successBytes
 
 convertFromAutomerge :: Format -> String -> IO (Either (NonEmpty PandocError) T.Text)
-convertFromAutomerge outputFormat = convertToText Automerge outputFormat
+convertFromAutomerge outputFormat = convertToText Automerge outputFormat Nothing
 
 convertToAutomerge :: Format -> String -> IO (Either (NonEmpty PandocError) T.Text)
-convertToAutomerge inputFormat = convertToText inputFormat Automerge
+convertToAutomerge inputFormat input = convertToText inputFormat Automerge Nothing input

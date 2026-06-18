@@ -102,5 +102,6 @@ tests:
       - tasty >= 1.5.3
       - tasty-golden >= 2.3.5
       - tasty-hspec >= 1.2.0.4
+      - temporary >= 1.3
       - text >= 2.1.1
       - v2-hs-lib

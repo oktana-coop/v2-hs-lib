@@ -1,19 +1,24 @@
 module Cli (Command (..), readInputCommand, Format (..)) where
 
+import Control.Applicative (optional)
 import Conversion (Format (..))
-import Options.Applicative (Parser, ReadM, argument, command, eitherReader, execParser, fullDesc, help, helper, info, long, metavar, option, progDesc, str, subparser, (<**>))
+import Options.Applicative (Parser, ReadM, argument, command, eitherReader, execParser, fullDesc, help, helper, info, long, metavar, option, progDesc, str, strOption, subparser, (<**>))
 
 data Command
   = ConvertFromAutomerge Format String
   | ConvertToAutomerge Format String
-  | ConvertToText Format Format String
-  | ConvertToBinary Format Format String
+  | ConvertToText Format Format (Maybe FilePath) String
+  | ConvertToBinary Format Format (Maybe FilePath) String
   | ProseMirrorDiff Format String String
   | ExtractAssetUrls Format String
   deriving (Show)
 
 formatParser :: String -> Parser Format
 formatParser argName = option readFormat (long argName <> metavar "FORMAT" <> help "Specify the format (pandoc, markdown, html, json)")
+
+-- Optional directory Pandoc uses to resolve and embed document-relative asset references (e.g. images).
+resourcePathParser :: Parser (Maybe FilePath)
+resourcePathParser = optional (strOption (long "resource-path" <> metavar "RESOURCE_PATH" <> help "Directory to resolve and embed referenced local assets from"))
 
 readFormat :: ReadM Format
 readFormat = eitherReader $ \arg ->
@@ -46,13 +51,13 @@ commandParser =
         <> command
           "convertToText"
           ( info
-              (ConvertToText <$> formatParser "from" <*> formatParser "to" <*> argument str (metavar "INPUT_STRING"))
+              (ConvertToText <$> formatParser "from" <*> formatParser "to" <*> resourcePathParser <*> argument str (metavar "INPUT_STRING"))
               (progDesc "Convert from the input to the output text format")
           )
         <> command
           "convertToBinary"
           ( info
-              (ConvertToBinary <$> formatParser "from" <*> formatParser "to" <*> argument str (metavar "INPUT_STRING"))
+              (ConvertToBinary <$> formatParser "from" <*> formatParser "to" <*> resourcePathParser <*> argument str (metavar "INPUT_STRING"))
               (progDesc "Convert from the input to the output binary format")
           )
         <> command

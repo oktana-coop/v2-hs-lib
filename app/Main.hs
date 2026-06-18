@@ -25,7 +25,7 @@ main = do
   case command of
     ConvertFromAutomerge format str -> convertFromAutomerge format str >>= wrapToReponseAndPrint
     ConvertToAutomerge format str -> convertToAutomerge format str >>= wrapToReponseAndPrint
-    ConvertToText from to str -> convertToText from to str >>= wrapToReponseAndPrint
-    ConvertToBinary from to str -> convertToBinary from to str >>= BL.putStr
+    ConvertToText from to resourcePath str -> convertToText from to resourcePath str >>= wrapToReponseAndPrint
+    ConvertToBinary from to resourcePath str -> convertToBinary from to resourcePath str >>= BL.putStr
     ProseMirrorDiff format str1 str2 -> proseMirrorDiff format str1 str2 >>= wrapToReponseAndPrint
     ExtractAssetUrls format str -> extractAssetUrls format str >>= wrapToReponseAndPrint

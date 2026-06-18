@@ -20,7 +20,7 @@ buildMdFilePathForCase caseName = "test/Conversion/Unsupported" </> caseName <.>
 conversionFailsForCase :: FilePath -> IO Bool
 conversionFailsForCase caseName = do
   inputText <- TIO.readFile (buildMdFilePathForCase caseName)
-  isLeft <$> convertToText Markdown ProseMirror (T.unpack inputText)
+  isLeft <$> convertToText Markdown ProseMirror Nothing (T.unpack inputText)
 
 spec :: Spec
 spec =
