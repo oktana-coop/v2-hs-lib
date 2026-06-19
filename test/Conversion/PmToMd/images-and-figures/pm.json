@@ -36,15 +36,20 @@
     {
       "content": [
         {
-          "attrs": {
-            "alt": null,
-            "src": "no-alt.png",
-            "title": null
-          },
-          "type": "image"
+          "content": [
+            {
+              "attrs": {
+                "alt": null,
+                "src": "no-alt.png",
+                "title": null
+              },
+              "type": "image"
+            }
+          ],
+          "type": "figure_content"
         }
       ],
-      "type": "paragraph"
+      "type": "figure"
     },
     {
       "content": [

@@ -12,7 +12,7 @@ import Data.Tree (Tree)
 import qualified DocTree.GroupedInlines as GroupedInlinesTree (DocNode, toTree)
 import qualified ProseMirror.Model as PM (PMDoc (..))
 import ProseMirror.PandocTreeShape.FigureContent.GroupedInlines (unwrapFigureContentParaOrPlain)
-import ProseMirror.PandocTreeShape.ImplicitFigure (stripCaptionEqualToAlt)
+import ProseMirror.PandocTreeShape.ImplicitFigure (stripCaptionEqualToAlt, wrapLoneImageInFigure)
 import ProseMirror.Tree (groupedInlinesPandocTreeToPMTree, pmDocFromPMTree)
 import Text.Pandoc (PandocError (PandocParseError), WriterOptions)
 import Text.Pandoc.Class (PandocMonad)
@@ -26,7 +26,7 @@ writeProseMirror _ = pure . pmDocToJSONText <=< convertTreeToPMDoc . buildDocTre
     -- TODO: reconstruct supported raw HTML (e.g. `<figure>` with a caption) into native Pandoc
     -- blocks here, so it flows through the normal conversion path instead of erroring downstream.
     preprocessPandoc :: Pandoc.Pandoc -> Pandoc.Pandoc
-    preprocessPandoc = dropHtmlComments . stripCaptionEqualToAlt
+    preprocessPandoc = dropHtmlComments . stripCaptionEqualToAlt . wrapLoneImageInFigure
 
     buildDocTree :: Pandoc.Pandoc -> Tree GroupedInlinesTree.DocNode
     buildDocTree = unwrapFigureContentParaOrPlain . GroupedInlinesTree.toTree

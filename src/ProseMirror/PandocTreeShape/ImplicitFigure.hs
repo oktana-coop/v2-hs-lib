@@ -3,17 +3,13 @@
 
 -- Pandoc ↔ ProseMirror bridge for Pandoc's implicit_figures extension.
 --
--- Pandoc's implicit_figures option results in emitting a Figure when a paragraph with a single Image inline is encountered.
--- When this happens, the image's alt text appears (redundantly) in both the Figure's caption and the figure image's alt text (caption == alt).
--- A ProseMirror figure either has no caption (alt is the only carrier of the text) or has a user-authored one (coincidences excluded, it should be distinct from alt).
--- This is why we need functions which:
--- 1. Strip a Pandoc Figure's Caption before writing to ProseMirror:
--- [Pandoc] `Figure (Caption [Plain alt]) [Plain [Image alt]]` -> [Pandoc] `Figure (Caption []) [Plain [Image alt]]` -> [ProseMirror] `figure { figure_content { image } }`
--- 2. Add a Caption to a Figure that doesn't have one before writing to Pandoc. The Caption's text must be equal to the image's alt text.
--- [ProseMirror] `figure { figure_content { image } }` -> [Pandoc] `Figure (Caption []) [Plain [Image alt]]` -> `Figure (Caption [Plain alt]) [Plain [Image alt]]`
-module ProseMirror.PandocTreeShape.ImplicitFigure (stripCaptionEqualToAlt, addCaptionEqualToAlt) where
+-- When implicit_figures is enabled, Pandoc emits a Figure for a lone image with non-empty alt, reusing the alt as the caption (so caption == alt).
+-- Also, Pandoc emits a Paragraph with an inline image (not a Figure) when it encounters `![](url)` (no alt/caption) in Markdown.
+-- In the ProseMirror model, a block-level image is always a figure with an optional caption.
+-- This module's functions reconcile the above models.
+module ProseMirror.PandocTreeShape.ImplicitFigure (stripCaptionEqualToAlt, addCaptionEqualToAlt, unwrapCaptionlessFigure, wrapLoneImageInFigure) where
 
-import Text.Pandoc.Definition as Pandoc (Block (..), Caption (..), Inline (..))
+import Text.Pandoc.Definition as Pandoc (Block (..), Caption (..), Inline (..), nullAttr)
 import Text.Pandoc.Walk (Walkable, walk)
 
 stripCaptionEqualToAlt :: (Walkable Block t) => t -> t
@@ -41,3 +37,21 @@ addCaptionEqualToAlt = walk addCaptionWhenAbsent
     findSingleImageAlt :: [Block] -> Maybe [Inline]
     findSingleImageAlt [Pandoc.Plain [Pandoc.Image _ alt _]] = Just alt
     findSingleImageAlt _ = Nothing
+
+-- A captionless figure whose image has no alt can't be written as a Markdown figure,
+-- so unwrap it to a plain image that serializes to `![](url)`.
+unwrapCaptionlessFigure :: (Walkable Block t) => t -> t
+unwrapCaptionlessFigure = walk unwrap
+  where
+    unwrap :: Block -> Block
+    unwrap (Pandoc.Figure _ (Pandoc.Caption Nothing []) [Pandoc.Plain [img@(Pandoc.Image _ [] _)]]) = Pandoc.Para [img]
+    unwrap block = block
+
+-- The inverse of unwrapCaptionlessFigure:
+-- a lone image in a paragraph (`![](url)`, which Pandoc leaves as a plain image because its alt is empty) is wrapped into a captionless Figure.
+wrapLoneImageInFigure :: (Walkable Block t) => t -> t
+wrapLoneImageInFigure = walk wrap
+  where
+    wrap :: Block -> Block
+    wrap (Pandoc.Para [img@(Pandoc.Image _ _ _)]) = Pandoc.Figure Pandoc.nullAttr (Pandoc.Caption Nothing []) [Pandoc.Plain [img]]
+    wrap block = block

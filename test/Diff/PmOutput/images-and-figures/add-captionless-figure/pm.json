@@ -1,0 +1,67 @@
+{
+  "decorations": [
+    {
+      "attrs": {
+        "class": "diff-insert",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 33,
+      "to": 34,
+      "type": "node"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Document",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph before.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "attrs": {
+                  "alt": null,
+                  "src": "no-alt.png",
+                  "title": null
+                },
+                "type": "image"
+              }
+            ],
+            "type": "figure_content"
+          }
+        ],
+        "type": "figure"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph after.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  }
+}

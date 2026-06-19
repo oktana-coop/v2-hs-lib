@@ -28,6 +28,7 @@ tests = do
         testGroup
           "images-and-figures"
           [ goldenCase $ "images-and-figures" </> "add-figure",
+            goldenCase $ "images-and-figures" </> "add-captionless-figure",
             goldenCase $ "images-and-figures" </> "change-caption",
             goldenCase $ "images-and-figures" </> "change-image-src"
           ],
