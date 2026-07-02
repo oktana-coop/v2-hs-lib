@@ -71,6 +71,13 @@ tests = do
             goldenCase $ "notes" </> "delete-paragraphs-which-include-notes",
             goldenCase $ "notes" </> "edit-note-content",
             goldenCase $ "notes" </> "prepend-note"
+          ],
+        testGroup
+          "readability"
+          [ goldenCase $ "readability" </> "light-reword",
+            goldenCase $ "readability" </> "medium-reword",
+            goldenCase $ "readability" </> "heavy-reword",
+            goldenCase $ "readability" </> "reword-around-note"
           ]
       ]
 

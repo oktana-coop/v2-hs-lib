@@ -1,0 +1,118 @@
+{
+  "decorations": [
+    {
+      "node": {
+        "text": "meeting",
+        "type": "text"
+      },
+      "pos": 12,
+      "type": "widget"
+    },
+    {
+      "attrs": {
+        "class": "diff-insert",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 12,
+      "to": 19,
+      "type": "inline"
+    },
+    {
+      "node": {
+        "text": "starts",
+        "type": "text"
+      },
+      "pos": 20,
+      "type": "widget"
+    },
+    {
+      "attrs": {
+        "class": "diff-insert",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 20,
+      "to": 26,
+      "type": "inline"
+    },
+    {
+      "node": {
+        "text": "noon",
+        "type": "text"
+      },
+      "pos": 30,
+      "type": "widget"
+    },
+    {
+      "attrs": {
+        "class": "diff-insert",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 30,
+      "to": 34,
+      "type": "inline"
+    },
+    {
+      "node": {
+        "text": "hall",
+        "type": "text"
+      },
+      "pos": 48,
+      "type": "widget"
+    },
+    {
+      "attrs": {
+        "class": "diff-insert",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 48,
+      "to": 52,
+      "type": "inline"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "content": [
+          {
+            "text": "the annual ",
+            "type": "text"
+          },
+          {
+            "text": "session",
+            "type": "text"
+          },
+          {
+            "text": " ",
+            "type": "text"
+          },
+          {
+            "text": "begins",
+            "type": "text"
+          },
+          {
+            "text": " at ",
+            "type": "text"
+          },
+          {
+            "text": "nine",
+            "type": "text"
+          },
+          {
+            "text": " in the grand ",
+            "type": "text"
+          },
+          {
+            "text": "room",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  }
+}

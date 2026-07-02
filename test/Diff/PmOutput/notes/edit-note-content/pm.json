@@ -2,7 +2,7 @@
   "decorations": [
     {
       "node": {
-        "text": "footnote",
+        "text": "footnote text",
         "type": "text"
       },
       "pos": 49,
@@ -15,24 +15,6 @@
         "style": null
       },
       "from": 49,
-      "to": 53,
-      "type": "inline"
-    },
-    {
-      "node": {
-        "text": "text",
-        "type": "text"
-      },
-      "pos": 54,
-      "type": "widget"
-    },
-    {
-      "attrs": {
-        "class": "diff-insert",
-        "nodeName": null,
-        "style": null
-      },
-      "from": 54,
       "to": 55,
       "type": "inline"
     }
@@ -87,15 +69,7 @@
           {
             "content": [
               {
-                "text": "note",
-                "type": "text"
-              },
-              {
-                "text": " ",
-                "type": "text"
-              },
-              {
-                "text": "1",
+                "text": "note 1",
                 "type": "text"
               }
             ],

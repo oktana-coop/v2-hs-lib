@@ -1,0 +1,44 @@
+{
+  "decorations": [
+    {
+      "node": {
+        "text": "hide",
+        "type": "text"
+      },
+      "pos": 13,
+      "type": "widget"
+    },
+    {
+      "attrs": {
+        "class": "diff-insert",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 13,
+      "to": 17,
+      "type": "inline"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "content": [
+          {
+            "text": "We chose to ",
+            "type": "text"
+          },
+          {
+            "text": "mask",
+            "type": "text"
+          },
+          {
+            "text": " the system",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  }
+}
