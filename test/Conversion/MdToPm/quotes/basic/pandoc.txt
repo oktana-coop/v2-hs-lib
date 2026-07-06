@@ -1,0 +1,46 @@
+[ Header 1 ( "quotes" , [] , [] ) [ Str "Quotes" ]
+, Para
+    [ Str "She"
+    , Space
+    , Str "replied"
+    , Space
+    , Quoted DoubleQuote [ Str "yes" ]
+    , Space
+    , Str "to"
+    , Space
+    , Str "the"
+    , Space
+    , Str "question,"
+    , Space
+    , Str "then"
+    , Space
+    , Str "added"
+    , Space
+    , Quoted SingleQuote [ Str "maybe" ]
+    , Str "."
+    ]
+, Para
+    [ Str "A"
+    , Space
+    , Quoted
+        DoubleQuote [ Strong [ Str "bold" ] , Space , Str "claim" ]
+    , Space
+    , Str "stands"
+    , Space
+    , Str "out."
+    ]
+, Para
+    [ Str "Nested:"
+    , Space
+    , Quoted
+        DoubleQuote
+        [ Str "He"
+        , Space
+        , Str "said"
+        , Space
+        , Quoted SingleQuote [ Str "no" ]
+        , Space
+        , Str "twice."
+        ]
+    ]
+]

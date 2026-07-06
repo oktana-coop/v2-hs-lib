@@ -1,0 +1,29 @@
+[ Header
+    1
+    ( "inline-breaks" , [] , [] )
+    [ Str "Inline" , Space , Str "Breaks" ]
+, Para
+    [ Str "the"
+    , Space
+    , Str "quick"
+    , SoftBreak
+    , Str "brown"
+    , Space
+    , Str "fox"
+    , Space
+    , Str "jumps"
+    ]
+, Para
+    [ Str "roses"
+    , Space
+    , Str "are"
+    , Space
+    , Str "red"
+    , LineBreak
+    , Str "violets"
+    , Space
+    , Str "are"
+    , Space
+    , Str "blue"
+    ]
+]

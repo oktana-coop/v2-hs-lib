@@ -1,0 +1,6 @@
+[ Header 1 ( "" , [] , [] ) [ Str "Apostrophes and Dashes" ]
+, Para
+    [ Str
+        "Anna\8217s plan isn\8217t final \8212 we\8217ll decide in 3\8211\&4 days\8230"
+    ]
+]

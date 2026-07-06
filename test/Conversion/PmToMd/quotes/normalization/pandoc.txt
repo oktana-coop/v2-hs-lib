@@ -1,0 +1,7 @@
+[ Header 1 ( "" , [] , [] ) [ Str "Quote Normalization" ]
+, Para
+    [ Str
+        "Curly \8220double\8221 and \8216single\8217 quotes are recognized."
+    ]
+, Para [ Str "Guillemets \171stay\187 as literal text." ]
+]

@@ -1,0 +1,31 @@
+[ Header
+    1
+    ( "apostrophes-and-dashes" , [] , [] )
+    [ Str "Apostrophes"
+    , Space
+    , Str "and"
+    , Space
+    , Str "Dashes"
+    ]
+, Para
+    [ Str "Anna\8217s"
+    , Space
+    , Str "plan"
+    , Space
+    , Str "isn\8217t"
+    , Space
+    , Str "final"
+    , Space
+    , Str "\8212"
+    , Space
+    , Str "we\8217ll"
+    , Space
+    , Str "decide"
+    , Space
+    , Str "in"
+    , Space
+    , Str "3\8211\&4"
+    , Space
+    , Str "days\8230"
+    ]
+]

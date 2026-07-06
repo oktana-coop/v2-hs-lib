@@ -37,7 +37,11 @@ tests = do
           [ goldenCase $ "inline-text-updates" </> "add-text-in-the-middle-of-paragraph",
             goldenCase $ "inline-text-updates" </> "append-text-to-paragraph",
             goldenCase $ "inline-text-updates" </> "delete-text-from-the-end-of-paragraph",
-            goldenCase $ "inline-text-updates" </> "delete-text-from-the-middle-of-paragraph"
+            goldenCase $ "inline-text-updates" </> "delete-text-from-the-middle-of-paragraph",
+            goldenCase $ "inline-text-updates" </> "edit-quoted-text",
+            -- Under smart reading both quote styles parse to the same `Quoted` node, so
+            -- changing straight quotes to curly ones is not a visible edit.
+            goldenCase $ "inline-text-updates" </> "change-quote-style"
           ],
         testGroup
           "lists"

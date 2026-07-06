@@ -1,0 +1,13 @@
+[ Header 1 ( "" , [] , [] ) [ Str "Quotes" ]
+, Para
+    [ Str
+        "She replied \8220yes\8221 to the question, then added \8216maybe\8217."
+    ]
+, Para
+    [ Str "A \8220"
+    , Strong [ Str "bold" ]
+    , Str " claim\8221 stands out."
+    ]
+, Para
+    [ Str "Nested: \8220He said \8216no\8217 twice.\8221" ]
+]

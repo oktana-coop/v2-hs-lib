@@ -1,0 +1,44 @@
+{
+  "decorations": [
+    {
+      "node": {
+        "text": "yes",
+        "type": "text"
+      },
+      "pos": 14,
+      "type": "widget"
+    },
+    {
+      "attrs": {
+        "class": "diff-insert",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 14,
+      "to": 16,
+      "type": "inline"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "content": [
+          {
+            "text": "She replied “",
+            "type": "text"
+          },
+          {
+            "text": "no",
+            "type": "text"
+          },
+          {
+            "text": "” to the question.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  }
+}

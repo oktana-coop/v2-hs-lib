@@ -12,15 +12,23 @@ tests = do
   return $
     testGroup
       "Markdown → ProseMirror (Golden)"
-      [ goldenCase "blockquote",
+      [ goldenCase "apostrophes-and-dashes",
+        goldenCase "blockquote",
         goldenCase "code-blocks",
         goldenCase "headings-and-paragraphs",
         goldenCase "horizontal-rule",
         goldenCase "images-and-figures",
+        goldenCase "inline-breaks",
         goldenCase "marks",
         goldenCase "lists",
         goldenCase "meta",
-        goldenCase "notes"
+        goldenCase "notes",
+        testGroup
+          "quotes"
+          [ goldenCase $ "quotes" </> "basic",
+            -- Curly quote characters in the Markdown parse as `Quoted` just like straight ones.
+            goldenCase $ "quotes" </> "normalization"
+          ]
       ]
 
 goldenCase :: FilePath -> TestTree

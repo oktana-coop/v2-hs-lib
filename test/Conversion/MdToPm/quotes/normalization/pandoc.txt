@@ -1,0 +1,31 @@
+[ Header
+    1
+    ( "quote-normalization" , [] , [] )
+    [ Str "Quote" , Space , Str "Normalization" ]
+, Para
+    [ Str "Curly"
+    , Space
+    , Quoted DoubleQuote [ Str "double" ]
+    , Space
+    , Str "and"
+    , Space
+    , Quoted SingleQuote [ Str "single" ]
+    , Space
+    , Str "quotes"
+    , Space
+    , Str "are"
+    , Space
+    , Str "recognized."
+    ]
+, Para
+    [ Str "Guillemets"
+    , Space
+    , Str "\171stay\187"
+    , Space
+    , Str "as"
+    , Space
+    , Str "literal"
+    , Space
+    , Str "text."
+    ]
+]

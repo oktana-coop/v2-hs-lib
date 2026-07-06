@@ -11,7 +11,8 @@ tests = do
   return $
     testGroup
       "ProseMirror → Markdown (Golden)"
-      [ goldenCase "blockquote",
+      [ goldenCase "apostrophes-and-dashes",
+        goldenCase "blockquote",
         goldenCase "code-blocks",
         goldenCase "headings-and-paragraphs",
         goldenCase "horizontal-rule",
@@ -19,7 +20,15 @@ tests = do
         goldenCase "marks",
         goldenCase "lists",
         goldenCase "meta",
-        goldenCase "notes"
+        goldenCase "notes",
+        testGroup
+          "quotes"
+          [ goldenCase $ "quotes" </> "basic",
+            -- Curly quote characters in the PM text reach the writer as plain `Str`
+            -- text (no `Quoted` node is reconstructed). Then, the writer normalizes them
+            -- to straight quotes because Pandoc's Ext_smart extension is on in the writer options.
+            goldenCase $ "quotes" </> "normalization"
+          ]
       ]
 
 goldenCase :: FilePath -> TestTree
