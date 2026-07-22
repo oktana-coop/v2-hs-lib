@@ -33,3 +33,15 @@ spec =
 
     it "errors on an arbitrary raw HTML block" $
       conversionFailsForCase "raw-html-block" `shouldReturn` True
+
+    -- These blocks have no ProseMirror representation yet. They must surface as
+    -- a conversion error (not crash the runtime, as `undefined` in the tree
+    -- conversion used to).
+    it "errors on a document containing a table" $
+      conversionFailsForCase "table" `shouldReturn` True
+
+    it "errors on a document containing a line block" $
+      conversionFailsForCase "line-block" `shouldReturn` True
+
+    it "errors on a document containing a definition list" $
+      conversionFailsForCase "definition-list" `shouldReturn` True
