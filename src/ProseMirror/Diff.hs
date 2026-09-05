@@ -1,27 +1,24 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 
 module ProseMirror.Diff (toDecoratedPMDoc, DecoratedPMDoc) where
 
-import Control.Monad (when)
-import Control.Monad.State (State, evalState, get, modify)
 import Data.Aeson (ToJSON, object, toJSON, (.=))
-import Data.Maybe (isJust, listToMaybe)
+import Data.Maybe (listToMaybe)
 import qualified Data.Text as T
 import Data.Tree (Tree (..), foldTree)
-import DocTree.Common as RichText (InlineSpan (..), TextSpan (..))
 import qualified DocTree.LeafTextSpans as PandocTree
 import ProseMirror.Decoration (Decoration (..), DecorationAttrs (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), undecorate)
-import qualified ProseMirror.Model as PM (InlineNode (..), Node (..), TextNode (..), isAtomNode, isLeafBlockNode, isRootBlockNode, textLength, wrapChildrenToBlock)
+import ProseMirror.Indexing (PMPosition, Positioned (..), addNodePositionsRenderedBy)
+import qualified ProseMirror.Model as PM (InlineNode (..), Node (..), isLeafBlockNode, wrapChildrenToBlock)
 import ProseMirror.PandocTreeShape.FigureContent.LeafTextSpans (unwrapFigureContentParaOrPlain)
-import ProseMirror.Tree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode, pmNodeFromInlineSpan, treeTextSpanNodeToPMTextNode)
-import RichTextDiffOp (RichTextDiffOp (..), RichTextDiffOpType (InsertType, UpdateHeadingLevelType), getDiffOpType, unpackDiffOpValue)
+import ProseMirror.Tree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode)
+import RichTextDiffOp (RichTextDiffOp (..), unpackDiffOpValue)
 
 -- Alias to the function exposed from the PMTree module
 pandocTreeNodeToPMNode :: PandocTree.DocNode -> PMTreeNode
 pandocTreeNodeToPMNode = leafTextSpansPandocTreeNodeToPMNode
+
+type PositionedDiffNode = Positioned (RichTextDiffOp PandocTree.DocNode)
 
 type DecoratedPMTree = Tree (Either PMTreeNode (Decoration PMTreeNode))
 
@@ -30,59 +27,16 @@ data DecoratedPMDoc = DecoratedPMDoc {doc :: PM.Node, decorations :: [Decoration
 instance ToJSON DecoratedPMDoc where
   toJSON decoratedPMDoc = object ["doc" .= doc decoratedPMDoc, "decorations" .= decorations decoratedPMDoc]
 
-type PMIndex = Int
-
 toDecoratedPMDoc :: Tree (RichTextDiffOp PandocTree.DocNode) -> DecoratedPMDoc
 toDecoratedPMDoc = pmDocFromPMTree . toProseMirrorTreeWithDiffDecorations . unwrapFigureContentParaOrPlain unpackDiffOpValue
 
 toProseMirrorTreeWithDiffDecorations :: Tree (RichTextDiffOp PandocTree.DocNode) -> DecoratedPMTree
-toProseMirrorTreeWithDiffDecorations diffTree = evalState (walkDiffTree diffTree) 0
-
-walkDiffTree :: Tree (RichTextDiffOp PandocTree.DocNode) -> State PMIndex DecoratedPMTree
-walkDiffTree (Node nodeWithDiff subTrees) = do
-  pmNode <- walkDiffTreeNode nodeWithDiff
-
-  let maybeNonDeletedNode = getNonDeletedPMBlockNode pmNode
-  let nonDeletedBlockNode = isJust maybeNonDeletedNode
-  let isAtom = maybe False PM.isAtomNode maybeNonDeletedNode
-  let isLeafBlock = maybe False PM.isLeafBlockNode maybeNonDeletedNode
-
-  -- These conditional state updates are ugly.
-  -- Unfortunately, ProseMirror indexing increases by 1 both before and after block nodes so I wasn't able to think of a good way to avoid it.
-
-  -- Update state before processing children
-  beforeNodeIndex <- get
-  incrementIndexIf (nonDeletedBlockNode && not isAtom)
-
-  -- Process children
-  childTrees <- mapM (walkDiffTree) subTrees
-
-  -- Update state after processing children
-  incrementIndexIf (nonDeletedBlockNode && not isAtom && not isLeafBlock)
-  afterNodeIndex <- get
-
-  -- Build the node tree, conditionally adding a node decoration.
-  -- The decoration for heading level updates (and any other op type that requires a node decoration)
-  -- must be handled here because we need to know the size of the node (therefore, we need to have processed its subtree).
-  -- Unfortunately, this is ugly; didn't think of a way to avoid it.
-  case pmNode of
-    Left undecoratedPMNode ->
-      if mustWrapToNodeDecoration nodeWithDiff isLeafBlock
-        then pure $ Node {rootLabel = Right $ decorateNode undecoratedPMNode beforeNodeIndex afterNodeIndex diffOpType, subForest = childTrees}
-        else pure $ Node {rootLabel = pmNode, subForest = childTrees}
-      where
-        diffOpType = (getDiffOpType nodeWithDiff)
-    Right _ -> pure $ Node {rootLabel = pmNode, subForest = childTrees}
+toProseMirrorTreeWithDiffDecorations = fmap decorate . addNodePositionsRenderedBy unpackNonDeletedPMTreeNode
   where
-    incrementIndexIf :: Bool -> State PMIndex ()
-    incrementIndexIf condition = when condition (modify (+ 1))
-
--- Inserted leaf blocks (e.g. horizontal rule) have no inline children to carry an insert
--- decoration, so we wrap the block itself in a node decoration instead.
-mustWrapToNodeDecoration :: RichTextDiffOp PandocTree.DocNode -> Bool -> Bool
-mustWrapToNodeDecoration (UpdateHeadingLevel _ _) _ = True
-mustWrapToNodeDecoration (Insert _) isLeafBlock = isLeafBlock
-mustWrapToNodeDecoration _ _ = False
+    -- Deleted content is not part of the document, so it takes no positions.
+    unpackNonDeletedPMTreeNode :: RichTextDiffOp PandocTree.DocNode -> Maybe PMTreeNode
+    unpackNonDeletedPMTreeNode (Delete _) = Nothing
+    unpackNonDeletedPMTreeNode nodeWithDiff = Just $ pandocTreeNodeToPMNode $ unpackDiffOpValue nodeWithDiff
 
 diffInsertClass :: T.Text
 diffInsertClass = "diff-insert"
@@ -90,83 +44,44 @@ diffInsertClass = "diff-insert"
 diffModifyClass :: T.Text
 diffModifyClass = "diff-modify"
 
-decorateNode :: PMTreeNode -> PMIndex -> PMIndex -> RichTextDiffOpType -> Decoration PMTreeNode
-decorateNode pmNode beforeNodeIndex afterNodeIndex InsertType =
-  NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex diffInsertClass
-decorateNode pmNode beforeNodeIndex afterNodeIndex UpdateHeadingLevelType =
-  NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex diffModifyClass
-decorateNode pmNode beforeNodeIndex afterNodeIndex _ = NodeDecoration $ wrapInNodeDecoration pmNode beforeNodeIndex afterNodeIndex diffModifyClass
-
-walkDiffTreeNode :: RichTextDiffOp PandocTree.DocNode -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
-walkDiffTreeNode (Copy (PandocTree.TreeNode (PandocTree.InlineContent inlineSpan))) = walkInlineNode inlineSpan >>= pure . Left
--- Just transform non-text nodes to their PM equivalent (without decoration). For block nodes, increasing the index is handled in another function (`walkDiffTree`).
-walkDiffTreeNode (Copy node) = pure $ Left $ pandocTreeNodeToPMNode node
-walkDiffTreeNode (Insert (PandocTree.TreeNode (PandocTree.InlineContent inlineSpan))) = walkInlineNodeAddingDecoration inlineSpan diffInsertClass
-walkDiffTreeNode (Insert node) = pure $ Left $ pandocTreeNodeToPMNode node
-walkDiffTreeNode (Delete node) = do
-  position <- get
-  pure $ Right $ WidgetDecoration $ wrapInWidgetDecoration pmNode position
+decorate :: PositionedDiffNode -> Either PMTreeNode (Decoration PMTreeNode)
+decorate positioned = case nodeWithDiff of
+  Copy _ -> Left node
+  -- We currently ignore meta diffs.
+  -- TODO: Handle meta diffs in ProseMirror.
+  UpdateMeta _ _ -> Left node
+  Insert _ -> case node of
+    -- Inserted leaf blocks (e.g. horizontal rule) have no inline children to carry an insert
+    -- decoration, so we wrap the block itself in a node decoration instead.
+    PMNode pm@(PM.BlockNode _) | PM.isLeafBlockNode pm -> Right $ NodeDecoration $ wrapInNodeDecoration node start end diffInsertClass
+    PMNode (PM.InlineNode inlineNode) -> Right $ decorateInlineNode inlineNode diffInsertClass
+    -- Other nodes (blocks, wrappers) are left undecorated: their changed children carry the decoration.
+    _ -> Left node
+  -- Deleted content is not part of the document; it is shown as a widget at the position it was removed from.
+  Delete _ -> Right $ WidgetDecoration $ wrapInWidgetDecoration node start
+  UpdateMarks _ _ -> case node of
+    PMNode (PM.InlineNode inlineNode) -> Right $ decorateInlineNode inlineNode diffModifyClass
+    -- We shouldn't really get this diff op for block nodes. TODO: Express this in the type system.
+    _ -> Left node
+  UpdateHeadingLevel _ _ -> Right $ NodeDecoration $ wrapInNodeDecoration node start end diffModifyClass
   where
-    pmNode = pandocTreeNodeToPMNode node
--- We currently ignore meta diffs.
--- TODO: Handle meta diffs in ProseMirror.
-walkDiffTreeNode (UpdateMeta _ node) = pure $ Left $ pandocTreeNodeToPMNode node
-walkDiffTreeNode (UpdateMarks _ (PandocTree.TreeNode (PandocTree.InlineContent inlineSpan))) = walkInlineNodeAddingDecoration inlineSpan diffModifyClass
--- Just transform non-text nodes to their PM equivalent (without decoration).
--- We shouldn't really get this diff op for block nodes. TODO: Express this in the type system.
-walkDiffTreeNode (UpdateMarks _ node) = pure $ Left $ pandocTreeNodeToPMNode node
--- The decoration for heading level updates is handled in `walkDiffTree` because
--- we need to know the size of the node (therefore, we need to have processed its subtree).
--- Unfortunately, this is ugly; didn't think of a way to avoid it.
--- So in this function we return the node undecorated.
-walkDiffTreeNode (UpdateHeadingLevel _ node) = pure $ Left $ pandocTreeNodeToPMNode node
+    nodeWithDiff = value positioned
+    node = pandocTreeNodeToPMNode $ unpackDiffOpValue nodeWithDiff
+    start = startPos positioned
+    end = endPos positioned
 
-walkInlineNode :: InlineSpan -> State PMIndex PMTreeNode
-walkInlineNode (InlineText textSpan) = walkTextNode textSpan
--- In ProseMirror nodes like note refs which don't have directly editable content and
--- should be treated as a single unit in the view have the `atom` property set to `true`.
--- https://prosemirror.net/docs/ref/#model.NodeSpec.atom
-walkInlineNode inlineSpan = walkNodeMappingToPMAtom inlineSpan
+    decorateInlineNode :: PM.InlineNode -> T.Text -> Decoration PMTreeNode
+    decorateInlineNode inlineNode cssClassName = case inlineNode of
+      PM.InlineText _ -> InlineDecoration $ wrapInInlineDecoration pmTreeNode start end cssClassName
+      _ -> NodeDecoration $ wrapInNodeDecoration pmTreeNode start end cssClassName
+      where
+        pmTreeNode = PMNode $ PM.InlineNode inlineNode
 
-walkNodeMappingToPMAtom :: InlineSpan -> State PMIndex PMTreeNode
-walkNodeMappingToPMAtom inlineSpan = do
-  modify (+ 1)
-  pure pmNode
-  where
-    pmNode = pmNodeFromInlineSpan inlineSpan
-
-walkTextNode :: TextSpan -> State PMIndex PMTreeNode
-walkTextNode textSpan = do
-  modify (+ textLength)
-  pure pmNode
-  where
-    pmTextNode = treeTextSpanNodeToPMTextNode textSpan
-    pmNode = PMNode $ PM.InlineNode $ PM.InlineText pmTextNode
-    textLength = PM.textLength $ PM.text pmTextNode
-
-walkInlineNodeAddingDecoration :: InlineSpan -> T.Text -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
-walkInlineNodeAddingDecoration (InlineText textSpan) = walkTextNodeAddingDecoration textSpan
-walkInlineNodeAddingDecoration inlineSpan = walkNodeMappingToPMAtomAddingDecoration inlineSpan
-
-walkTextNodeAddingDecoration :: TextSpan -> T.Text -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
-walkTextNodeAddingDecoration textSpan cssClassName = do
-  startIndex <- get
-  pmNode <- walkTextNode textSpan
-  endIndex <- get
-  pure $ Right $ InlineDecoration $ wrapInInlineDecoration pmNode startIndex endIndex cssClassName
-
-walkNodeMappingToPMAtomAddingDecoration :: InlineSpan -> T.Text -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
-walkNodeMappingToPMAtomAddingDecoration inlineSpan cssClassName = do
-  startIndex <- get
-  pmNode <- walkInlineNode inlineSpan
-  endIndex <- get
-  pure $ Right $ NodeDecoration $ wrapInNodeDecoration pmNode startIndex endIndex cssClassName
-
-wrapInInlineDecoration :: PMTreeNode -> PMIndex -> PMIndex -> T.Text -> InlineDecoration PMTreeNode
-wrapInInlineDecoration pmNode startIndex endIndex className =
+wrapInInlineDecoration :: PMTreeNode -> PMPosition -> PMPosition -> T.Text -> InlineDecoration PMTreeNode
+wrapInInlineDecoration pmNode fromIndex toIndex className =
   PMInlineDecoration
-    { inlineDecFrom = startIndex,
-      inlineDecTo = endIndex,
+    { inlineDecFrom = fromIndex,
+      inlineDecTo = toIndex,
       inlineDecAttrs =
         DecorationAttrs
           { nodeName = Nothing,
@@ -176,11 +91,11 @@ wrapInInlineDecoration pmNode startIndex endIndex className =
       inlineDecContent = pmNode
     }
 
-wrapInNodeDecoration :: PMTreeNode -> PMIndex -> PMIndex -> T.Text -> NodeDecoration PMTreeNode
-wrapInNodeDecoration pmNode startIndex endIndex cssClassName =
+wrapInNodeDecoration :: PMTreeNode -> PMPosition -> PMPosition -> T.Text -> NodeDecoration PMTreeNode
+wrapInNodeDecoration pmNode fromIndex toIndex cssClassName =
   PMNodeDecoration
-    { nodeDecFrom = startIndex,
-      nodeDecTo = endIndex,
+    { nodeDecFrom = fromIndex,
+      nodeDecTo = toIndex,
       nodeDecAttrs =
         DecorationAttrs
           { nodeName = Nothing,
@@ -190,25 +105,12 @@ wrapInNodeDecoration pmNode startIndex endIndex cssClassName =
       nodeDecContent = pmNode
     }
 
-wrapInWidgetDecoration :: PMTreeNode -> PMIndex -> WidgetDecoration PMTreeNode
+wrapInWidgetDecoration :: PMTreeNode -> PMPosition -> WidgetDecoration PMTreeNode
 wrapInWidgetDecoration pmNode position =
   PMWidgetDecoration
     { pos = position,
       widgetDecContent = pmNode
     }
-
-getNonDeletedPMBlockNode :: Either PMTreeNode (Decoration PMTreeNode) -> Maybe PM.Node
-getNonDeletedPMBlockNode (Left (PMNode node@(PM.BlockNode _))) | not (PM.isRootBlockNode node) = Just node
-getNonDeletedPMBlockNode (Left _) = Nothing
--- Inline decorations wrap text nodes, not block nodes.
--- TODO: Capture this properly in the type system.
-getNonDeletedPMBlockNode (Right (InlineDecoration _)) = Nothing
--- Widget decorations capture deleted content in our case.
--- TODO: Capture this properly in the type system.
-getNonDeletedPMBlockNode (Right (WidgetDecoration _)) = Nothing
-getNonDeletedPMBlockNode (Right (NodeDecoration dec)) = case nodeDecContent dec of
-  PMNode node@(PM.BlockNode _) | not (PM.isRootBlockNode node) -> Just node
-  _ -> Nothing
 
 pmDocFromPMTree :: DecoratedPMTree -> DecoratedPMDoc
 pmDocFromPMTree pmTree = DecoratedPMDoc {doc = pmDoc, decorations = pmDecorations}

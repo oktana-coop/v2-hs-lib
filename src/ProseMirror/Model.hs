@@ -1,7 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.Model (BlockNode (..), Block (..), TextNode (..), InlineNode (..), Mark (..), Link (..), Meta, Node (..), NoteId (..), HeadingLevel (..), PMDoc (..), NodeType (..), CodeBlockLanguage (..), Image (..), assertRootNodeIsDoc, isRootBlockNode, isAtomNode, isLeafBlockNode, wrapChildrenToBlock, parseProseMirror, parseProseMirrorText, textLength) where
+module ProseMirror.Model (BlockNode (..), Block (..), TextNode (..), InlineNode (..), Mark (..), Link (..), Meta, Node (..), NoteId (..), HeadingLevel (..), PMDoc (..), NodeType (..), CodeBlockLanguage (..), Image (..), assertRootNodeIsDoc, isRootBlockNode, isAtomNode, isLeafBlockNode, isLeafNode, nodeSize, contentSize, wrapChildrenToBlock, parseProseMirror, parseProseMirrorText, textLength) where
 
 import Control.Monad ((>=>))
 import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (toJSON), Value (..), eitherDecode, eitherDecodeStrictText, object, withObject, withScientific, withText, (.:), (.:?), (.=))
@@ -9,7 +9,7 @@ import Data.Aeson.Types (Parser)
 import qualified Data.ByteString.Lazy as BL
 import Data.Char (ord)
 import Data.List.NonEmpty (NonEmpty)
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, fromMaybe)
 import qualified Data.Text as T
 import ProseMirror.Utils.Json (parseNonEmpty)
 
@@ -196,6 +196,27 @@ isAtomNode _ = False
 isLeafBlockNode :: Node -> Bool
 isLeafBlockNode (BlockNode (PMBlock HorizontalRule _)) = True
 isLeafBlockNode _ = False
+
+isLeafNode :: Node -> Bool
+isLeafNode (InlineNode _) = True
+isLeafNode node = isLeafBlockNode node
+
+-- The size of a node in ProseMirror's indexing scheme:
+-- https://prosemirror.net/docs/ref/#model.Node.nodeSize
+nodeSize :: Node -> Int
+-- The number of characters for text
+nodeSize (InlineNode (InlineText textNode)) = textLength (text textNode)
+nodeSize node
+  -- One for other leaf nodes
+  | isLeafNode node = 1
+  -- The size of the content plus two (the open and close tokens) for non-leaf nodes
+  | otherwise = contentSize node + 2
+
+-- The size of a node's content, i.e. of its children. Leaves have none.
+-- https://prosemirror.net/docs/ref/#model.Fragment.size
+contentSize :: Node -> Int
+contentSize (BlockNode (PMBlock _ children)) = sum (map nodeSize (fromMaybe [] children))
+contentSize (InlineNode _) = 0
 
 -- ProseMirror positions are JavaScript string offsets: a text node's size is its `text.length`, which
 -- counts UTF-16 code units. Characters above U+FFFF (e.g. emojis) are surrogate pairs there and
