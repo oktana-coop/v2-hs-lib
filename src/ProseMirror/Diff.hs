@@ -14,7 +14,7 @@ import Data.Tree (Tree (..), foldTree)
 import DocTree.Common as RichText (InlineSpan (..), TextSpan (..))
 import qualified DocTree.LeafTextSpans as PandocTree
 import ProseMirror.Decoration (Decoration (..), DecorationAttrs (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), undecorate)
-import qualified ProseMirror.Model as PM (InlineNode (..), Node (..), TextNode (..), isAtomNode, isLeafBlockNode, isRootBlockNode, wrapChildrenToBlock)
+import qualified ProseMirror.Model as PM (InlineNode (..), Node (..), TextNode (..), isAtomNode, isLeafBlockNode, isRootBlockNode, textLength, wrapChildrenToBlock)
 import ProseMirror.PandocTreeShape.FigureContent.LeafTextSpans (unwrapFigureContentParaOrPlain)
 import ProseMirror.Tree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode, pmNodeFromInlineSpan, treeTextSpanNodeToPMTextNode)
 import RichTextDiffOp (RichTextDiffOp (..), RichTextDiffOpType (InsertType, UpdateHeadingLevelType), getDiffOpType, unpackDiffOpValue)
@@ -142,7 +142,7 @@ walkTextNode textSpan = do
   where
     pmTextNode = treeTextSpanNodeToPMTextNode textSpan
     pmNode = PMNode $ PM.InlineNode $ PM.InlineText pmTextNode
-    textLength = T.length $ PM.text pmTextNode
+    textLength = PM.textLength $ PM.text pmTextNode
 
 walkInlineNodeAddingDecoration :: InlineSpan -> T.Text -> State PMIndex (Either PMTreeNode (Decoration PMTreeNode))
 walkInlineNodeAddingDecoration (InlineText textSpan) = walkTextNodeAddingDecoration textSpan

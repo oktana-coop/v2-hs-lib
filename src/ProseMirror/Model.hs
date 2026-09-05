@@ -1,12 +1,13 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.Model (BlockNode (..), Block (..), TextNode (..), InlineNode (..), Mark (..), Link (..), Meta, Node (..), NoteId (..), HeadingLevel (..), PMDoc (..), NodeType (..), CodeBlockLanguage (..), Image (..), assertRootNodeIsDoc, isRootBlockNode, isAtomNode, isLeafBlockNode, wrapChildrenToBlock, parseProseMirror, parseProseMirrorText) where
+module ProseMirror.Model (BlockNode (..), Block (..), TextNode (..), InlineNode (..), Mark (..), Link (..), Meta, Node (..), NoteId (..), HeadingLevel (..), PMDoc (..), NodeType (..), CodeBlockLanguage (..), Image (..), assertRootNodeIsDoc, isRootBlockNode, isAtomNode, isLeafBlockNode, wrapChildrenToBlock, parseProseMirror, parseProseMirrorText, textLength) where
 
 import Control.Monad ((>=>))
 import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (toJSON), Value (..), eitherDecode, eitherDecodeStrictText, object, withObject, withScientific, withText, (.:), (.:?), (.=))
 import Data.Aeson.Types (Parser)
 import qualified Data.ByteString.Lazy as BL
+import Data.Char (ord)
 import Data.List.NonEmpty (NonEmpty)
 import Data.Maybe (catMaybes)
 import qualified Data.Text as T
@@ -195,6 +196,12 @@ isAtomNode _ = False
 isLeafBlockNode :: Node -> Bool
 isLeafBlockNode (BlockNode (PMBlock HorizontalRule _)) = True
 isLeafBlockNode _ = False
+
+-- ProseMirror positions are JavaScript string offsets: a text node's size is its `text.length`, which
+-- counts UTF-16 code units. Characters above U+FFFF (e.g. emojis) are surrogate pairs there and
+-- take two positions, whereas `T.length` would count them once.
+textLength :: T.Text -> Int
+textLength = T.foldl' (\count c -> count + (if ord c > 0xFFFF then 2 else 1)) 0
 
 instance FromJSON Node where
   parseJSON = withObject "Node" $ \v -> do

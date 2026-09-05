@@ -1,0 +1,42 @@
+{
+  "decorations": [
+    {
+      "node": {
+        "text": "really ",
+        "type": "text"
+      },
+      "pos": 15,
+      "type": "widget"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Unicode",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "I 😀 ",
+            "type": "text"
+          },
+          {
+            "text": "like it.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  }
+}

@@ -82,6 +82,12 @@ tests = do
             goldenCase $ "readability" </> "medium-reword",
             goldenCase $ "readability" </> "heavy-reword",
             goldenCase $ "readability" </> "reword-around-note"
+          ],
+        testGroup
+          "unicode"
+          [ goldenCase $ "unicode" </> "insert-text-after-emoji",
+            goldenCase $ "unicode" </> "delete-text-after-emoji",
+            goldenCase $ "unicode" </> "add-emphasis-after-emoji"
           ]
       ]
 
