@@ -1,0 +1,40 @@
+{
+  "decorations": [
+    {
+      "attrs": {
+        "class": "diff-modify",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 0,
+      "to": 7,
+      "type": "node"
+    }
+  ],
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "Title",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "Body text.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  }
+}

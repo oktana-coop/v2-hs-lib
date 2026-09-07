@@ -98,8 +98,7 @@ test-suite v2-hs-lib-test
       Conversion.Unsupported
       Conversion.Utils
       Diff.Golden
-      Diff.PmOutput.Golden
-      Diff.PmSteps.Golden
+      Diff.ProseMirror.Golden
       Diff.Utils
       Query.Spec
       Utils
