@@ -1,0 +1,48 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Title",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "Hello world",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "from": 7,
+      "stepType": "replace",
+      "to": 14
+    },
+    {
+      "from": 8,
+      "slice": {
+        "content": [
+          {
+            "text": "Hello ",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 8
+    }
+  ]
+}

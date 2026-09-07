@@ -1,0 +1,59 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Note Diffs",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "Another paragraph",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "from": 24,
+      "stepType": "replace",
+      "to": 25
+    },
+    {
+      "from": 24,
+      "stepType": "replace",
+      "to": 25
+    },
+    {
+      "from": 24,
+      "stepType": "replace",
+      "to": 25
+    },
+    {
+      "from": 44,
+      "stepType": "replace",
+      "to": 59
+    }
+  ]
+}

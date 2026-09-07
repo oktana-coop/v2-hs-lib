@@ -1,0 +1,70 @@
+{
+  "doc": {
+    "content": [
+      {
+        "content": [
+          {
+            "text": "We chose to hide the version layer entirely",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "from": 4,
+      "slice": {
+        "content": [
+          {
+            "text": "chose",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 11
+    },
+    {
+      "from": 13,
+      "slice": {
+        "content": [
+          {
+            "text": "hide",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 26
+    },
+    {
+      "from": 30,
+      "slice": {
+        "content": [
+          {
+            "text": "layer",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 37
+    },
+    {
+      "from": 36,
+      "slice": {
+        "content": [
+          {
+            "text": "entirely",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 42
+    }
+  ]
+}

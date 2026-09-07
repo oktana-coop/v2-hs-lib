@@ -52,6 +52,8 @@ library:
     - text >= 2.1.1
   exposed-modules:
     - ProseMirror.Diff
+    - ProseMirror.Transform.Step
+    - ProseMirror.Transform.FromDiff
     - ProseMirror.PandocWriter
     - ProseMirror.PandocReader
     - Conversion
@@ -63,6 +65,7 @@ library:
     - ProseMirror.Model.Node
     - ProseMirror.Model.Mark
     - ProseMirror.Model.Document
+    - ProseMirror.Model.Slice
     - ProseMirror.Model.Indexing
     - ProseMirror.Decoration
     - ProseMirror.Tree

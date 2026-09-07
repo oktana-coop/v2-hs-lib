@@ -5,7 +5,7 @@ import Conversion (convertFromAutomerge, convertToAutomerge, convertToBinary, co
 import Data.Aeson (ToJSON, encode)
 import qualified Data.ByteString.Lazy.Char8 as BL
 import Data.List.NonEmpty (NonEmpty, toList)
-import Diff (proseMirrorDiff)
+import Diff (proseMirrorDiff, proseMirrorSteps)
 import Query (extractAssetUrls)
 import Response (ErrorOutput (..), Response (..))
 import Text.Pandoc (PandocError)
@@ -28,4 +28,5 @@ main = do
     ConvertToText from to resourcePath str -> convertToText from to resourcePath str >>= wrapToReponseAndPrint
     ConvertToBinary from to resourcePath str -> convertToBinary from to resourcePath str >>= BL.putStr
     ProseMirrorDiff format str1 str2 -> proseMirrorDiff format str1 str2 >>= wrapToReponseAndPrint
+    ProseMirrorSteps beforeFormat afterFormat before after -> proseMirrorSteps beforeFormat afterFormat before after >>= wrapToReponseAndPrint
     ExtractAssetUrls format str -> extractAssetUrls format str >>= wrapToReponseAndPrint

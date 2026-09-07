@@ -25,6 +25,8 @@ source-repository head
 library
   exposed-modules:
       ProseMirror.Diff
+      ProseMirror.Transform.Step
+      ProseMirror.Transform.FromDiff
       ProseMirror.PandocWriter
       ProseMirror.PandocReader
       Conversion
@@ -36,6 +38,7 @@ library
       ProseMirror.Model.Node
       ProseMirror.Model.Mark
       ProseMirror.Model.Document
+      ProseMirror.Model.Slice
       ProseMirror.Model.Indexing
       ProseMirror.Decoration
       ProseMirror.Tree
@@ -96,6 +99,7 @@ test-suite v2-hs-lib-test
       Conversion.Utils
       Diff.Golden
       Diff.PmOutput.Golden
+      Diff.PmSteps.Golden
       Diff.Utils
       Query.Spec
       Utils

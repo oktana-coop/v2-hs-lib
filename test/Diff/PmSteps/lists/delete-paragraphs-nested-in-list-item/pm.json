@@ -1,0 +1,118 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "List Diffs",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "Item 1",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "Item 2",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph after the list",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "from": 27,
+      "stepType": "replace",
+      "to": 35
+    },
+    {
+      "from": 27,
+      "stepType": "replace",
+      "to": 59
+    },
+    {
+      "from": 27,
+      "slice": {
+        "content": [
+          {
+            "content": [
+              {
+                "text": "Item 1",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 65
+    },
+    {
+      "from": 37,
+      "slice": {
+        "content": [
+          {
+            "content": [
+              {
+                "text": "Item 2",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 45
+    }
+  ]
+}

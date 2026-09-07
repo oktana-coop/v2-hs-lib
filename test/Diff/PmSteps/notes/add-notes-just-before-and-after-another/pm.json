@@ -1,0 +1,237 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Note Diffs",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A ",
+            "type": "text"
+          },
+          {
+            "attrs": {
+              "id": "1"
+            },
+            "type": "note_ref"
+          },
+          {
+            "text": " ",
+            "type": "text"
+          },
+          {
+            "attrs": {
+              "id": "2"
+            },
+            "type": "note_ref"
+          },
+          {
+            "text": " ",
+            "type": "text"
+          },
+          {
+            "attrs": {
+              "id": "3"
+            },
+            "type": "note_ref"
+          },
+          {
+            "text": " para",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "id": "1"
+        },
+        "content": [
+          {
+            "content": [
+              {
+                "text": "foo",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "note_content"
+      },
+      {
+        "attrs": {
+          "id": "2"
+        },
+        "content": [
+          {
+            "content": [
+              {
+                "text": "lorem ipsum",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "note_content"
+      },
+      {
+        "attrs": {
+          "id": "3"
+        },
+        "content": [
+          {
+            "content": [
+              {
+                "text": "bar",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "note_content"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "from": 12,
+      "slice": {
+        "content": [
+          {
+            "content": [
+              {
+                "text": "A ",
+                "type": "text"
+              },
+              {
+                "attrs": {
+                  "id": "1"
+                },
+                "type": "note_ref"
+              },
+              {
+                "text": " ",
+                "type": "text"
+              },
+              {
+                "attrs": {
+                  "id": "2"
+                },
+                "type": "note_ref"
+              },
+              {
+                "text": " ",
+                "type": "text"
+              },
+              {
+                "attrs": {
+                  "id": "3"
+                },
+                "type": "note_ref"
+              },
+              {
+                "text": " para",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 12
+    },
+    {
+      "from": 26,
+      "slice": {
+        "content": [
+          {
+            "attrs": {
+              "id": "1"
+            },
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "foo",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "note_content"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 26
+    },
+    {
+      "from": 33,
+      "slice": {
+        "content": [
+          {
+            "attrs": {
+              "id": "2"
+            },
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "lorem ipsum",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "note_content"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 43
+    },
+    {
+      "from": 48,
+      "slice": {
+        "content": [
+          {
+            "attrs": {
+              "id": "3"
+            },
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "bar",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "note_content"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 63
+    }
+  ]
+}

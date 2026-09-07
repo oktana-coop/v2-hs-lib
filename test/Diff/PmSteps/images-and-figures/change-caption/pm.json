@@ -1,0 +1,65 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Document",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "attrs": {
+                  "alt": "New caption",
+                  "src": "figure.png",
+                  "title": "Figure title"
+                },
+                "type": "image"
+              }
+            ],
+            "type": "figure_content"
+          }
+        ],
+        "type": "figure"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "from": 26,
+      "slice": {
+        "content": [
+          {
+            "attrs": {
+              "alt": "New caption",
+              "src": "figure.png",
+              "title": "Figure title"
+            },
+            "type": "image"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 27
+    }
+  ]
+}

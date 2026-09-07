@@ -1,0 +1,31 @@
+{
+  "doc": {
+    "content": [
+      {
+        "content": [
+          {
+            "text": "She replied “no” to the question.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "from": 14,
+      "slice": {
+        "content": [
+          {
+            "text": "no",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 17
+    }
+  ]
+}

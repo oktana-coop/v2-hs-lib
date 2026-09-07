@@ -10,6 +10,7 @@ data Command
   | ConvertToText Format Format (Maybe FilePath) String
   | ConvertToBinary Format Format (Maybe FilePath) String
   | ProseMirrorDiff Format String String
+  | ProseMirrorSteps Format Format String String
   | ExtractAssetUrls Format String
   deriving (Show)
 
@@ -65,6 +66,12 @@ commandParser =
           ( info
               (ProseMirrorDiff <$> formatParser "from" <*> argument str (metavar "DOC_1") <*> argument str (metavar "DOC_2"))
               (progDesc "Produce a ProseMirror document with the diff decorations given two input strings of the specified format")
+          )
+        <> command
+          "proseMirrorSteps"
+          ( info
+              (ProseMirrorSteps <$> formatParser "before-format" <*> formatParser "after-format" <*> argument str (metavar "BEFORE") <*> argument str (metavar "AFTER"))
+              (progDesc "Produce the ProseMirror steps for going from one version of the document (BEFORE) to another (AFTER), together with the ProseMirror document of the latter")
           )
         <> command
           "extractAssetUrls"

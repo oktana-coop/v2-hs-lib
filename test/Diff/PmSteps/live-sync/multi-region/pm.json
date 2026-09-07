@@ -1,0 +1,74 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Title",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "First paragraph edited here.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "Second paragraph stays.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "Third paragraph edited here.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "from": 24,
+      "slice": {
+        "content": [
+          {
+            "text": "edited ",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 24
+    },
+    {
+      "from": 79,
+      "slice": {
+        "content": [
+          {
+            "text": "edited ",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 79
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.Diff (toDecoratedPMDoc, DecoratedPMDoc) where
+module ProseMirror.Diff (toDecoratedPMDoc, DecoratedPMDoc, PositionedDiffNode, addPositionsToDiffTree) where
 
 import Data.Aeson (ToJSON, object, toJSON, (.=))
 import Data.Maybe (listToMaybe)
@@ -28,10 +28,10 @@ instance ToJSON DecoratedPMDoc where
   toJSON decoratedPMDoc = object ["doc" .= doc decoratedPMDoc, "decorations" .= decorations decoratedPMDoc]
 
 toDecoratedPMDoc :: Tree (RichTextDiffOp PandocTree.DocNode) -> DecoratedPMDoc
-toDecoratedPMDoc = pmDocFromPMTree . toProseMirrorTreeWithDiffDecorations . unwrapFigureContentParaOrPlain unpackDiffOpValue
+toDecoratedPMDoc = pmDocFromPMTree . fmap decorate . addPositionsToDiffTree
 
-toProseMirrorTreeWithDiffDecorations :: Tree (RichTextDiffOp PandocTree.DocNode) -> DecoratedPMTree
-toProseMirrorTreeWithDiffDecorations = fmap decorate . addNodePositionsRenderedBy unpackAndRenderPMNode
+addPositionsToDiffTree :: Tree (RichTextDiffOp PandocTree.DocNode) -> Tree PositionedDiffNode
+addPositionsToDiffTree = addNodePositionsRenderedBy unpackAndRenderPMNode . unwrapFigureContentParaOrPlain unpackDiffOpValue
   where
     -- The ProseMirror node a diff node renders to, if any: deleted content is not part of the document and
     -- wrapper nodes have no ProseMirror counterpart, so neither takes positions.
@@ -48,7 +48,7 @@ diffModifyClass :: T.Text
 diffModifyClass = "diff-modify"
 
 decorate :: PositionedDiffNode -> Either PMTreeNode (Decoration PMTreeNode)
-decorate positioned = case nodeWithDiff of
+decorate positionedNodeWithDiff = case nodeWithDiff of
   Copy _ -> Left node
   -- We currently ignore meta diffs.
   -- TODO: Handle meta diffs in ProseMirror.
@@ -68,10 +68,10 @@ decorate positioned = case nodeWithDiff of
     _ -> Left node
   UpdateHeadingLevel _ _ -> Right $ NodeDecoration $ wrapInNodeDecoration node start end diffModifyClass
   where
-    nodeWithDiff = value positioned
+    nodeWithDiff = value positionedNodeWithDiff
     node = pandocTreeNodeToPMNode $ unpackDiffOpValue nodeWithDiff
-    start = startPos positioned
-    end = endPos positioned
+    start = startPos positionedNodeWithDiff
+    end = endPos positionedNodeWithDiff
 
     decorateInlineNode :: PM.InlineNode -> T.Text -> Decoration PMTreeNode
     decorateInlineNode inlineNode cssClassName = case inlineNode of

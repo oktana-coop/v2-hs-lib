@@ -1,0 +1,123 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Note Diffs",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A ",
+            "type": "text"
+          },
+          {
+            "attrs": {
+              "id": "1"
+            },
+            "type": "note_ref"
+          },
+          {
+            "text": " para",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "id": "1"
+        },
+        "content": [
+          {
+            "content": [
+              {
+                "text": "footnote text",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "note_content"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "from": 12,
+      "stepType": "replace",
+      "to": 30
+    },
+    {
+      "from": 13,
+      "stepType": "replace",
+      "to": 31
+    },
+    {
+      "from": 13,
+      "stepType": "replace",
+      "to": 14
+    },
+    {
+      "from": 13,
+      "slice": {
+        "content": [
+          {
+            "text": "A ",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 14
+    },
+    {
+      "from": 15,
+      "slice": {
+        "content": [
+          {
+            "attrs": {
+              "id": "1"
+            },
+            "type": "note_ref"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 15
+    },
+    {
+      "from": 16,
+      "slice": {
+        "content": [
+          {
+            "text": " para",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 16
+    },
+    {
+      "from": 39,
+      "stepType": "replace",
+      "to": 54
+    },
+    {
+      "from": 39,
+      "stepType": "replace",
+      "to": 51
+    }
+  ]
+}

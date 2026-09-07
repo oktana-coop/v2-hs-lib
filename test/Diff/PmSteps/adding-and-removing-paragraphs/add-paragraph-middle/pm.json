@@ -1,0 +1,66 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Diff Playground",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph in the middle",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "Another paragraph",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "from": 30,
+      "slice": {
+        "content": [
+          {
+            "content": [
+              {
+                "text": "A paragraph in the middle",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 30
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "doc": {
+    "content": [
+      {
+        "content": [
+          {
+            "text": "the annual session begins at nine in the grand room",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "from": 12,
+      "slice": {
+        "content": [
+          {
+            "text": "session",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 19
+    },
+    {
+      "from": 20,
+      "slice": {
+        "content": [
+          {
+            "text": "begins",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 26
+    },
+    {
+      "from": 30,
+      "slice": {
+        "content": [
+          {
+            "text": "nine",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 34
+    },
+    {
+      "from": 48,
+      "slice": {
+        "content": [
+          {
+            "text": "room",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 52
+    }
+  ]
+}

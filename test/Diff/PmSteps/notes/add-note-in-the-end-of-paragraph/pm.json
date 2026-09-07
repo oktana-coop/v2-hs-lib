@@ -1,0 +1,133 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Note Diffs",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph ",
+            "type": "text"
+          },
+          {
+            "attrs": {
+              "id": "1"
+            },
+            "type": "note_ref"
+          },
+          {
+            "text": " ",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "Another paragraph",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "id": "1"
+        },
+        "content": [
+          {
+            "content": [
+              {
+                "text": "footnote text",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "note_content"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "from": 24,
+      "slice": {
+        "content": [
+          {
+            "text": " ",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 24
+    },
+    {
+      "from": 25,
+      "slice": {
+        "content": [
+          {
+            "attrs": {
+              "id": "1"
+            },
+            "type": "note_ref"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 25
+    },
+    {
+      "from": 26,
+      "slice": {
+        "content": [
+          {
+            "text": " ",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 26
+    },
+    {
+      "from": 47,
+      "slice": {
+        "content": [
+          {
+            "attrs": {
+              "id": "1"
+            },
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "footnote text",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "note_content"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 47
+    }
+  ]
+}
