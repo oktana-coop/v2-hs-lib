@@ -60,8 +60,11 @@ library:
     - Query
   other-modules:
     - ProseMirror.Model
+    - ProseMirror.Model.Node
+    - ProseMirror.Model.Mark
+    - ProseMirror.Model.Document
+    - ProseMirror.Model.Indexing
     - ProseMirror.Decoration
-    - ProseMirror.Indexing
     - ProseMirror.Tree
     - ProseMirror.PandocTreeShape.ImplicitFigure
     - ProseMirror.PandocTreeShape.FigureContent.GroupedInlines

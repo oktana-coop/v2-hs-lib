@@ -8,7 +8,7 @@ import qualified Data.Text as T
 import Data.Tree (Tree (..), foldTree)
 import qualified DocTree.LeafTextSpans as PandocTree
 import ProseMirror.Decoration (Decoration (..), DecorationAttrs (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), undecorate)
-import ProseMirror.Indexing (PMPosition, Positioned (..), addNodePositionsRenderedBy)
+import ProseMirror.Model (PMPosition, Positioned (..), addNodePositionsRenderedBy)
 import qualified ProseMirror.Model as PM (InlineNode (..), Node (..), isLeafBlockNode, wrapChildrenToBlock)
 import ProseMirror.PandocTreeShape.FigureContent.LeafTextSpans (unwrapFigureContentParaOrPlain)
 import ProseMirror.Tree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode)
@@ -31,12 +31,15 @@ toDecoratedPMDoc :: Tree (RichTextDiffOp PandocTree.DocNode) -> DecoratedPMDoc
 toDecoratedPMDoc = pmDocFromPMTree . toProseMirrorTreeWithDiffDecorations . unwrapFigureContentParaOrPlain unpackDiffOpValue
 
 toProseMirrorTreeWithDiffDecorations :: Tree (RichTextDiffOp PandocTree.DocNode) -> DecoratedPMTree
-toProseMirrorTreeWithDiffDecorations = fmap decorate . addNodePositionsRenderedBy unpackNonDeletedPMTreeNode
+toProseMirrorTreeWithDiffDecorations = fmap decorate . addNodePositionsRenderedBy unpackAndRenderPMNode
   where
-    -- Deleted content is not part of the document, so it takes no positions.
-    unpackNonDeletedPMTreeNode :: RichTextDiffOp PandocTree.DocNode -> Maybe PMTreeNode
-    unpackNonDeletedPMTreeNode (Delete _) = Nothing
-    unpackNonDeletedPMTreeNode nodeWithDiff = Just $ pandocTreeNodeToPMNode $ unpackDiffOpValue nodeWithDiff
+    -- The ProseMirror node a diff node renders to, if any: deleted content is not part of the document and
+    -- wrapper nodes have no ProseMirror counterpart, so neither takes positions.
+    unpackAndRenderPMNode :: RichTextDiffOp PandocTree.DocNode -> Maybe PM.Node
+    unpackAndRenderPMNode (Delete _) = Nothing
+    unpackAndRenderPMNode nodeWithDiff = case pandocTreeNodeToPMNode (unpackDiffOpValue nodeWithDiff) of
+      PMNode node -> Just node
+      _ -> Nothing
 
 diffInsertClass :: T.Text
 diffInsertClass = "diff-insert"
