@@ -6,7 +6,7 @@ import qualified Data.Text as T
 import Format (Format (..))
 import ProseMirror.Diff (DecoratedPMDoc, toDecoratedPMDoc)
 import ProseMirror.PandocTreeShape.ImplicitFigure (stripCaptionEqualToAlt, wrapLoneImageInFigure)
-import RichTextDiff (getAnnotatedTree)
+import RichTextDiff (defaultDiffOptions, getAnnotatedTree)
 import Text.Pandoc (Pandoc, PandocError)
 import Text.Pandoc.Class (runIO)
 
@@ -16,7 +16,7 @@ proseMirrorDiff format doc1Str doc2Str = do
   eitherDoc2 <- runIO $ readFrom format pandocReaderOptions (T.pack doc2Str)
 
   case (eitherDoc1, eitherDoc2) of
-    (Right doc1, Right doc2) -> pure $ Right $ toDecoratedPMDoc $ getAnnotatedTree (preprocess doc1) (preprocess doc2)
+    (Right doc1, Right doc2) -> pure $ Right $ toDecoratedPMDoc $ getAnnotatedTree defaultDiffOptions (preprocess doc1) (preprocess doc2)
     ((Left err), Right _) -> pure $ Left (err :| [])
     (Right _, (Left err)) -> pure $ Left (err :| [])
     ((Left err1), (Left err2)) -> pure $ Left (err1 :| [err2])

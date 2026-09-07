@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.Tree (PMTree, PMTreeNode (..), groupedInlinesPandocTreeToPMTree, pmDocFromPMTree, leafTextSpansPandocTreeNodeToPMNode, treeTextSpanNodeToPMTextNode, pmNodeFromInlineSpan, pmTreeFromPMDoc, pmTreeToGroupedInlinesTree) where
+module ProseMirror.Tree (PMTree, PMTreeNode (..), groupedInlinesPandocTreeToPMTree, pmDocFromPMTree, leafTextSpansPandocTreeNodeToPMNode, treeTextSpanNodeToPMTextNode, treeMarkToPMMark, pmNodeFromInlineSpan, pmTreeFromPMDoc, pmTreeToGroupedInlinesTree) where
 
 import Data.List.NonEmpty (nonEmpty, toList)
 import Data.Maybe (fromMaybe, listToMaybe, maybeToList)
@@ -178,13 +178,13 @@ codeBlockLanguageFromPandocAttr (_, classes, _) = case classes of
 
 -- TODO: Use ProseMirror schema as a parameter
 treeTextSpanNodeToPMTextNode :: RichText.TextSpan -> PM.TextNode
-treeTextSpanNodeToPMTextNode textSpan = PM.PMText {PM.text = value textSpan, PM.marks = (fmap . fmap) toPMMark (nonEmpty $ marks textSpan)}
-  where
-    toPMMark :: RichText.Mark -> PM.Mark
-    toPMMark RichText.EmphMark = PM.Emphasis
-    toPMMark RichText.StrongMark = PM.Strong
-    toPMMark (RichText.LinkMark (RichText.Link _ (linkUrl, linkTitle))) = PM.LinkMark PM.Link {PM.url = linkUrl, PM.linkTitle = linkTitle}
-    toPMMark RichText.CodeMark = PM.Code
+treeTextSpanNodeToPMTextNode textSpan = PM.PMText {PM.text = value textSpan, PM.marks = (fmap . fmap) treeMarkToPMMark (nonEmpty $ marks textSpan)}
+
+treeMarkToPMMark :: RichText.Mark -> PM.Mark
+treeMarkToPMMark RichText.EmphMark = PM.Emphasis
+treeMarkToPMMark RichText.StrongMark = PM.Strong
+treeMarkToPMMark (RichText.LinkMark (RichText.Link _ (linkUrl, linkTitle))) = PM.LinkMark PM.Link {PM.url = linkUrl, PM.linkTitle = linkTitle}
+treeMarkToPMMark RichText.CodeMark = PM.Code
 
 pmTreeFromPMDoc :: PM.PMDoc -> PMTree
 pmTreeFromPMDoc (PM.PMDoc rootNode) = unfoldTree pmTreeFromPMDocUnfolder rootNode
