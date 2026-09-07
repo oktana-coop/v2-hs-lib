@@ -32,8 +32,9 @@ data PMTreeNode
   = PMNode PM.Node
   | WrapperInlineNode
   | WrapperBlockNode
-  | -- Nodes that cannot be represented in ProseMirror.
-    UnrepresentableNode
+  | -- Nodes that cannot be represented in ProseMirror, carrying a human-readable
+    -- description of the content for the conversion error message.
+    UnrepresentableNode String
   deriving (Show)
 
 type PMTree = Tree PMTreeNode
@@ -55,11 +56,11 @@ pmTreeNodeFolder pmTreeNode eitherChildNodes = do
     pmTreeNodeToPMNodes (PMNode pmNode@(PM.InlineNode _)) _ = Right [pmNode]
     pmTreeNodeToPMNodes WrapperInlineNode childNodes = Right $ concat childNodes
     pmTreeNodeToPMNodes WrapperBlockNode childNodes = Right $ concat childNodes
-    pmTreeNodeToPMNodes UnrepresentableNode _ = Left unrepresentableNodeErrorMessage
+    pmTreeNodeToPMNodes (UnrepresentableNode description) _ = Left $ unrepresentableNodeErrorMessage description
     pmTreeNodeToPMNodes (PMNode (PM.BlockNode blockNode)) childNodes = Right [PM.BlockNode $ PM.wrapChildrenToBlock blockNode $ concat childNodes]
 
-unrepresentableNodeErrorMessage :: String
-unrepresentableNodeErrorMessage = "Cannot convert input to ProseMirror: it contains content with no ProseMirror representation."
+unrepresentableNodeErrorMessage :: String -> String
+unrepresentableNodeErrorMessage description = "Cannot convert input to ProseMirror: the document contains " <> description <> ", which has no ProseMirror representation."
 
 docWithMetaIfExists :: Pandoc.Meta -> PM.Block
 docWithMetaIfExists meta =
@@ -156,7 +157,7 @@ treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Para _)) = PMNode $ PM.
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Header level _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Heading $ PM.HeadingLevel level, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.CodeBlock attr _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.CodeBlock $ codeBlockLanguageFromPandocAttr attr, PM.content = Nothing}
 -- Raw blocks have no ProseMirror representation and are surfaced as a conversion error.
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.RawBlock _ _)) = UnrepresentableNode
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.RawBlock _ _)) = UnrepresentableNode "raw content (e.g. HTML)"
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BulletList _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.BulletList, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.OrderedList _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.OrderedList, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.ListItem _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.ListItem, PM.content = Nothing}
@@ -167,8 +168,12 @@ treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Figure _ _ _)) = PMNode
 treeBlockNodeToPMBlockNode (RichText.FigureContent _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.FigureContent, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.Caption _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Caption, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.NoteContent (NoteId noteId) _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.NoteContent $ PM.NoteId noteId, PM.content = Nothing}
--- TODO: Incrementally handle more blocks
-treeBlockNodeToPMBlockNode _ = undefined
+-- TODO: Incrementally support more blocks. Until then they surface as a
+-- conversion error naming the construct, instead of crashing the runtime.
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Table {})) = UnrepresentableNode "a table"
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.LineBlock _)) = UnrepresentableNode "a line block"
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.DefinitionList _)) = UnrepresentableNode "a definition list"
+treeBlockNodeToPMBlockNode (RichText.PandocBlock _) = UnrepresentableNode "an unsupported block"
 
 codeBlockLanguageFromPandocAttr :: Pandoc.Attr -> Maybe CodeBlockLanguage
 codeBlockLanguageFromPandocAttr (_, classes, _) = case classes of
@@ -248,7 +253,7 @@ pmNodeToGroupedInlinesNodeFolder pmTreeNode eitherSubtrees = do
     pmNodeToGroupedInlinesNode WrapperInlineNode childTrees =
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.InlineNode $ GroupedInlinesTree.InlineContent []) (concatAdjacentInlineNodes childTrees)
     -- Technically, we should never get unrepresentable nodes as input. TODO: Handle this case better, maybe with an error.
-    pmNodeToGroupedInlinesNode UnrepresentableNode childTrees =
+    pmNodeToGroupedInlinesNode (UnrepresentableNode _) childTrees =
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.RawBlock "prosemirror" T.empty) (concatAdjacentInlineNodes childTrees)
 
 pmTextNodeToTreeTextSpan :: PM.TextNode -> RichText.TextSpan
