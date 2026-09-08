@@ -76,7 +76,7 @@ library:
     - ProseMirror.PandocTreeShape.ImageAlt
     - ProseMirror.PandocTreeShape.ImplicitFigure
     - ProseMirror.PandocTreeShape.OrderedListAttrs
-    - ProseMirror.PandocTreeShape.PlainParagraphs
+    - ProseMirror.PandocTreeShape.ListSpacing
     - ProseMirror.PandocTreeShape.FigureContent.GroupedInlines
     - ProseMirror.PandocTreeShape.FigureContent.LeafTextSpans
     - ProseMirror.Utils.Debug
