@@ -3,7 +3,7 @@ import Conversion.Golden as ConversionGolden (tests)
 import Conversion.ReaderAgreement as ConversionReaderAgreement (tests)
 import Conversion.RoundTrip as ConversionRoundTrip (tests)
 import Conversion.Unsupported as ConversionUnsupported (tests)
-import Diff.Golden as DiffGolden (tests)
+import DiffPatch.Golden as DiffPatchGolden (tests)
 import Query.Spec as QuerySpec (tests)
 import Test.Tasty (defaultMain, testGroup)
 
@@ -14,6 +14,6 @@ main = do
   conversionUnsupportedTests <- ConversionUnsupported.tests
   conversionEmbedTests <- ConversionEmbed.tests
   conversionReaderAgreementTests <- ConversionReaderAgreement.tests
-  diffGoldenTests <- DiffGolden.tests
+  diffPatchGoldenTests <- DiffPatchGolden.tests
   queryTests <- QuerySpec.tests
-  defaultMain $ testGroup "Tests" [conversionGoldenTests, conversionRoundTripTests, conversionUnsupportedTests, conversionEmbedTests, conversionReaderAgreementTests, diffGoldenTests, queryTests]
+  defaultMain $ testGroup "Tests" [conversionGoldenTests, conversionRoundTripTests, conversionUnsupportedTests, conversionEmbedTests, conversionReaderAgreementTests, diffPatchGoldenTests, queryTests]

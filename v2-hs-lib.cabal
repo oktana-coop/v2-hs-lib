@@ -31,7 +31,7 @@ library
       ProseMirror.PandocWriter
       ProseMirror.PandocReader
       Conversion
-      Diff
+      Diffing
       Format
       Patching
       Query
@@ -105,9 +105,9 @@ test-suite v2-hs-lib-test
       Conversion.RoundTrip
       Conversion.Unsupported
       Conversion.Utils
-      Diff.Golden
-      Diff.ProseMirror.Golden
-      Diff.Utils
+      DiffPatch.Golden
+      DiffPatch.ProseMirror.Golden
+      DiffPatch.Utils
       Query.Spec
       Utils
       Paths_v2_hs_lib

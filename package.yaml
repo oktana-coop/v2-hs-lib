@@ -58,7 +58,7 @@ library:
     - ProseMirror.PandocWriter
     - ProseMirror.PandocReader
     - Conversion
-    - Diff
+    - Diffing
     - Format
     - Patching
     - Query

@@ -1,7 +1,7 @@
-module Diff.ProseMirror.Golden (tests) where
+module DiffPatch.ProseMirror.Golden (tests) where
 
 import Conversion (Format (Markdown))
-import Diff.Utils (readFilesAndProducePmDiff, readFilesAndProducePmSteps)
+import DiffPatch.Utils (readFilesAndProducePmDiff, readFilesAndProducePmSteps)
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden (goldenVsString)
@@ -11,7 +11,7 @@ tests :: IO TestTree
 tests = do
   return
     $ testGroup
-      "Markdown Inputs → ProseMirror Diff (Golden)"
+      "Markdown Inputs → ProseMirror Diff & Patch (Golden)"
     $ [ testGroup
           "adding-and-removing-paragraphs"
           [ goldenCase $ "adding-and-removing-paragraphs" </> "add-paragraph-after-list",
@@ -101,7 +101,7 @@ tests = do
       ]
 
 casesDir :: FilePath
-casesDir = "test/Diff/ProseMirror"
+casesDir = "test/DiffPatch/ProseMirror"
 
 goldenCase :: FilePath -> TestTree
 goldenCase caseSubFolderPath =

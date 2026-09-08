@@ -1,4 +1,4 @@
-module Diff.Utils (readFilesAndProducePmDiff, readFilesAndProducePmSteps) where
+module DiffPatch.Utils (readFilesAndProducePmDiff, readFilesAndProducePmSteps) where
 
 import Data.Aeson (ToJSON)
 import Data.Aeson.Text (encodeToLazyText)
@@ -8,7 +8,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.IO as TIO
 import qualified Data.Text.Lazy as LT
-import Diff (proseMirrorDiff)
+import Diffing (proseMirrorDiff)
 import Patching (proseMirrorSteps)
 import Format (Format)
 import Text.Pandoc (PandocError)

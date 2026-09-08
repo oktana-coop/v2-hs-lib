@@ -5,7 +5,7 @@ import Data.Bifunctor (first)
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.Text as T
 import Data.Tree (Tree)
-import Diff (diffForProseMirror)
+import Diffing (diffForProseMirror)
 import qualified DocTree.LeafTextSpans as PandocTree
 import Format (Format (..))
 import ProseMirror.Transform.FromDiff (TransformedPMDoc, toTransformedPMDoc)

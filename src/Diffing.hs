@@ -1,4 +1,4 @@
-module Diff (proseMirrorDiff, diffForProseMirror) where
+module Diffing (proseMirrorDiff, diffForProseMirror) where
 
 import Conversion (readDocuments)
 import Data.List.NonEmpty (NonEmpty)
