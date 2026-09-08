@@ -1,0 +1,21 @@
+[ Header 1 ( "numbering" , [] , [] ) [ Str "Numbering" ]
+, Para
+    [ Str "A"
+    , Space
+    , Str "list"
+    , Space
+    , Str "that"
+    , Space
+    , Str "starts"
+    , Space
+    , Str "at"
+    , Space
+    , Str "three:"
+    ]
+, OrderedList
+    ( 3 , Decimal , Period )
+    [ [ Plain [ Str "Third" ] ]
+    , [ Plain [ Str "Fourth" ] ]
+    , [ Plain [ Str "Fifth" ] ]
+    ]
+]

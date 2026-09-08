@@ -11,7 +11,7 @@ import qualified DocTree.GroupedInlines as GroupedInlinesTree
 import qualified DocTree.LeafTextSpans as LeafTextSpansTree
 import GHC.Base (NonEmpty)
 import ProseMirror.Model (CodeBlockLanguage)
-import qualified ProseMirror.Model as PM (Block (..), BlockNode (..), CodeBlockLanguage (..), HeadingLevel (..), Image (..), InlineNode (..), Link (..), Mark (..), Node (..), NoteId (..), PMDoc (..), TextNode (..), assertRootNodeIsDoc, wrapChildrenToBlock)
+import qualified ProseMirror.Model as PM (Block (..), BlockNode (..), CodeBlockLanguage (..), HeadingLevel (..), Image (..), InlineNode (..), Link (..), Mark (..), Node (..), NoteId (..), OrderedListStart (..), PMDoc (..), TextNode (..), assertRootNodeIsDoc, wrapChildrenToBlock)
 import ProseMirror.Utils.Json (fromJsonText, toJsonText)
 import qualified Text.Pandoc.Builder as Pandoc
   ( Attr,
@@ -158,7 +158,7 @@ treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.CodeBlock attr _)) = PM
 -- Raw blocks have no ProseMirror representation and are surfaced as a conversion error.
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.RawBlock _ _)) = UnrepresentableNode
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BulletList _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.BulletList, PM.content = Nothing}
-treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.OrderedList _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.OrderedList, PM.content = Nothing}
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.OrderedList (start, _, _) _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.OrderedList (PM.OrderedListStart start), PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.ListItem _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.ListItem, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BlockQuote _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.BlockQuote, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Div _ _)) = WrapperBlockNode
@@ -219,8 +219,8 @@ pmNodeToGroupedInlinesNodeFolder pmTreeNode eitherSubtrees = do
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.CodeBlock ("", [language], []) T.empty) (concatAdjacentInlineNodes childTrees)
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.BulletList) _))) childTrees =
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.BulletList []) childTrees
-    pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.OrderedList) _))) childTrees =
-      Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.OrderedList (1, Pandoc.DefaultStyle, Pandoc.DefaultDelim) []) childTrees
+    pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.OrderedList (PM.OrderedListStart start)) _))) childTrees =
+      Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.OrderedList (start, Pandoc.DefaultStyle, Pandoc.DefaultDelim) []) childTrees
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.ListItem) _))) childTrees =
       Right $ Node (GroupedInlinesTree.TreeNode $ GroupedInlinesTree.BlockNode $ RichText.ListItem []) (compactListIfPossible $ concatAdjacentInlineNodes childTrees)
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.BlockQuote) _))) childTrees =

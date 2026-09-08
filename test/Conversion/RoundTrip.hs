@@ -18,7 +18,7 @@ tests = testSpec "Round-Trip Conversion" spec
 spec :: Spec
 spec = do
   describe "Markdown -> ProseMirror -> Markdown" $ do
-    let inputFiles = map buildMdFilePathForCase ["apostrophes-and-dashes", "blockquote", "code-blocks", "headings-and-paragraphs", "horizontal-rule", "images-and-figures", "marks", "lists", "meta", "notes", "quotes/basic"]
+    let inputFiles = map buildMdFilePathForCase ["apostrophes-and-dashes", "blockquote", "code-blocks", "headings-and-paragraphs", "horizontal-rule", "images-and-figures", "marks", "lists", "meta", "notes", "ordered-list-start", "quotes/basic"]
     -- roundTripTestForInputFile returns a monadic action (Spec is a monad)
     -- mapM_ combines these `Spec` actions into a single `Spec`.
     -- We use mapM_ because we don't care about the returned value, just the effect of these tests.

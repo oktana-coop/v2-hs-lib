@@ -1,7 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.Model.Node (Node (..), BlockNode (..), Block (..), InlineNode (..), TextNode (..), NodeType (..), HeadingLevel (..), CodeBlockLanguage (..), NoteId (..), Image (..), Meta, nodeType, isRootBlockNode, isAtomNode, isLeafBlockNode, isLeafNode, nodeSize, contentSize, textLength, wrapChildrenToBlock) where
+module ProseMirror.Model.Node (Node (..), BlockNode (..), Block (..), InlineNode (..), TextNode (..), NodeType (..), HeadingLevel (..), OrderedListStart (..), CodeBlockLanguage (..), NoteId (..), Image (..), Meta, nodeType, isRootBlockNode, isAtomNode, isLeafBlockNode, isLeafNode, nodeSize, contentSize, textLength, wrapChildrenToBlock) where
 
 import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (toJSON), Value (..), object, withObject, withScientific, withText, (.:), (.:?), (.=))
 import Data.Aeson.Types (Parser)
@@ -47,6 +47,12 @@ instance FromJSON HeadingLevel where
       else fail "Invalid heading level"
 
 newtype CodeBlockLanguage = CodeBlockLanguage T.Text deriving (Show, Eq)
+
+-- The number the list starts counting from.
+newtype OrderedListStart = OrderedListStart Int deriving (Show, Eq)
+
+instance FromJSON OrderedListStart where
+  parseJSON = withScientific "OrderedListStart" $ \n -> pure $ OrderedListStart (floor n)
 
 instance FromJSON CodeBlockLanguage where
   parseJSON = withText "CodeBlockLanguage" $ \language -> pure $ CodeBlockLanguage language
@@ -118,7 +124,7 @@ instance ToJSON NodeType where
     NoteRefType -> String "note_ref"
     NoteContentType -> String "note_content"
 
-data Block = Doc (Maybe Meta) | Paragraph | Heading HeadingLevel | CodeBlock (Maybe CodeBlockLanguage) | BlockQuote | BulletList | OrderedList | ListItem | HorizontalRule | Figure | FigureContent | Caption | NoteContent NoteId deriving (Show, Eq)
+data Block = Doc (Maybe Meta) | Paragraph | Heading HeadingLevel | CodeBlock (Maybe CodeBlockLanguage) | BlockQuote | BulletList | OrderedList OrderedListStart | ListItem | HorizontalRule | Figure | FigureContent | Caption | NoteContent NoteId deriving (Show, Eq)
 
 data BlockNode = PMBlock {block :: Block, content :: Maybe [Node]} deriving (Show, Eq)
 
@@ -135,7 +141,7 @@ nodeType (BlockNode (PMBlock (Heading _) _)) = HeadingType
 nodeType (BlockNode (PMBlock (CodeBlock _) _)) = CodeBlockType
 nodeType (BlockNode (PMBlock BlockQuote _)) = BlockQuoteType
 nodeType (BlockNode (PMBlock BulletList _)) = BulletListType
-nodeType (BlockNode (PMBlock OrderedList _)) = OrderedListType
+nodeType (BlockNode (PMBlock (OrderedList _) _)) = OrderedListType
 nodeType (BlockNode (PMBlock ListItem _)) = ListItemType
 nodeType (BlockNode (PMBlock HorizontalRule _)) = HorizontalRuleType
 nodeType (BlockNode (PMBlock Figure _)) = FigureType
@@ -218,7 +224,10 @@ instance FromJSON Node where
           Nothing -> pure $ BlockNode $ PMBlock {block = CodeBlock Nothing, content = children}
       BlockQuoteType -> pure $ BlockNode $ PMBlock {block = BlockQuote, content = children}
       BulletListType -> pure $ BlockNode $ PMBlock {block = BulletList, content = children}
-      OrderedListType -> pure $ BlockNode $ PMBlock {block = OrderedList, content = children}
+      OrderedListType -> do
+        nAttrs <- (v .:? "attrs" :: Parser (Maybe Object))
+        start <- maybe (pure Nothing) (.:? "order") nAttrs
+        pure $ BlockNode $ PMBlock {block = OrderedList (fromMaybe (OrderedListStart 1) start), content = children}
       ListItemType -> pure $ BlockNode $ PMBlock {block = ListItem, content = children}
       HorizontalRuleType -> pure $ BlockNode $ PMBlock {block = HorizontalRule, content = Nothing}
       ImageType -> do
@@ -255,7 +264,9 @@ instance ToJSON Node where
     CodeBlock (Just (CodeBlockLanguage language)) -> object ["type" .= toJSON CodeBlockType, "content" .= children, "attrs" .= object ["language" .= toJSON language]]
     BlockQuote -> object ["type" .= toJSON BlockQuoteType, "content" .= children]
     BulletList -> object ["type" .= toJSON BulletListType, "content" .= children]
-    OrderedList -> object ["type" .= toJSON OrderedListType, "content" .= children]
+    -- The schema defaults `order` to 1, so a list starting there is written without attributes.
+    OrderedList (OrderedListStart 1) -> object ["type" .= toJSON OrderedListType, "content" .= children]
+    OrderedList (OrderedListStart start) -> object ["type" .= toJSON OrderedListType, "content" .= children, "attrs" .= object ["order" .= toJSON start]]
     ListItem -> object ["type" .= toJSON ListItemType, "content" .= children]
     HorizontalRule -> object ["type" .= toJSON HorizontalRuleType, "content" .= (Nothing :: Maybe [Node])]
     Figure -> object ["type" .= toJSON FigureType, "content" .= children]

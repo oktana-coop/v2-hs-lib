@@ -23,6 +23,7 @@ tests = do
         goldenCase "lists",
         goldenCase "meta",
         goldenCase "notes",
+        goldenCase "ordered-list-start",
         testGroup
           "quotes"
           [ goldenCase $ "quotes" </> "basic",
