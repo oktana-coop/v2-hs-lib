@@ -6,54 +6,8 @@
         "nodeName": null,
         "style": null
       },
-      "from": 28,
-      "to": 34,
-      "type": "inline"
-    },
-    {
-      "node": {
-        "content": [
-          {
-            "text": "Item 1",
-            "type": "text"
-          }
-        ],
-        "type": "paragraph"
-      },
-      "pos": 35,
-      "type": "widget"
-    },
-    {
-      "attrs": {
-        "class": "diff-insert",
-        "nodeName": null,
-        "style": null
-      },
       "from": 36,
       "to": 66,
-      "type": "inline"
-    },
-    {
-      "node": {
-        "content": [
-          {
-            "text": "Item 2",
-            "type": "text"
-          }
-        ],
-        "type": "paragraph"
-      },
-      "pos": 69,
-      "type": "widget"
-    },
-    {
-      "attrs": {
-        "class": "diff-insert",
-        "nodeName": null,
-        "style": null
-      },
-      "from": 70,
-      "to": 76,
       "type": "inline"
     }
   ],

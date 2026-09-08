@@ -1,11 +1,11 @@
-module Conversion (convertFromAutomerge, convertToAutomerge, convertToBinary, convertToText, readFrom, pandocReaderOptions, pandocWriterOptions, Format (..)) where
+module Conversion (convertFromAutomerge, convertToAutomerge, convertToBinary, convertToText, readFrom, readDocuments, pandocReaderOptions, pandocWriterOptions, Format (..)) where
 
 import Control.Monad.Catch (MonadMask)
 import Control.Monad.Except (throwError)
 import Control.Monad.Trans (MonadIO (..))
 import Data.Bifunctor (first)
 import qualified Data.ByteString.Lazy.Char8 as BL
-import Data.List.NonEmpty (NonEmpty)
+import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import Format (Format (..))
@@ -137,3 +137,17 @@ convertFromAutomerge outputFormat = convertToText Automerge outputFormat Nothing
 
 convertToAutomerge :: Format -> String -> IO (Either (NonEmpty PandocError) T.Text)
 convertToAutomerge inputFormat input = convertToText inputFormat Automerge Nothing input
+
+-- Reads two documents, each in its own format, reporting the errors of both when both fail.
+readDocuments :: Format -> Format -> String -> String -> IO (Either (NonEmpty PandocError) (Pandoc, Pandoc))
+readDocuments format1 format2 doc1Str doc2Str = do
+  eitherDoc1 <- runIO $ readFrom format1 pandocReaderOptions (T.pack doc1Str)
+  eitherDoc2 <- runIO $ readFrom format2 pandocReaderOptions (T.pack doc2Str)
+  pure $ bothOrErrors eitherDoc1 eitherDoc2
+  where
+    -- Unlike `Either`'s applicative, a failure on one side does not hide a failure on the other.
+    bothOrErrors :: Either e a -> Either e b -> Either (NonEmpty e) (a, b)
+    bothOrErrors (Left err1) (Left err2) = Left (err1 :| [err2])
+    bothOrErrors (Left err1) _ = Left (err1 :| [])
+    bothOrErrors _ (Left err2) = Left (err2 :| [])
+    bothOrErrors (Right a) (Right b) = Right (a, b)

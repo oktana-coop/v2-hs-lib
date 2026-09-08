@@ -8,7 +8,8 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.IO as TIO
 import qualified Data.Text.Lazy as LT
-import Diff (proseMirrorDiff, proseMirrorSteps)
+import Diff (proseMirrorDiff)
+import Patching (proseMirrorSteps)
 import Format (Format)
 import Text.Pandoc (PandocError)
 import Utils (TextNormalizer)

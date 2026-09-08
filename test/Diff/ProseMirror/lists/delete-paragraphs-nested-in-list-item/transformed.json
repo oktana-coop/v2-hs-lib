@@ -69,50 +69,14 @@
   },
   "steps": [
     {
-      "from": 27,
+      "from": 35,
       "stepType": "replace",
-      "to": 35
+      "to": 67
     },
     {
-      "from": 27,
+      "from": 35,
       "stepType": "replace",
-      "to": 59
-    },
-    {
-      "from": 27,
-      "slice": {
-        "content": [
-          {
-            "content": [
-              {
-                "text": "Item 1",
-                "type": "text"
-              }
-            ],
-            "type": "paragraph"
-          }
-        ]
-      },
-      "stepType": "replace",
-      "to": 65
-    },
-    {
-      "from": 37,
-      "slice": {
-        "content": [
-          {
-            "content": [
-              {
-                "text": "Item 2",
-                "type": "text"
-              }
-            ],
-            "type": "paragraph"
-          }
-        ]
-      },
-      "stepType": "replace",
-      "to": 45
+      "to": 73
     }
   ]
 }

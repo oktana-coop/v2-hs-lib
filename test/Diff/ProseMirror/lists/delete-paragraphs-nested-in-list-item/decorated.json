@@ -4,26 +4,13 @@
       "node": {
         "content": [
           {
-            "text": "Item 1",
-            "type": "text"
-          }
-        ],
-        "type": "paragraph"
-      },
-      "pos": 27,
-      "type": "widget"
-    },
-    {
-      "node": {
-        "content": [
-          {
             "text": "A paragraph within a list item",
             "type": "text"
           }
         ],
         "type": "paragraph"
       },
-      "pos": 27,
+      "pos": 35,
       "type": "widget"
     },
     {
@@ -36,41 +23,8 @@
         ],
         "type": "paragraph"
       },
-      "pos": 27,
+      "pos": 35,
       "type": "widget"
-    },
-    {
-      "attrs": {
-        "class": "diff-insert",
-        "nodeName": null,
-        "style": null
-      },
-      "from": 28,
-      "to": 34,
-      "type": "inline"
-    },
-    {
-      "node": {
-        "content": [
-          {
-            "text": "Item 2",
-            "type": "text"
-          }
-        ],
-        "type": "paragraph"
-      },
-      "pos": 37,
-      "type": "widget"
-    },
-    {
-      "attrs": {
-        "class": "diff-insert",
-        "nodeName": null,
-        "style": null
-      },
-      "from": 38,
-      "to": 44,
-      "type": "inline"
     }
   ],
   "doc": {

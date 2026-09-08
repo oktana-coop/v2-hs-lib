@@ -5,7 +5,8 @@ import Conversion (convertFromAutomerge, convertToAutomerge, convertToBinary, co
 import Data.Aeson (ToJSON, encode)
 import qualified Data.ByteString.Lazy.Char8 as BL
 import Data.List.NonEmpty (NonEmpty, toList)
-import Diff (proseMirrorDiff, proseMirrorSteps)
+import Diff (proseMirrorDiff)
+import Patching (proseMirrorSteps)
 import Query (extractAssetUrls)
 import Response (ErrorOutput (..), Response (..))
 import Text.Pandoc (PandocError)

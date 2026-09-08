@@ -83,24 +83,6 @@
   },
   "steps": [
     {
-      "from": 27,
-      "slice": {
-        "content": [
-          {
-            "content": [
-              {
-                "text": "Item 1",
-                "type": "text"
-              }
-            ],
-            "type": "paragraph"
-          }
-        ]
-      },
-      "stepType": "replace",
-      "to": 27
-    },
-    {
       "from": 35,
       "slice": {
         "content": [
@@ -121,25 +103,7 @@
         ]
       },
       "stepType": "replace",
-      "to": 43
-    },
-    {
-      "from": 52,
-      "slice": {
-        "content": [
-          {
-            "content": [
-              {
-                "text": "Item 2",
-                "type": "text"
-              }
-            ],
-            "type": "paragraph"
-          }
-        ]
-      },
-      "stepType": "replace",
-      "to": 60
+      "to": 35
     }
   ]
 }
