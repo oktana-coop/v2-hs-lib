@@ -63,6 +63,7 @@ library:
     - Patching
     - Query
   other-modules:
+    - Markdown.PandocWriter
     - ProseMirror.Model
     - ProseMirror.Model.Node
     - ProseMirror.Model.Mark
