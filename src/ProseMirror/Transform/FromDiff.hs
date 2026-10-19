@@ -10,8 +10,8 @@ import qualified DocTree.Common as RichText (Mark)
 import qualified DocTree.LeafTextSpans as PandocTree
 import ProseMirror.Diff (PositionedDiffNode, addPositionsToDiffTree)
 import ProseMirror.Model (Positioned (..), closedSlice, emptySlice, isEmptySlice)
-import qualified ProseMirror.Model as PM (Block (..), BlockNode (..), InlineNode (..), Node (..), TextNode (..), isRootBlockNode, nodeSize, wrapChildrenToBlock)
-import ProseMirror.Transform.Step (AttrStep (..), MarkRangeStep (..), ReplaceStep (..), Step (..))
+import qualified ProseMirror.Model as PM (Block (..), BlockNode (..), InlineNode (..), Meta, Node (..), TextNode (..), isRootBlockNode, nodeSize, wrapChildrenToBlock)
+import ProseMirror.Transform.Step (AttrStep (..), DocAttrStep (..), MarkRangeStep (..), ReplaceStep (..), Step (..))
 import ProseMirror.Tree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode, treeMarkToPMMark)
 import RichTextDiffOp (HeadingLevelDiff (..), MarkDiff (..), RichTextDiffOp (..), getDiffOp, unpackDiffOpValue)
 
@@ -69,8 +69,10 @@ transformSubtree positionedNodeWithDiff transformedChildren = do
 transformPMNode :: PositionedDiffNode -> PM.Node -> PM.Node -> [Step] -> Either String TransformedSubtree
 transformPMNode positionedNodeWithDiff afterNode nodeWithDeletedChildren childSteps = case getDiffOp (value positionedNodeWithDiff) of
   Copy () -> Right (nodeSubtree afterNode childSteps)
-  -- Document metadata has no counterpart in the editor document, so it is treated as a copy (as the decorations do).
-  UpdateMeta _ () -> Right (nodeSubtree afterNode childSteps)
+  -- Document metadata is an attribute of the editor's doc node.
+  UpdateMeta _ () -> case afterNode of
+    PM.BlockNode (PM.PMBlock (PM.Doc meta) _) -> Right (nodeSubtree afterNode (docMetaStep meta : childSteps))
+    _ -> Left "Cannot emit steps: a metadata update on a node that is not the doc."
   -- An inserted node's descendants are inserted too, and inserting the node inserts them all at once, so
   -- the single step here replaces the children's steps. Likewise for deletions below.
   Insert ()
@@ -115,6 +117,9 @@ transformPMNode positionedNodeWithDiff afterNode nodeWithDeletedChildren childSt
 
     headingLevelStep :: Int -> Step
     headingLevelStep level = AttrStep PMAttrStep {attrPos = start, attrName = "level", attrValue = toJSON level}
+
+    docMetaStep :: Maybe PM.Meta -> Step
+    docMetaStep meta = DocAttrStep PMDocAttrStep {docAttrName = "pandocMeta", docAttrValue = toJSON meta}
 
 -- `wrapChildrenToBlock` lifted to any node (inline nodes have no children), joining adjacent text on the way.
 wrapChildrenToNode :: PM.Node -> [PM.Node] -> PM.Node

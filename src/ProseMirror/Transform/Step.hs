@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.Transform.Step (Step (..), ReplaceStep (..), MarkRangeStep (..), AttrStep (..)) where
+module ProseMirror.Transform.Step (Step (..), ReplaceStep (..), MarkRangeStep (..), AttrStep (..), DocAttrStep (..)) where
 
 import Data.Aeson (ToJSON, Value, object, toJSON, (.=))
 import Data.Maybe (catMaybes)
@@ -14,7 +14,10 @@ data MarkRangeStep = PMMarkRangeStep {markFrom :: PMPosition, markTo :: PMPositi
 
 data AttrStep = PMAttrStep {attrPos :: PMPosition, attrName :: T.Text, attrValue :: Value} deriving (Show, Eq)
 
-data Step = ReplaceStep ReplaceStep | AddMarkStep MarkRangeStep | RemoveMarkStep MarkRangeStep | AttrStep AttrStep deriving (Show, Eq)
+-- Sets an attribute of the doc node, which has no position of its own.
+data DocAttrStep = PMDocAttrStep {docAttrName :: T.Text, docAttrValue :: Value} deriving (Show, Eq)
+
+data Step = ReplaceStep ReplaceStep | AddMarkStep MarkRangeStep | RemoveMarkStep MarkRangeStep | AttrStep AttrStep | DocAttrStep DocAttrStep deriving (Show, Eq)
 
 instance ToJSON Step where
   toJSON (ReplaceStep step) =
@@ -29,6 +32,7 @@ instance ToJSON Step where
   toJSON (AddMarkStep step) = markStepToJSON "addMark" step
   toJSON (RemoveMarkStep step) = markStepToJSON "removeMark" step
   toJSON (AttrStep step) = object ["stepType" .= T.pack "attr", "pos" .= attrPos step, "attr" .= attrName step, "value" .= attrValue step]
+  toJSON (DocAttrStep step) = object ["stepType" .= T.pack "docAttr", "attr" .= docAttrName step, "value" .= docAttrValue step]
 
 markStepToJSON :: T.Text -> MarkRangeStep -> Value
 markStepToJSON stepType step = object ["stepType" .= stepType, "mark" .= mark step, "from" .= markFrom step, "to" .= markTo step]

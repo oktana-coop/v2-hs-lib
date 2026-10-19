@@ -1,0 +1,12 @@
+{
+  "type": "doc",
+  "attrs": {
+    "pandocMeta": "{\"title\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"Edited\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"title\"}]},\"status\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"draft\"}]},\"tags\":{\"t\":\"MetaList\",\"c\":[{\"t\":\"MetaMap\",\"c\":{\"name\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"writing\"}]},\"color\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"blue\"}]}}}]},\"output\":{\"t\":\"MetaMap\",\"c\":{\"md_document\":{\"t\":\"MetaMap\",\"c\":{\"variant\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"gfm\"}]},\"preserve_yaml\":{\"t\":\"MetaBool\",\"c\":true}}},\"html_document\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"default\"}]}}},\"updatedAt\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"2025-09-07\"}]}}"
+  },
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [{ "type": "text", "text": "A paragraph." }]
+    }
+  ]
+}

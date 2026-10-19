@@ -1,0 +1,17 @@
+{
+  "attrs": {
+    "pandocMeta": "{\"title\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"Front\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"matter\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"keys\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"in\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"the\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"order\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"of\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"the\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"file\"}]},\"date\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"2025-09-04\"}]},\"tags\":{\"t\":\"MetaList\",\"c\":[{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"writing\"}]},{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"editors\"}]}]},\"author\":{\"t\":\"MetaList\",\"c\":[{\"t\":\"MetaMap\",\"c\":{\"name\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"Ada\"}]},\"affiliation\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"Analytical\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"Engines\"}]}}},{\"t\":\"MetaMap\",\"c\":{\"name\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"Grace\"}]},\"affiliation\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"Navy\"}]}}}]},\"output\":{\"t\":\"MetaMap\",\"c\":{\"md_document\":{\"t\":\"MetaMap\",\"c\":{\"variant\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"gfm\"}]},\"preserve_yaml\":{\"t\":\"MetaBool\",\"c\":true}}},\"html_document\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"default\"}]}}},\"description\":{\"t\":\"MetaBlocks\",\"c\":[{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"A\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"description\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"that\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"spans\"}]},{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"two\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"paragraphs.\"}]}]},\"draft\":{\"t\":\"MetaBool\",\"c\":true},\"matrix\":{\"t\":\"MetaList\",\"c\":[{\"t\":\"MetaList\",\"c\":[{\"t\":\"MetaMap\",\"c\":{\"zeta\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"1\"}]},\"alpha\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"2\"}]}}},{\"t\":\"MetaMap\",\"c\":{\"beta\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"3\"}]},\"gamma\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"4\"}]}}}]}]}}"
+  },
+  "content": [
+    {
+      "content": [
+        {
+          "text": "A paragraph.",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    }
+  ],
+  "type": "doc"
+}

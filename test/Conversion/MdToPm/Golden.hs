@@ -21,7 +21,16 @@ tests = do
         goldenCase "inline-breaks",
         goldenCase "marks",
         goldenCase "lists",
-        goldenCase "meta",
+        testGroup
+          "meta"
+          [ goldenCase $ "meta" </> "basic",
+            goldenCase $ "meta" </> "unsorted-keys",
+            goldenCase $ "meta" </> "later-yaml-blocks",
+            goldenCase $ "meta" </> "ignored-keys",
+            goldenCase $ "meta" </> "only-ignored-keys",
+            goldenCase $ "meta" </> "numeric-keys",
+            goldenCase $ "meta" </> "front-matter-only"
+          ],
         goldenCase "notes",
         goldenCase "ordered-list-start",
         testGroup

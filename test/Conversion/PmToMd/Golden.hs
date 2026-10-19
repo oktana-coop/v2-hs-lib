@@ -19,7 +19,12 @@ tests = do
         goldenCase "images-and-figures",
         goldenCase "marks",
         goldenCase "lists",
-        goldenCase "meta",
+        testGroup
+          "meta"
+          [ goldenCase $ "meta" </> "basic",
+            goldenCase $ "meta" </> "unsorted-keys",
+            goldenCase $ "meta" </> "numeric-keys"
+          ],
         goldenCase "notes",
         testGroup
           "quotes"

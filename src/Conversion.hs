@@ -9,13 +9,16 @@ import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import Format (Format (..))
+import Markdown.PandocReader (readMarkdown)
 import Markdown.PandocWriter (writeNormalizedMarkdown)
+import Metadata.KeyOutline (stripTempMetaOutlineKey)
 import PandocReader as AutomergePandoc.PandocReader (readAutomerge)
 import PandocWriter as AutomergePandoc.PandocWriter (writeAutomerge)
 import ProseMirror.PandocReader (readProseMirror)
 import ProseMirror.PandocWriter (writeProseMirror)
-import Text.Pandoc (Pandoc, PandocError (PandocSomeError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readMarkdown, readNative, readerExtensions, writerExtensions, writerTemplate)
+import Text.Pandoc (Pandoc, PandocError (PandocSomeError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readNative, readerExtensions, writerExtensions, writerTemplate)
 import Text.Pandoc.Class (runIO, setResourcePath)
+import qualified Text.Pandoc.Definition as PandocDef
 import Text.Pandoc.Error (handleError)
 import Text.Pandoc.Extensions (Extension (Ext_fenced_code_blocks, Ext_footnotes, Ext_yaml_metadata_block), enableExtension, pandocExtensions)
 import Text.Pandoc.PDF (makePDF)
@@ -24,15 +27,26 @@ import Text.Pandoc.Templates (compileDefaultTemplate)
 import Text.Pandoc.Writers (writeDocx, writeHtml5String, writeJSON, writeLaTeX, writeNative)
 
 writeToBytes :: (PandocMonad m, MonadIO m, MonadMask m) => Bool -> Format -> WriterOptions -> Pandoc -> m BL.ByteString
-writeToBytes embedResources format = case format of
-  Pandoc -> encodeTextWriter writeNative
-  Markdown -> encodeTextWriter writeNormalizedMarkdown
-  Html -> encodeTextWriter (writeHtml embedResources)
-  Json -> encodeTextWriter writeJSON
-  Automerge -> encodeTextWriter writeAutomerge
-  ProseMirror -> encodeTextWriter writeProseMirror
-  Pdf -> writePdf
-  Docx -> writeDocx
+writeToBytes embedResources format opts = writer opts . (if keepsMetaOrder format then id else stripFromDocument)
+  where
+    writer = case format of
+      Pandoc -> encodeTextWriter writeNative
+      Markdown -> encodeTextWriter writeNormalizedMarkdown
+      Html -> encodeTextWriter (writeHtml embedResources)
+      Json -> encodeTextWriter writeJSON
+      Automerge -> encodeTextWriter writeAutomerge
+      ProseMirror -> encodeTextWriter writeProseMirror
+      Pdf -> writePdf
+      Docx -> writeDocx
+
+    stripFromDocument :: Pandoc -> Pandoc
+    stripFromDocument (PandocDef.Pandoc meta blocks) = PandocDef.Pandoc (stripTempMetaOutlineKey meta) blocks
+
+-- The writers that read the key outline from the temporary metadata key.
+keepsMetaOrder :: Format -> Bool
+keepsMetaOrder Markdown = True
+keepsMetaOrder ProseMirror = True
+keepsMetaOrder _ = False
 
 -- When embedding is requested, inline referenced local resources (e.g. images)
 -- resolved via the resource path as data URIs, producing self-contained HTML.

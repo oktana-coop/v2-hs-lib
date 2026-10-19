@@ -1,0 +1,17 @@
+{
+  "attrs": {
+    "pandocMeta": "{\"zeta\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"1\"}]},\"alpha\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"2\"}]}}"
+  },
+  "content": [
+    {
+      "content": [
+        {
+          "text": "Text.",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    }
+  ],
+  "type": "doc"
+}

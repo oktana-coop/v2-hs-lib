@@ -50,6 +50,7 @@ library:
     - pandoc-types >= 1.23.1
     - pretty-show >= 1.10
     - text >= 2.1.1
+    - yamlet >= 1.0.0.1
   exposed-modules:
     - ProseMirror.Diff
     - ProseMirror.PandocTreeShape
@@ -63,7 +64,11 @@ library:
     - Patching
     - Query
   other-modules:
+    - Markdown.FrontMatter
+    - Markdown.PandocReader
     - Markdown.PandocWriter
+    - Metadata.KeyOutline
+    - ProseMirror.Metadata
     - ProseMirror.Model
     - ProseMirror.Model.Node
     - ProseMirror.Model.Mark

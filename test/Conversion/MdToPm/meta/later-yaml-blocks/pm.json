@@ -1,0 +1,17 @@
+{
+  "attrs": {
+    "pandocMeta": "{\"b\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"1\"}]},\"a\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"2\"}]},\"c\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"3\"}]},\"d\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"4\"}]}}"
+  },
+  "content": [
+    {
+      "content": [
+        {
+          "text": "Text.",
+          "type": "text"
+        }
+      ],
+      "type": "paragraph"
+    }
+  ],
+  "type": "doc"
+}

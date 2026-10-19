@@ -10,9 +10,10 @@ import DocTree.Common as RichText (BlockNode (..), Image (..), InlineSpan (..), 
 import qualified DocTree.GroupedInlines as GroupedInlinesTree
 import qualified DocTree.LeafTextSpans as LeafTextSpansTree
 import GHC.Base (NonEmpty)
+import Metadata.KeyOutline (stripTempMetaOutlineKey)
+import ProseMirror.Metadata (metaFromJsonText, metaToJsonText)
 import ProseMirror.Model (CodeBlockLanguage)
 import qualified ProseMirror.Model as PM (Block (..), BlockNode (..), CodeBlockLanguage (..), HeadingLevel (..), Image (..), InlineNode (..), Link (..), Mark (..), Node (..), NoteId (..), OrderedListStart (..), PMDoc (..), TextNode (..), assertRootNodeIsDoc, wrapChildrenToBlock)
-import ProseMirror.Utils.Json (fromJsonText, toJsonText)
 import qualified Text.Pandoc.Builder as Pandoc
   ( Attr,
     Block (..),
@@ -63,9 +64,9 @@ unrepresentableNodeErrorMessage = "Cannot convert input to ProseMirror: it conta
 
 docWithMetaIfExists :: Pandoc.Meta -> PM.Block
 docWithMetaIfExists meta =
-  if Pandoc.isNullMeta meta
+  if Pandoc.isNullMeta (stripTempMetaOutlineKey meta)
     then PM.Doc Nothing
-    else PM.Doc $ Just $ toJsonText meta
+    else PM.Doc $ Just $ metaToJsonText meta
 
 groupedInlinesPandocTreeToPMTree :: Tree GroupedInlinesTree.DocNode -> Either String PMTree
 groupedInlinesPandocTreeToPMTree (Node (GroupedInlinesTree.Root meta) childTrees) = do
@@ -206,7 +207,7 @@ pmNodeToGroupedInlinesNodeFolder pmTreeNode eitherSubtrees = do
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.Doc maybeMeta) _))) childTrees =
       case maybeMeta of
         Nothing -> Right $ Node (GroupedInlinesTree.Root Pandoc.nullMeta) childTrees
-        Just pmMeta -> case fromJsonText pmMeta of
+        Just pmMeta -> case metaFromJsonText pmMeta of
           (Left err) -> Left err
           (Right pandocMeta) -> Right $ Node (GroupedInlinesTree.Root pandocMeta) childTrees
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.Paragraph) _))) childTrees =

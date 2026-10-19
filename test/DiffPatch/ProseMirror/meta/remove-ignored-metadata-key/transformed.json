@@ -1,0 +1,20 @@
+{
+  "doc": {
+    "attrs": {
+      "pandocMeta": "{\"title\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"A\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"title\"}]}}"
+    },
+    "content": [
+      {
+        "content": [
+          {
+            "text": "A paragraph.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": []
+}

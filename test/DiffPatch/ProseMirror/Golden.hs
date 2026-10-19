@@ -74,6 +74,13 @@ tests = do
             goldenCase $ "marks" </> "replace-strong-emphasis-with-emphasis"
           ],
         testGroup
+          "meta"
+          [ goldenCase $ "meta" </> "add-front-matter",
+            goldenCase $ "meta" </> "change-metadata-value",
+            goldenCase $ "meta" </> "remove-ignored-metadata-key",
+            goldenCase $ "meta" </> "reorder-metadata-keys"
+          ],
+        testGroup
           "notes"
           [ goldenCase $ "notes" </> "add-note-in-the-end-of-document",
             goldenCase $ "notes" </> "add-note-in-the-end-of-paragraph",
