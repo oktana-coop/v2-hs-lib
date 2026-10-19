@@ -248,4 +248,4 @@ constraints: any.Glob ==0.10.2,
              any.zlib ==0.7.1.0,
              zlib -bundled-c-zlib +non-blocking-ffi +pkg-config,
              any.zlib-clib ==1.3.1
-index-state: hackage.haskell.org 2026-10-16T12:35:04Z, head.hackage.ghc.haskell.org 2026-10-15T07:17:53Z
+index-state: hackage.haskell.org 2026-10-16T12:35:04Z
