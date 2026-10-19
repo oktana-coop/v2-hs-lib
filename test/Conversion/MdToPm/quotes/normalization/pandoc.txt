@@ -5,11 +5,11 @@
 , Para
     [ Str "Curly"
     , Space
-    , Quoted DoubleQuote [ Str "double" ]
+    , Str "\8220double\8221"
     , Space
     , Str "and"
     , Space
-    , Quoted SingleQuote [ Str "single" ]
+    , Str "\8216single\8217"
     , Space
     , Str "quotes"
     , Space

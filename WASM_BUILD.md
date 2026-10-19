@@ -43,25 +43,30 @@ wasm-opt -Oz WASM_MODULE_PATH -o ../v2/src/modules/infrastructure/wasm/files/v2-
 
 ## Dependency Versions
 
-`cabal.project.wasm-wasi.freeze` pins the versions of the dependencies. Update it before building whenever the dependencies change, and commit it together with the WASM module it produced.
+`cabal.project.wasm-wasi.freeze` pins the versions of the dependencies. Update it together with the native build's freeze file (see the [README](README.md#dependency-versions)), before building, and commit it together with the WASM module it produced.
 
 After adding or removing a dependency, or changing `cabal.project.wasm-wasi`, run:
 
 ```
-wasm32-wasi-cabal freeze --project-file=cabal.project.wasm-wasi --builddir=dist-wasm --enable-tests
+wasm32-wasi-cabal freeze --project-file=cabal.project.wasm-wasi --builddir=dist-wasm
 ```
 
-To upgrade all the dependencies, or when a dependency needs a newer package than the freeze file allows, run:
+To upgrade the dependencies, follow the steps in the [README](README.md#dependency-versions). For the WebAssembly build, first update the package index:
+
+```
+wasm32-wasi-cabal update
+```
+
+Then, after setting `index-state` in `cabal.project`, freeze it again:
 
 ```
 rm cabal.project.wasm-wasi.freeze
-wasm32-wasi-cabal update
-wasm32-wasi-cabal freeze --project-file=cabal.project.wasm-wasi --builddir=dist-wasm --enable-tests
+wasm32-wasi-cabal freeze --project-file=cabal.project.wasm-wasi --builddir=dist-wasm
 ```
 
 ## Updating the WASM Tools
 
-To move to a newer revision of ghc-wasm-meta, run `nix --extra-experimental-features 'nix-command flakes' flake update ghc-wasm-meta` outside the shell with the WASM tools. A new GHC comes with new versions of `base` and the other packages it ships with, which the freeze file pins, so then open the shell again, upgrade the dependencies and build. Commit `flake.lock` together with the freeze file.
+To move to a newer revision of ghc-wasm-meta, run `nix --extra-experimental-features 'nix-command flakes' flake update ghc-wasm-meta` outside the shell with the WASM tools. A new GHC comes with new versions of `base` and the other packages it ships with, which the freeze files pin. So then move the native build to the same GHC version (`with-compiler` in `cabal.project`), delete both freeze files, freeze both builds again and build. Commit `flake.lock` together with the freeze files.
 
 ## Run using wasmtime
 
@@ -71,11 +76,22 @@ You can confirm that the CLI is working by using the [wasmtime](https://wasmtime
 wasmtime WASM_MODULE_PATH convertToText --from markdown --to html '# Hello'
 ```
 
-## Notes on the Overrides
+## WASM Overrides
 
-- The overrides in `cabal.project.wasm-wasi` are based mostly on https://github.com/haskell-wasm/pandoc/blob/wasm/cabal.project, which is a Pandoc build for wasm.
-- Pandoc was downgraded to version `3.5` because this was the version that was working with the wasm build at the time of the initial implementation.
-- [haskell-wasm](https://github.com/orgs/haskell-wasm/repositories) GitHub repositories is probably the best resource for packages that will work for WASM & WASI.
+`cabal.project.wasm-wasi` imports `cabal.project`, so both builds share the same packages and constraints. It only adds what WebAssembly needs: a few package options, and patched versions of some dependencies.
+
+### Patched Dependencies
+
+A few dependencies don't build for WebAssembly as published on Hackage, e.g. because they rely on features WASI doesn't provide, such as networking. `cabal.project.wasm-wasi` takes each of them from its git repository at a fixed revision instead, with a patch from `wasm/patches/` that makes it build. The patches come from [Pandoc's own WebAssembly build](https://github.com/jgm/pandoc/tree/main/wasm), which keeps them working for the versions Pandoc uses.
+
+For running the build, this needs nothing extra: cabal clones the repositories and applies the patches by itself. The build reads the patches from this repository, so they are committed with the rest of the source.
+
+When upgrading Pandoc or one of the patched dependencies:
+
+- Compare `cabal.project.wasm-wasi` and `wasm/patches/` with Pandoc's files at the new release, and update the revisions and the patches.
+- Keep each revision at the version the native build uses, so that both builds run the same code.
+- Some patches are adjusted from Pandoc's, e.g. so that macOS's `patch` applies them. Keep these adjustments, or check whether they are still needed.
+- When a dependency publishes a version that builds for WebAssembly, remove its revision and its patch.
 
 ## More Resources
 
