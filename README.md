@@ -6,7 +6,7 @@ It exposes v2 modules written in Haskell which are meant to be used in the web e
 
 ### Prerequisites
 
-- Install GHC and [cabal](https://www.haskell.org/cabal/), e.g. with [GHCup](https://www.haskell.org/ghcup/). Use the GHC version that `with-compiler` names in `cabal.project`.
+- Install GHC and [cabal](https://www.haskell.org/cabal/), e.g. with [GHCup](https://www.haskell.org/ghcup/). Use the GHC version that `with-compiler` names in `cabal.project`, and a cabal version that supports it.
 - Check out `automerge-pandoc`, `pandoc-diff` and `pandoc-tree` next to this repository.
 
 ### Build Natively

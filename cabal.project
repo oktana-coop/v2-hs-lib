@@ -1,9 +1,9 @@
 packages: . ../automerge-pandoc ../pandoc-diff ../pandoc-tree
 
-with-compiler: ghc-9.10.3
+with-compiler: ghc-9.14.1
 
 index-state: hackage.haskell.org 2026-10-19T11:51:29Z
 
 tests: True
 
-allow-newer: gridtables:doclayout
+allow-newer: patience:containers, tasty-hspec:base

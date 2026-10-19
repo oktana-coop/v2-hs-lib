@@ -11,12 +11,12 @@ More specifically, it is also compiled as a [WASI](https://wasi.dev/) module so 
 
 ## WASM Tools
 
-The WASM tools come from the [ghc-wasm-meta](https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta) flake, with the GHC `9.10` flavour (`all_9_10`), not the latest one. `flake.nix` declares that flake as the only input and `flake.lock` pins it to a revision, so every build uses the same compiler.
+The WASM tools come from the [ghc-wasm-meta](https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta) flake. Use the flavour for the GHC version that `with-compiler` names in `cabal.project`, so that both builds use the same GHC version. `flake.nix` declares that flake as the only input and `flake.lock` pins it to a revision, so every build uses the same compiler.
 
 All the commands below run in a shell with the WASM tools. Open it from the repository's root with:
 
 ```
-nix --extra-experimental-features 'nix-command flakes' shell --inputs-from . 'ghc-wasm-meta#all_9_10'
+nix --extra-experimental-features 'nix-command flakes' shell --inputs-from . 'ghc-wasm-meta#all_9_14'
 ```
 
 and exit it with `exit`.
