@@ -1,5 +1,7 @@
 packages: . ../automerge-pandoc ../pandoc-diff ../pandoc-tree
 
+active-repositories: hackage.haskell.org
+
 if arch(wasm32)
   -- Required for TemplateHaskell. When using wasm32-wasi-cabal from
   -- ghc-wasm-meta, this is superseded by the global cabal.config.
