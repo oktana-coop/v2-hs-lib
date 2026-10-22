@@ -7,24 +7,31 @@ import qualified Data.Text as T
 import Data.Tree (Tree)
 import Diffing (diffForProseMirror)
 import qualified DocTree.LeafTextSpans as PandocTree
-import Format (Format (..))
+import Format (Format)
 import ProseMirror.Transform.FromDiff (TransformedPMDoc, toTransformedPMDoc)
 import RichTextDiff (DiffOptions (..))
 import RichTextDiffOp (RichTextDiffOp)
-import Text.Pandoc (PandocError (PandocSomeError))
+import Text.Pandoc (Pandoc (..), PandocError (PandocSomeError))
 
 proseMirrorSteps :: Format -> Format -> String -> String -> IO (Either (NonEmpty PandocError) TransformedPMDoc)
 proseMirrorSteps beforeFormat afterFormat beforeStr afterStr = do
   eitherDocs <- readDocuments beforeFormat afterFormat beforeStr afterStr
-  pure $ eitherDocs >>= diffToPMSteps . diffForProseMirror diffOptions
+  pure $ do
+    docs <- eitherDocs
+    diffToPMSteps (metaDiffers docs) (diffForProseMirror diffOptions docs)
   where
     -- Steps are exact edits, so a heavy reword must stay a set of small edits instead of collapsing into a
     -- whole-span replace.
     diffOptions :: DiffOptions
     diffOptions = DiffOptions {collapseRewrites = False}
 
-    diffToPMSteps :: Tree (RichTextDiffOp PandocTree.DocNode) -> Either (NonEmpty PandocError) TransformedPMDoc
-    diffToPMSteps = first (pure . toPandocError) . toTransformedPMDoc
+    -- The diff leaves out the order of the metadata keys, but the editor must still get a reorder: otherwise
+    -- its next contribution would write the old order back. So the metadata is compared with its key outline.
+    metaDiffers :: (Pandoc, Pandoc) -> Bool
+    metaDiffers (Pandoc beforeMeta _, Pandoc afterMeta _) = beforeMeta /= afterMeta
+
+    diffToPMSteps :: Bool -> Tree (RichTextDiffOp PandocTree.DocNode) -> Either (NonEmpty PandocError) TransformedPMDoc
+    diffToPMSteps updatesMeta diff = first (pure . toPandocError) (toTransformedPMDoc updatesMeta diff)
 
     toPandocError :: String -> PandocError
     toPandocError = PandocSomeError . T.pack

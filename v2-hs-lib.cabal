@@ -109,6 +109,7 @@ test-suite v2-hs-lib-test
       Conversion.Unsupported
       Conversion.Utils
       DiffPatch.Golden
+      DiffPatch.MetaKeyOrder
       DiffPatch.ProseMirror.Golden
       DiffPatch.Utils
       Query.Spec
@@ -127,6 +128,7 @@ test-suite v2-hs-lib-test
     , filepath >=1.5.2.0
     , hspec >=2.11.10
     , pandoc >=3.5
+    , pandoc-diff
     , pandoc-tree
     , tasty >=1.5.3
     , tasty-golden >=2.3.5

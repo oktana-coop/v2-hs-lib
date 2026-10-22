@@ -1,0 +1,60 @@
+{
+  "doc": {
+    "attrs": {
+      "pandocMeta": "{\"title\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"A\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"title\"}]},\"status\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"draft\"}]}}"
+    },
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Introduction",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "The first paragraph stays the same.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "The second paragraph has one word changed.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "attr": "pandocMeta",
+      "stepType": "docAttr",
+      "value": "{\"title\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"A\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"title\"}]},\"status\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"draft\"}]}}"
+    },
+    {
+      "from": 77,
+      "slice": {
+        "content": [
+          {
+            "text": "one",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 78
+    }
+  ]
+}

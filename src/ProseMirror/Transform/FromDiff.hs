@@ -20,15 +20,24 @@ data TransformedPMDoc = TransformedPMDoc {doc :: PM.Node, steps :: [Step]} deriv
 instance ToJSON TransformedPMDoc where
   toJSON transformed = object ["doc" .= doc transformed, "steps" .= steps transformed]
 
-toTransformedPMDoc :: Tree (RichTextDiffOp PandocTree.DocNode) -> Either String TransformedPMDoc
-toTransformedPMDoc = foldTree transformSubtree . addPositionsToDiffTree >=> toDocWithSteps
+-- With `updatesMeta`, the steps also update the editor's metadata.
+toTransformedPMDoc :: Bool -> Tree (RichTextDiffOp PandocTree.DocNode) -> Either String TransformedPMDoc
+toTransformedPMDoc updatesMeta = foldTree transformSubtree . addPositionsToDiffTree >=> toDocWithSteps
   where
     toDocWithSteps :: TransformedSubtree -> Either String TransformedPMDoc
     toDocWithSteps rootSubtree = case afterNodes rootSubtree of
-      [root] | PM.isRootBlockNode root -> Right TransformedPMDoc {doc = root, steps = transactionSteps}
+      [root@(PM.BlockNode (PM.PMBlock (PM.Doc meta) _))] -> Right TransformedPMDoc {doc = root, steps = transactionSteps meta}
       _ -> Left "Cannot emit steps: the diff tree does not have a single doc root."
       where
-        transactionSteps = collapseDeleteInsertIntoReplace (subtreeSteps rootSubtree)
+        transactionSteps :: Maybe PM.Meta -> [Step]
+        transactionSteps meta = collapseDeleteInsertIntoReplace (docMetaSteps meta <> subtreeSteps rootSubtree)
+
+    -- Document metadata is an attribute of the editor's doc node, set by a step of its own.
+    docMetaSteps :: Maybe PM.Meta -> [Step]
+    docMetaSteps meta =
+      if updatesMeta
+        then [DocAttrStep PMDocAttrStep {docAttrName = "pandocMeta", docAttrValue = toJSON meta}]
+        else []
 
 -- A subtree transformed to ProseMirror: its nodes in the "after" document, the same nodes with the deleted
 -- ones still in place (a deleted ancestor is sized from them) and the steps that produce it.
@@ -69,10 +78,10 @@ transformSubtree positionedNodeWithDiff transformedChildren = do
 transformPMNode :: PositionedDiffNode -> PM.Node -> PM.Node -> [Step] -> Either String TransformedSubtree
 transformPMNode positionedNodeWithDiff afterNode nodeWithDeletedChildren childSteps = case getDiffOp (value positionedNodeWithDiff) of
   Copy () -> Right (nodeSubtree afterNode childSteps)
-  -- Document metadata is an attribute of the editor's doc node.
-  UpdateMeta _ () -> case afterNode of
-    PM.BlockNode (PM.PMBlock (PM.Doc meta) _) -> Right (nodeSubtree afterNode (docMetaStep meta : childSteps))
-    _ -> Left "Cannot emit steps: a metadata update on a node that is not the doc."
+  -- The metadata step does not follow this op (see `toTransformedPMDoc`).
+  UpdateMeta _ ()
+    | PM.isRootBlockNode afterNode -> Right (nodeSubtree afterNode childSteps)
+    | otherwise -> Left "Cannot emit steps: a metadata update on a node that is not the doc."
   -- An inserted node's descendants are inserted too, and inserting the node inserts them all at once, so
   -- the single step here replaces the children's steps. Likewise for deletions below.
   Insert ()
@@ -117,9 +126,6 @@ transformPMNode positionedNodeWithDiff afterNode nodeWithDeletedChildren childSt
 
     headingLevelStep :: Int -> Step
     headingLevelStep level = AttrStep PMAttrStep {attrPos = start, attrName = "level", attrValue = toJSON level}
-
-    docMetaStep :: Maybe PM.Meta -> Step
-    docMetaStep meta = DocAttrStep PMDocAttrStep {docAttrName = "pandocMeta", docAttrValue = toJSON meta}
 
 -- `wrapChildrenToBlock` lifted to any node (inline nodes have no children), joining adjacent text on the way.
 wrapChildrenToNode :: PM.Node -> [PM.Node] -> PM.Node
