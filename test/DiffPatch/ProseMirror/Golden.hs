@@ -78,7 +78,9 @@ tests = do
           [ goldenCase $ "meta" </> "add-front-matter",
             goldenCase $ "meta" </> "change-metadata-value",
             goldenCase $ "meta" </> "remove-ignored-metadata-key",
-            goldenCase $ "meta" </> "reorder-metadata-keys"
+            goldenCase $ "meta" </> "reorder-metadata-keys",
+            goldenCase $ "meta" </> "change-body",
+            goldenCase $ "meta" </> "change-metadata-and-body"
           ],
         testGroup
           "notes"
