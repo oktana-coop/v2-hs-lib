@@ -28,6 +28,7 @@ library
       ProseMirror.PandocReader
       Conversion
       Diffing
+      Error
       Format
       Patching
       Query
@@ -100,6 +101,7 @@ test-suite v2-hs-lib-test
   main-is: Spec.hs
   other-modules:
       Conversion.Embed
+      Conversion.Errors
       Conversion.Golden
       Conversion.MdToPm.Golden
       Conversion.MetaKeyOrder
@@ -108,6 +110,7 @@ test-suite v2-hs-lib-test
       Conversion.RoundTrip
       Conversion.Unsupported
       Conversion.Utils
+      DiffPatch.Errors
       DiffPatch.Golden
       DiffPatch.MetaKeyOrder
       DiffPatch.ProseMirror.Golden

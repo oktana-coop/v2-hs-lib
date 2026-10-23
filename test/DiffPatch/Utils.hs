@@ -9,9 +9,9 @@ import qualified Data.Text.Encoding as TE
 import qualified Data.Text.IO as TIO
 import qualified Data.Text.Lazy as LT
 import Diffing (proseMirrorDiff)
+import Error (Error)
 import Patching (proseMirrorSteps)
 import Format (Format)
-import Text.Pandoc (PandocError)
 import Utils (TextNormalizer)
 
 toJsonText :: (ToJSON a) => a -> T.Text
@@ -23,7 +23,7 @@ readFilesAndProducePmDiff inputFormat = readFilesAndProduce (proseMirrorDiff inp
 readFilesAndProducePmSteps :: Format -> Format -> TextNormalizer -> FilePath -> FilePath -> IO BL.ByteString
 readFilesAndProducePmSteps beforeFormat afterFormat = readFilesAndProduce (proseMirrorSteps beforeFormat afterFormat)
 
-readFilesAndProduce :: (ToJSON a) => (String -> String -> IO (Either (NonEmpty PandocError) a)) -> TextNormalizer -> FilePath -> FilePath -> IO BL.ByteString
+readFilesAndProduce :: (ToJSON a) => (String -> String -> IO (Either (NonEmpty Error) a)) -> TextNormalizer -> FilePath -> FilePath -> IO BL.ByteString
 readFilesAndProduce produce normalizer input1FilePath input2FilePath = do
   input1Text <- TIO.readFile input1FilePath
   input2Text <- TIO.readFile input2FilePath

@@ -7,13 +7,14 @@ import qualified Data.Text as T
 import Data.Tree (Tree)
 import Diffing (diffForProseMirror)
 import qualified DocTree.LeafTextSpans as PandocTree
+import Error (Error (PatchError))
 import Format (Format)
 import ProseMirror.Transform.FromDiff (TransformedPMDoc, toTransformedPMDoc)
 import RichTextDiff (DiffOptions (..))
 import RichTextDiffOp (RichTextDiffOp)
-import Text.Pandoc (Pandoc (..), PandocError (PandocSomeError))
+import Text.Pandoc (Pandoc (..))
 
-proseMirrorSteps :: Format -> Format -> String -> String -> IO (Either (NonEmpty PandocError) TransformedPMDoc)
+proseMirrorSteps :: Format -> Format -> String -> String -> IO (Either (NonEmpty Error) TransformedPMDoc)
 proseMirrorSteps beforeFormat afterFormat beforeStr afterStr = do
   eitherDocs <- readDocuments beforeFormat afterFormat beforeStr afterStr
   pure $ do
@@ -30,8 +31,5 @@ proseMirrorSteps beforeFormat afterFormat beforeStr afterStr = do
     metaDiffers :: (Pandoc, Pandoc) -> Bool
     metaDiffers (Pandoc beforeMeta _, Pandoc afterMeta _) = beforeMeta /= afterMeta
 
-    diffToPMSteps :: Bool -> Tree (RichTextDiffOp PandocTree.DocNode) -> Either (NonEmpty PandocError) TransformedPMDoc
-    diffToPMSteps updatesMeta diff = first (pure . toPandocError) (toTransformedPMDoc updatesMeta diff)
-
-    toPandocError :: String -> PandocError
-    toPandocError = PandocSomeError . T.pack
+    diffToPMSteps :: Bool -> Tree (RichTextDiffOp PandocTree.DocNode) -> Either (NonEmpty Error) TransformedPMDoc
+    diffToPMSteps updatesMeta diff = first (pure . PatchError . T.pack) (toTransformedPMDoc updatesMeta diff)

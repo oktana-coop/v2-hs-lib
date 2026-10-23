@@ -6,18 +6,17 @@ import Data.Aeson (ToJSON, encode)
 import qualified Data.ByteString.Lazy.Char8 as BL
 import Data.List.NonEmpty (NonEmpty, toList)
 import Diffing (proseMirrorDiff)
+import Error (Error)
 import Patching (proseMirrorSteps)
 import Query (extractAssetUrls)
-import Response (ErrorOutput (..), Response (..))
-import Text.Pandoc (PandocError)
-import Text.Pandoc.Error (renderError)
+import Response (Response (..), errorOutput)
 
-wrapToResponse :: Either (NonEmpty PandocError) a -> Response a
+wrapToResponse :: Either (NonEmpty Error) a -> Response a
 wrapToResponse result = case result of
-  Left errors -> Failure $ map (ErrorMessage . renderError) (toList errors)
+  Left errors -> Failure $ map errorOutput (toList errors)
   Right value -> Success value
 
-wrapToReponseAndPrint :: (ToJSON a) => (Either (NonEmpty PandocError) a) -> IO ()
+wrapToReponseAndPrint :: (ToJSON a) => (Either (NonEmpty Error) a) -> IO ()
 wrapToReponseAndPrint = BL.putStrLn . encode . wrapToResponse
 
 main :: IO ()

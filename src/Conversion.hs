@@ -1,13 +1,14 @@
-module Conversion (convertFromAutomerge, convertToAutomerge, convertToBinary, convertToText, readFrom, readDocuments, pandocReaderOptions, pandocWriterOptions, Format (..)) where
+module Conversion (convertFromAutomerge, convertToAutomerge, convertToBinary, convertToText, readFrom, readDocument, readDocuments, pandocReaderOptions, pandocWriterOptions, Format (..)) where
 
 import Control.Monad.Catch (MonadMask)
 import Control.Monad.Except (throwError)
 import Control.Monad.Trans (MonadIO (..))
-import Data.Bifunctor (first)
+import Data.Bifunctor (bimap, first)
 import qualified Data.ByteString.Lazy.Char8 as BL
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
+import Error (Error (..), errorMessage)
 import Format (Format (..))
 import Markdown.PandocReader (readMarkdown)
 import Markdown.PandocWriter (writeNormalizedMarkdown)
@@ -16,10 +17,11 @@ import PandocReader as AutomergePandoc.PandocReader (readAutomerge)
 import PandocWriter as AutomergePandoc.PandocWriter (writeAutomerge)
 import ProseMirror.PandocReader (readProseMirror)
 import ProseMirror.PandocWriter (writeProseMirror)
-import Text.Pandoc (Pandoc, PandocError (PandocSomeError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readNative, readerExtensions, writerExtensions, writerTemplate)
+import System.Exit (die)
+import Text.Pandoc (Pandoc, PandocError (PandocSomeError, PandocUnknownReaderError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readNative, readerExtensions, writerExtensions, writerTemplate)
 import Text.Pandoc.Class (runIO, setResourcePath)
 import qualified Text.Pandoc.Definition as PandocDef
-import Text.Pandoc.Error (handleError)
+import Text.Pandoc.Error (renderError)
 import Text.Pandoc.Extensions (Extension (Ext_fenced_code_blocks, Ext_footnotes, Ext_yaml_metadata_block), enableExtension, pandocExtensions)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.SelfContained (makeSelfContained)
@@ -78,9 +80,20 @@ readFrom format = case format of
   Json -> readJSON
   Automerge -> readAutomerge
   ProseMirror -> readProseMirror
-  -- TODO: Implement these. For the ones that cannot implemented (potentially PDF), return an error
-  Pdf -> undefined
-  Docx -> undefined
+  -- TODO: Implement DOCX. PDF can't be read.
+  Pdf -> noReader
+  Docx -> noReader
+  where
+    noReader :: ReaderOptions -> T.Text -> PandocIO Pandoc
+    noReader _ _ = throwError . PandocUnknownReaderError . T.toLower . T.pack . show $ format
+
+readDocument :: Format -> T.Text -> IO (Either Error Pandoc)
+readDocument format input = do
+  result <- runIO (readFrom format pandocReaderOptions input)
+  pure (first toReadError result)
+  where
+    toReadError :: PandocError -> Error
+    toReadError = ReadError format . renderError
 
 -- Explicitly enabling the fenced code blocks and footnotes extensions. For some reason they aren't included when
 -- we're just using `def` in the reader/writer options.
@@ -92,14 +105,12 @@ pandocReaderOptions = def {readerExtensions = enableExtension Ext_footnotes $ en
 pandocWriterOptions :: WriterOptions
 pandocWriterOptions = def {writerWrapText = WrapPreserve, writerExtensions = enableExtension Ext_footnotes $ enableExtension Ext_fenced_code_blocks $ enableExtension Ext_yaml_metadata_block pandocExtensions}
 
-convert :: Format -> Format -> Maybe FilePath -> String -> IO (Either PandocError BL.ByteString)
-convert inputFormat outputFormat maybeResourcePath input = do
-  runIO $ do
-    -- Tell Pandoc where to resolve referenced assets from when it later embeds them (HTML/Docx).
-    mapM_ (\dir -> setResourcePath [dir]) maybeResourcePath
-    doc <- readFrom inputFormat pandocReaderOptions (T.pack input)
-    opts <- addTemplate outputFormat pandocWriterOptions
-    writeToBytes (shouldEmbedResources outputFormat maybeResourcePath) outputFormat opts doc
+writeTo :: Format -> Maybe FilePath -> Pandoc -> PandocIO BL.ByteString
+writeTo outputFormat maybeResourcePath doc = do
+  -- Tell Pandoc where to resolve referenced assets from when it embeds them (HTML/Docx).
+  mapM_ (\dir -> setResourcePath [dir]) maybeResourcePath
+  opts <- addTemplate outputFormat pandocWriterOptions
+  writeToBytes (shouldEmbedResources outputFormat maybeResourcePath) outputFormat opts doc
   where
     shouldEmbedResources :: Format -> Maybe FilePath -> Bool
     shouldEmbedResources Html (Just _) = True
@@ -116,34 +127,45 @@ addTemplate format opts = case format of
       tmpl <- compileDefaultTemplate fmt
       return options {writerTemplate = Just tmpl}
 
-convertToText :: Format -> Format -> Maybe FilePath -> String -> IO (Either (NonEmpty PandocError) T.Text)
-convertToText inputFormat outputFormat maybeResourcePath input = (fmap . fmap) byteStringToText (wrapErrorToNonEmptyList $ convert inputFormat outputFormat maybeResourcePath input)
+writeDocument :: Format -> Maybe FilePath -> Pandoc -> IO (Either Error BL.ByteString)
+writeDocument format maybeResourcePath doc = do
+  result <- runIO (writeTo format maybeResourcePath doc)
+  pure (first toWriteError result)
   where
-    wrapErrorToNonEmptyList :: IO (Either PandocError BL.ByteString) -> IO (Either (NonEmpty PandocError) BL.ByteString)
-    -- `first` acts on the first argument of a BiFunctor like Either (the Left value in our case).
-    -- `pure` wraps the error in the NonEmpty list structure.
-    wrapErrorToNonEmptyList = fmap (first pure)
+    toWriteError :: PandocError -> Error
+    toWriteError = WriteError format . renderError
 
+convert :: Format -> Format -> Maybe FilePath -> String -> IO (Either Error BL.ByteString)
+convert inputFormat outputFormat maybeResourcePath input = do
+  eitherDoc <- readDocument inputFormat (T.pack input)
+  either (pure . Left) (writeDocument outputFormat maybeResourcePath) eitherDoc
+
+convertToText :: Format -> Format -> Maybe FilePath -> String -> IO (Either (NonEmpty Error) T.Text)
+convertToText inputFormat outputFormat maybeResourcePath input = do
+  result <- convert inputFormat outputFormat maybeResourcePath input
+  -- `pure` wraps the error in the NonEmpty list structure.
+  pure (bimap pure byteStringToText result)
+  where
     byteStringToText :: BL.ByteString -> T.Text
     byteStringToText = TE.decodeUtf8 . BL.toStrict
 
+-- The bytes are the whole output, so an error can't come with them: it ends the process, with its message on stderr.
 convertToBinary :: Format -> Format -> Maybe FilePath -> String -> IO BL.ByteString
 convertToBinary inputFormat outputFormat maybeResourcePath input = do
   result <- convert inputFormat outputFormat maybeResourcePath input
-  successBytes <- handleError result
-  return successBytes
+  either (die . T.unpack . errorMessage) pure result
 
-convertFromAutomerge :: Format -> String -> IO (Either (NonEmpty PandocError) T.Text)
+convertFromAutomerge :: Format -> String -> IO (Either (NonEmpty Error) T.Text)
 convertFromAutomerge outputFormat = convertToText Automerge outputFormat Nothing
 
-convertToAutomerge :: Format -> String -> IO (Either (NonEmpty PandocError) T.Text)
+convertToAutomerge :: Format -> String -> IO (Either (NonEmpty Error) T.Text)
 convertToAutomerge inputFormat input = convertToText inputFormat Automerge Nothing input
 
 -- Reads two documents, each in its own format, reporting the errors of both when both fail.
-readDocuments :: Format -> Format -> String -> String -> IO (Either (NonEmpty PandocError) (Pandoc, Pandoc))
+readDocuments :: Format -> Format -> String -> String -> IO (Either (NonEmpty Error) (Pandoc, Pandoc))
 readDocuments format1 format2 doc1Str doc2Str = do
-  eitherDoc1 <- runIO $ readFrom format1 pandocReaderOptions (T.pack doc1Str)
-  eitherDoc2 <- runIO $ readFrom format2 pandocReaderOptions (T.pack doc2Str)
+  eitherDoc1 <- readDocument format1 (T.pack doc1Str)
+  eitherDoc2 <- readDocument format2 (T.pack doc2Str)
   pure $ bothOrErrors eitherDoc1 eitherDoc2
   where
     -- Unlike `Either`'s applicative, a failure on one side does not hide a failure on the other.

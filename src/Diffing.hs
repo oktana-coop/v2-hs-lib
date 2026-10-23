@@ -4,15 +4,16 @@ import Conversion (readDocuments)
 import Data.List.NonEmpty (NonEmpty)
 import Data.Tree (Tree (..))
 import qualified DocTree.LeafTextSpans as PandocTree
+import Error (Error)
 import Format (Format)
 import Metadata.KeyOutline (KeyOutline, addKeyOutline, stripTempMetaOutlineKey, takeKeyOutline)
 import ProseMirror.Diff (DecoratedPMDoc, toDecoratedPMDoc)
 import ProseMirror.PandocTreeShape (dropDetailsLostInProseMirror, reconcileWithProseMirrorModel)
 import RichTextDiff (DiffOptions, defaultDiffOptions, getAnnotatedTree)
 import RichTextDiffOp (RichTextDiffOp)
-import Text.Pandoc (Pandoc (..), PandocError)
+import Text.Pandoc (Pandoc (..))
 
-proseMirrorDiff :: Format -> String -> String -> IO (Either (NonEmpty PandocError) DecoratedPMDoc)
+proseMirrorDiff :: Format -> String -> String -> IO (Either (NonEmpty Error) DecoratedPMDoc)
 proseMirrorDiff format beforeStr afterStr = (fmap . fmap) (toDecoratedPMDoc . diffForProseMirror defaultDiffOptions) (readDocuments format format beforeStr afterStr)
 
 -- Diffs two documents as ProseMirror will show them: reconciled with its model, and without the details it
