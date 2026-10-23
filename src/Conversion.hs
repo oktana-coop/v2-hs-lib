@@ -8,7 +8,7 @@ import qualified Data.ByteString.Lazy.Char8 as BL
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
-import Error (Error (..), errorMessage)
+import Error (Error (..))
 import Format (Format (..))
 import Markdown.PandocReader (readMarkdown)
 import Markdown.PandocWriter (writeNormalizedMarkdown)
@@ -17,7 +17,6 @@ import PandocReader as AutomergePandoc.PandocReader (readAutomerge)
 import PandocWriter as AutomergePandoc.PandocWriter (writeAutomerge)
 import ProseMirror.PandocReader (readProseMirror)
 import ProseMirror.PandocWriter (writeProseMirror)
-import System.Exit (die)
 import Text.Pandoc (Pandoc, PandocError (PandocParseError, PandocSomeError, PandocUnknownReaderError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readNative, readerExtensions, writerExtensions, writerTemplate)
 import Text.Pandoc.Class (runIO, setResourcePath)
 import qualified Text.Pandoc.Definition as PandocDef
@@ -160,11 +159,10 @@ convertToText inputFormat outputFormat maybeResourcePath input = do
     byteStringToText :: BL.ByteString -> T.Text
     byteStringToText = TE.decodeUtf8 . BL.toStrict
 
--- The bytes are the whole output, so an error can't come with them: it ends the process, with its message on stderr.
-convertToBinary :: Format -> Format -> Maybe FilePath -> String -> IO BL.ByteString
+convertToBinary :: Format -> Format -> Maybe FilePath -> String -> IO (Either (NonEmpty Error) BL.ByteString)
 convertToBinary inputFormat outputFormat maybeResourcePath input = do
   result <- convert inputFormat outputFormat maybeResourcePath input
-  either (die . T.unpack . errorMessage) pure result
+  pure (first pure result)
 
 convertFromAutomerge :: Format -> String -> IO (Either (NonEmpty Error) T.Text)
 convertFromAutomerge outputFormat = convertToText Automerge outputFormat Nothing

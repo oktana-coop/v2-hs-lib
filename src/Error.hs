@@ -1,4 +1,4 @@
-module Error (Error (..), errorMessage) where
+module Error (Error (..)) where
 
 import qualified Data.Text as T
 import Format (Format)
@@ -9,9 +9,3 @@ data Error
   | WriteError Format T.Text
   | PatchError T.Text
   deriving (Show, Eq)
-
-errorMessage :: Error -> T.Text
-errorMessage (ReadError _ message) = message
-errorMessage (InvalidMetadataError message) = message
-errorMessage (WriteError _ message) = message
-errorMessage (PatchError message) = message

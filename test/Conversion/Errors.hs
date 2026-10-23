@@ -2,10 +2,10 @@
 
 module Conversion.Errors (tests) where
 
-import Conversion (convertToText)
+import Conversion (convertToBinary, convertToText)
 import qualified Data.Text as T
 import Error (Error (..))
-import Format (Format (Markdown, Pdf, ProseMirror))
+import Format (Format (Docx, Markdown, Pdf, ProseMirror))
 import Test.Hspec (Spec, describe, it, shouldReturn, shouldSatisfy)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hspec (testSpec)
@@ -19,7 +19,12 @@ isYamlMetadataError (InvalidMetadataError message) = "Error parsing YAML metadat
 isYamlMetadataError _ = False
 
 spec :: Spec
-spec =
+spec = do
+  describe "convertToBinary" $
+    it "fails with a read error for a format it can't read" $
+      (convertToBinary Pdf Docx Nothing "Hello" >>= errorsOf)
+        `shouldReturn` [ReadError Pdf "Unknown input format 'pdf'\nPandoc can convert to PDF, but not from PDF."]
+
   describe "convertToText" $ do
     it "fails with a read error for a format it can't read, without crashing" $
       (convertToText Pdf Markdown Nothing "Hello" >>= errorsOf)

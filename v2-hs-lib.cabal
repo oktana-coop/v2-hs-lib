@@ -88,6 +88,7 @@ executable v2-hs-lib
   build-depends:
       aeson >=2.2.3.0
     , base >=4.7 && <5
+    , base64-bytestring >=1.2.1.0
     , bytestring >=0.12.1.0
     , optparse-applicative >=0.18.1.0
     , pandoc >=3.5
