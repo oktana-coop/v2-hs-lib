@@ -18,7 +18,7 @@ import PandocWriter as AutomergePandoc.PandocWriter (writeAutomerge)
 import ProseMirror.PandocReader (readProseMirror)
 import ProseMirror.PandocWriter (writeProseMirror)
 import System.Exit (die)
-import Text.Pandoc (Pandoc, PandocError (PandocSomeError, PandocUnknownReaderError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readNative, readerExtensions, writerExtensions, writerTemplate)
+import Text.Pandoc (Pandoc, PandocError (PandocParseError, PandocSomeError, PandocUnknownReaderError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readNative, readerExtensions, writerExtensions, writerTemplate)
 import Text.Pandoc.Class (runIO, setResourcePath)
 import qualified Text.Pandoc.Definition as PandocDef
 import Text.Pandoc.Error (renderError)
@@ -93,7 +93,18 @@ readDocument format input = do
   pure (first toReadError result)
   where
     toReadError :: PandocError -> Error
-    toReadError = ReadError format . renderError
+    toReadError pandocError
+      | isYamlMetadataError pandocError = InvalidMetadataError message
+      | otherwise = ReadError format message
+      where
+        message :: T.Text
+        message = renderError pandocError
+
+    -- Pandoc says only in its error's text that a YAML metadata block isn't valid, wherever the block is in the
+    -- document.
+    isYamlMetadataError :: PandocError -> Bool
+    isYamlMetadataError (PandocParseError message) = T.pack "Error parsing YAML metadata" `T.isPrefixOf` message
+    isYamlMetadataError _ = False
 
 -- Explicitly enabling the fenced code blocks and footnotes extensions. For some reason they aren't included when
 -- we're just using `def` in the reader/writer options.

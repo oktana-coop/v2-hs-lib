@@ -11,6 +11,7 @@ data ErrorOutput = ErrorOutput T.Text T.Text deriving (Show)
 
 errorOutput :: Error -> ErrorOutput
 errorOutput (ReadError _ message) = ErrorOutput "readError" message
+errorOutput (InvalidMetadataError message) = ErrorOutput "invalidMetadataError" message
 errorOutput (WriteError _ message) = ErrorOutput "writeError" message
 errorOutput (PatchError message) = ErrorOutput "patchError" message
 

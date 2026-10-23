@@ -3,15 +3,20 @@
 module Conversion.Errors (tests) where
 
 import Conversion (convertToText)
+import qualified Data.Text as T
 import Error (Error (..))
 import Format (Format (Markdown, Pdf, ProseMirror))
-import Test.Hspec (Spec, describe, it, shouldReturn)
+import Test.Hspec (Spec, describe, it, shouldReturn, shouldSatisfy)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hspec (testSpec)
 import Utils (errorsOf)
 
 tests :: IO TestTree
 tests = testSpec "Conversion errors" spec
+
+isYamlMetadataError :: Error -> Bool
+isYamlMetadataError (InvalidMetadataError message) = "Error parsing YAML metadata" `T.isPrefixOf` message
+isYamlMetadataError _ = False
 
 spec :: Spec
 spec =
@@ -27,3 +32,11 @@ spec =
     it "fails with a write error for content ProseMirror can't hold" $
       (convertToText Markdown ProseMirror Nothing "```{=html}\n<b>x</b>\n```\n" >>= errorsOf)
         `shouldReturn` [WriteError ProseMirror "Cannot convert input to ProseMirror: it contains content with no ProseMirror representation."]
+
+    it "fails with a metadata error, with Pandoc's message, for front matter that isn't valid YAML" $ do
+      errors <- convertToText Markdown ProseMirror Nothing "---\ntitle: Notes\nauthor Ada: x: y\n---\n\nText.\n" >>= errorsOf
+      errors `shouldSatisfy` all isYamlMetadataError
+
+    it "fails with a metadata error for a YAML block further down the document" $ do
+      errors <- convertToText Markdown ProseMirror Nothing "---\ntitle: Notes\n---\n\nText.\n\n---\nauthor Ada: x: y\n---\n\nMore text.\n" >>= errorsOf
+      errors `shouldSatisfy` all isYamlMetadataError
