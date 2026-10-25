@@ -51,11 +51,14 @@ library
       ProseMirror.PandocTreeShape.ImageAlt
       ProseMirror.PandocTreeShape.ImplicitFigure
       ProseMirror.PandocTreeShape.OrderedListAttrs
+      ProseMirror.PandocTreeShape.UnrepresentableBlocks
       ProseMirror.PandocTreeShape.ListSpacing
       ProseMirror.PandocTreeShape.FigureContent.GroupedInlines
       ProseMirror.PandocTreeShape.FigureContent.LeafTextSpans
       ProseMirror.Utils.Debug
       ProseMirror.Utils.Json
+      Utils.Either
+      Utils.Pandoc
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints

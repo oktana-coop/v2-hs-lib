@@ -156,8 +156,10 @@ treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Plain _)) = PMNode $ PM
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Para _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Paragraph, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Header level _ _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Heading $ PM.HeadingLevel level, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.CodeBlock attr _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.CodeBlock $ codeBlockLanguageFromPandocAttr attr, PM.content = Nothing}
--- Raw blocks have no ProseMirror representation and are surfaced as a conversion error.
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.RawBlock _ _)) = UnrepresentableNode
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Table {})) = UnrepresentableNode
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.LineBlock _)) = UnrepresentableNode
+treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.DefinitionList _)) = UnrepresentableNode
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.BulletList _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.BulletList, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.OrderedList (start, _, _) _)) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.OrderedList (PM.OrderedListStart start), PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.ListItem _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.ListItem, PM.content = Nothing}
@@ -168,8 +170,6 @@ treeBlockNodeToPMBlockNode (RichText.PandocBlock (Pandoc.Figure _ _ _)) = PMNode
 treeBlockNodeToPMBlockNode (RichText.FigureContent _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.FigureContent, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.Caption _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Caption, PM.content = Nothing}
 treeBlockNodeToPMBlockNode (RichText.NoteContent (NoteId noteId) _) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.NoteContent $ PM.NoteId noteId, PM.content = Nothing}
--- TODO: Incrementally handle more blocks
-treeBlockNodeToPMBlockNode _ = undefined
 
 codeBlockLanguageFromPandocAttr :: Pandoc.Attr -> Maybe CodeBlockLanguage
 codeBlockLanguageFromPandocAttr (_, classes, _) = case classes of

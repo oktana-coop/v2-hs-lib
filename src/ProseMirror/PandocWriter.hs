@@ -11,17 +11,27 @@ import Data.Text.Encoding (decodeUtf8)
 import Data.Tree (Tree)
 import qualified DocTree.GroupedInlines as GroupedInlinesTree (DocNode, toTree)
 import qualified ProseMirror.Model as PM (PMDoc (..))
-import ProseMirror.PandocTreeShape (reconcileWithProseMirrorModel)
+import ProseMirror.PandocTreeShape (dropUnrepresentableBlocks, findUnrepresentableBlocks, reconcileWithProseMirrorModel)
 import ProseMirror.PandocTreeShape.FigureContent.GroupedInlines (unwrapFigureContentParaOrPlain)
 import ProseMirror.Tree (groupedInlinesPandocTreeToPMTree, pmDocFromPMTree)
 import Text.Pandoc (PandocError (PandocParseError), WriterOptions)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition as Pandoc (Pandoc)
+import Text.Pandoc.Logging (LogMessage (BlockNotRendered))
 
 writeProseMirror :: (PandocMonad m) => WriterOptions -> Pandoc.Pandoc -> m T.Text
--- `convertTreeToPMDoc` yields the PM doc inside the Pandoc monad, so we compose with Kleisli (`<=<`).
-writeProseMirror _ = pure . pmDocToJSONText <=< convertTreeToPMDoc . buildDocTree . reconcileWithProseMirrorModel
+-- Some steps yield their result inside the Pandoc monad, so we compose with Kleisli (`<=<`).
+writeProseMirror _ =
+  pure . pmDocToJSONText
+    <=< convertTreeToPMDoc . buildDocTree
+    <=< reportAndDropUnrepresentableBlocks . reconcileWithProseMirrorModel
   where
+    -- Like Pandoc's writers, reports the blocks the format can't hold and leaves them out.
+    reportAndDropUnrepresentableBlocks :: (PandocMonad m) => Pandoc.Pandoc -> m Pandoc.Pandoc
+    reportAndDropUnrepresentableBlocks doc = do
+      mapM_ (report . BlockNotRendered) (findUnrepresentableBlocks doc)
+      pure (dropUnrepresentableBlocks doc)
+
     buildDocTree :: Pandoc.Pandoc -> Tree GroupedInlinesTree.DocNode
     buildDocTree = unwrapFigureContentParaOrPlain . GroupedInlinesTree.toTree
 

@@ -1,11 +1,12 @@
-module Conversion (convertFromAutomerge, convertToAutomerge, convertToBinary, convertToText, readFrom, readDocument, readDocuments, pandocReaderOptions, pandocWriterOptions, Format (..)) where
+module Conversion (convertFromAutomerge, convertToAutomerge, convertToBinary, convertToText, readFrom, readDocument, readDocuments, toUnrepresentableContentError, pandocReaderOptions, pandocWriterOptions, Format (..)) where
 
 import Control.Monad.Catch (MonadMask)
 import Control.Monad.Except (throwError)
 import Control.Monad.Trans (MonadIO (..))
 import Data.Bifunctor (bimap, first)
 import qualified Data.ByteString.Lazy.Char8 as BL
-import Data.List.NonEmpty (NonEmpty (..))
+import Data.List.NonEmpty (NonEmpty, nonEmpty, nub)
+import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import Error (Error (..))
@@ -16,16 +17,20 @@ import Metadata.KeyOutline (stripTempMetaOutlineKey)
 import PandocReader as AutomergePandoc.PandocReader (readAutomerge)
 import PandocWriter as AutomergePandoc.PandocWriter (writeAutomerge)
 import ProseMirror.PandocReader (readProseMirror)
+import ProseMirror.PandocTreeShape (UnrepresentableContent, maybeUnrepresentableContent)
 import ProseMirror.PandocWriter (writeProseMirror)
 import Text.Pandoc (Pandoc, PandocError (PandocParseError, PandocSomeError, PandocUnknownReaderError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readNative, readerExtensions, writerExtensions, writerTemplate)
 import Text.Pandoc.Class (runIO, setResourcePath)
 import qualified Text.Pandoc.Definition as PandocDef
 import Text.Pandoc.Error (renderError)
 import Text.Pandoc.Extensions (Extension (Ext_fenced_code_blocks, Ext_footnotes, Ext_yaml_metadata_block), enableExtension, pandocExtensions)
+import Text.Pandoc.Logging (LogMessage (BlockNotRendered))
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.Templates (compileDefaultTemplate)
 import Text.Pandoc.Writers (writeDocx, writeHtml5String, writeJSON, writeLaTeX, writeNative)
+import Utils.Either (bothOrErrors)
+import Utils.Pandoc (withLog)
 
 writeToBytes :: (PandocMonad m, MonadIO m, MonadMask m) => Bool -> Format -> WriterOptions -> Pandoc -> m BL.ByteString
 writeToBytes embedResources format opts = writer opts . (if keepsMetaOrder format then id else stripFromDocument)
@@ -139,11 +144,25 @@ addTemplate format opts = case format of
 
 writeDocument :: Format -> Maybe FilePath -> Pandoc -> IO (Either Error BL.ByteString)
 writeDocument format maybeResourcePath doc = do
-  result <- runIO (writeTo format maybeResourcePath doc)
-  pure (first toWriteError result)
+  result <- runIO (withLog (writeTo format maybeResourcePath doc))
+  pure (first toWriteError result >>= checkLogForUnrepresentableContent)
   where
     toWriteError :: PandocError -> Error
     toWriteError = WriteError format . renderError
+
+    -- Pandoc's writers leave out the blocks their format can't hold, and only report them in the log.
+    -- The ProseMirror writer does the same, and here we produce an error in the case of unrepresentable 
+    -- content.
+    checkLogForUnrepresentableContent :: (BL.ByteString, [LogMessage]) -> Either Error BL.ByteString
+    checkLogForUnrepresentableContent (bytes, messages) = case (format, nonEmpty (findUnrepresentableContentInLog messages)) of
+      (ProseMirror, Just unrepresentableContent) -> Left (toUnrepresentableContentError unrepresentableContent)
+      _ -> Right bytes
+
+findUnrepresentableContentInLog :: [LogMessage] -> [UnrepresentableContent]
+findUnrepresentableContentInLog messages = mapMaybe maybeUnrepresentableContent [block | BlockNotRendered block <- messages]
+
+toUnrepresentableContentError :: NonEmpty UnrepresentableContent -> Error
+toUnrepresentableContentError = UnrepresentableContentError . nub
 
 convert :: Format -> Format -> Maybe FilePath -> String -> IO (Either Error BL.ByteString)
 convert inputFormat outputFormat maybeResourcePath input = do
@@ -176,10 +195,3 @@ readDocuments format1 format2 doc1Str doc2Str = do
   eitherDoc1 <- readDocument format1 (T.pack doc1Str)
   eitherDoc2 <- readDocument format2 (T.pack doc2Str)
   pure $ bothOrErrors eitherDoc1 eitherDoc2
-  where
-    -- Unlike `Either`'s applicative, a failure on one side does not hide a failure on the other.
-    bothOrErrors :: Either e a -> Either e b -> Either (NonEmpty e) (a, b)
-    bothOrErrors (Left err1) (Left err2) = Left (err1 :| [err2])
-    bothOrErrors (Left err1) _ = Left (err1 :| [])
-    bothOrErrors _ (Left err2) = Left (err2 :| [])
-    bothOrErrors (Right a) (Right b) = Right (a, b)

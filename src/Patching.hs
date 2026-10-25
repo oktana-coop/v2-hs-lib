@@ -17,10 +17,11 @@ import Text.Pandoc (Pandoc (..))
 proseMirrorSteps :: Format -> Format -> String -> String -> IO (Either (NonEmpty Error) TransformedPMDoc)
 proseMirrorSteps beforeFormat afterFormat beforeStr afterStr = do
   eitherDocs <- readDocuments beforeFormat afterFormat beforeStr afterStr
-  pure $ do
-    docs <- eitherDocs
-    diffToPMSteps (metaDiffers docs) (diffForProseMirror diffOptions docs)
+  pure (eitherDocs >>= steps)
   where
+    steps :: (Pandoc, Pandoc) -> Either (NonEmpty Error) TransformedPMDoc
+    steps docs = diffForProseMirror diffOptions docs >>= diffToPMSteps (metaDiffers docs)
+
     -- Steps are exact edits, so a heavy reword must stay a set of small edits instead of collapsing into a
     -- whole-span replace.
     diffOptions :: DiffOptions

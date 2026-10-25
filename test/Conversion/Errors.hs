@@ -3,9 +3,11 @@
 module Conversion.Errors (tests) where
 
 import Conversion (convertToBinary, convertToText)
+import Data.Either (isRight)
+import Data.List.NonEmpty (fromList)
 import qualified Data.Text as T
-import Error (Error (..))
-import Format (Format (Docx, Markdown, Pdf, ProseMirror))
+import Error (Error (..), UnrepresentableContent (..))
+import Format (Format (Docx, Html, Markdown, Pdf, ProseMirror))
 import Test.Hspec (Spec, describe, it, shouldReturn, shouldSatisfy)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hspec (testSpec)
@@ -34,9 +36,17 @@ spec = do
       (convertToText ProseMirror Markdown Nothing "{\"type\":\"nope\"}" >>= errorsOf)
         `shouldReturn` [ReadError ProseMirror "Error in $.type: Invalid block type"]
 
-    it "fails with a write error for content ProseMirror can't hold" $
-      (convertToText Markdown ProseMirror Nothing "```{=html}\n<b>x</b>\n```\n" >>= errorsOf)
-        `shouldReturn` [WriteError ProseMirror "Cannot convert input to ProseMirror: it contains content with no ProseMirror representation."]
+    it "fails with an unrepresentable content error, naming each kind once in document order, for blocks ProseMirror can't hold" $
+      (convertToText Markdown ProseMirror Nothing "Term\n: Definition\n\n| a | b |\n|---|---|\n| 1 | 2 |\n\n| a line\n\n```{=html}\n<b>x</b>\n```\n\nTerm\n: Definition\n" >>= errorsOf)
+        `shouldReturn` [UnrepresentableContentError (fromList [DefinitionListContent, TableContent, LineBlockContent, RawBlockContent])]
+
+    it "finds the blocks ProseMirror can't hold inside other blocks" $
+      (convertToText Markdown ProseMirror Nothing "> | a | b |\n> |---|---|\n> | 1 | 2 |\n" >>= errorsOf)
+        `shouldReturn` [UnrepresentableContentError (fromList [TableContent])]
+
+    it "doesn't fail an export for blocks ProseMirror can't represent" $ do
+      result <- convertToText Markdown Html Nothing "| a | b |\n|---|---|\n| 1 | 2 |\n"
+      result `shouldSatisfy` isRight
 
     it "fails with a metadata error, with Pandoc's message, for front matter that isn't valid YAML" $ do
       errors <- convertToText Markdown ProseMirror Nothing "---\ntitle: Notes\nauthor Ada: x: y\n---\n\nText.\n" >>= errorsOf

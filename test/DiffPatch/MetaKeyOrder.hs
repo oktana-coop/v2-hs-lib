@@ -26,7 +26,7 @@ caseDiff caseName = do
   doc1 <- TIO.readFile (casesDir </> caseName </> "doc1.md")
   doc2 <- TIO.readFile (casesDir </> caseName </> "doc2.md")
   eitherDocs <- readDocuments Markdown Markdown (T.unpack doc1) (T.unpack doc2)
-  either (fail . show) (pure . diffForProseMirror defaultDiffOptions) eitherDocs
+  either (fail . show) pure (eitherDocs >>= diffForProseMirror defaultDiffOptions)
 
 rootDiffOpType :: Tree (RichTextDiffOp PandocTree.DocNode) -> RichTextDiffOpType
 rootDiffOpType = getDiffOpType . rootLabel
