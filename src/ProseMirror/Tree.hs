@@ -2,6 +2,7 @@
 
 module ProseMirror.Tree (PMTree, PMTreeNode (..), groupedInlinesPandocTreeToPMTree, pmDocFromPMTree, leafTextSpansPandocTreeNodeToPMNode, treeTextSpanNodeToPMTextNode, treeMarkToPMMark, pmNodeFromInlineSpan, pmTreeFromPMDoc, pmTreeToGroupedInlinesTree) where
 
+import Data.Bifunctor (first)
 import Data.List.NonEmpty (nonEmpty, toList)
 import Data.Maybe (fromMaybe, listToMaybe, maybeToList)
 import qualified Data.Text as T
@@ -11,6 +12,7 @@ import qualified DocTree.GroupedInlines as GroupedInlinesTree
 import qualified DocTree.LeafTextSpans as LeafTextSpansTree
 import GHC.Base (NonEmpty)
 import Metadata.KeyOutline (stripTempMetaOutlineKey)
+import ProseMirror.Error (PMConversionError (..))
 import ProseMirror.Metadata (metaFromJsonText, metaToJsonText)
 import ProseMirror.Model (CodeBlockLanguage)
 import qualified ProseMirror.Model as PM (Block (..), BlockNode (..), CodeBlockLanguage (..), HeadingLevel (..), Image (..), InlineNode (..), Link (..), Mark (..), Node (..), NoteId (..), OrderedListStart (..), PMDoc (..), TextNode (..), assertRootNodeIsDoc, wrapChildrenToBlock)
@@ -39,28 +41,28 @@ data PMTreeNode
 
 type PMTree = Tree PMTreeNode
 
-pmDocFromPMTree :: PMTree -> Either String PM.PMDoc
+pmDocFromPMTree :: PMTree -> Either PMConversionError PM.PMDoc
 pmDocFromPMTree pmTree = foldTree pmTreeNodeFolder pmTree >>= extractRootBlock
   where
-    extractRootBlock :: [PM.Node] -> Either String PM.PMDoc
+    extractRootBlock :: [PM.Node] -> Either PMConversionError PM.PMDoc
     extractRootBlock nodes = case listToMaybe nodes of
-      Just node -> PM.assertRootNodeIsDoc node
-      Nothing -> Left "No root node found."
+      Just node -> first InvariantError (PM.assertRootNodeIsDoc node)
+      Nothing -> Left (InvariantError "No root node found.")
 
-pmTreeNodeFolder :: PMTreeNode -> [Either String [PM.Node]] -> Either String [PM.Node]
+pmTreeNodeFolder :: PMTreeNode -> [Either PMConversionError [PM.Node]] -> Either PMConversionError [PM.Node]
 pmTreeNodeFolder pmTreeNode eitherChildNodes = do
   childNodes <- sequenceA eitherChildNodes
   pmTreeNodeToPMNodes pmTreeNode childNodes
   where
-    pmTreeNodeToPMNodes :: PMTreeNode -> [[PM.Node]] -> Either String [PM.Node]
+    pmTreeNodeToPMNodes :: PMTreeNode -> [[PM.Node]] -> Either PMConversionError [PM.Node]
     pmTreeNodeToPMNodes (PMNode pmNode@(PM.InlineNode _)) _ = Right [pmNode]
     pmTreeNodeToPMNodes WrapperInlineNode childNodes = Right $ concat childNodes
     pmTreeNodeToPMNodes WrapperBlockNode childNodes = Right $ concat childNodes
-    pmTreeNodeToPMNodes UnrepresentableNode _ = Left unrepresentableNodeErrorMessage
+    pmTreeNodeToPMNodes UnrepresentableNode _ = Left (InvariantError unrepresentableNodeErrorMessage)
     pmTreeNodeToPMNodes (PMNode (PM.BlockNode blockNode)) childNodes = Right [PM.BlockNode $ PM.wrapChildrenToBlock blockNode $ concat childNodes]
 
 unrepresentableNodeErrorMessage :: String
-unrepresentableNodeErrorMessage = "Cannot convert input to ProseMirror: it contains content with no ProseMirror representation."
+unrepresentableNodeErrorMessage = "Found content with no ProseMirror representation."
 
 docWithMetaIfExists :: Pandoc.Meta -> PM.Block
 docWithMetaIfExists meta =
@@ -68,7 +70,7 @@ docWithMetaIfExists meta =
     then PM.Doc Nothing
     else PM.Doc $ Just $ metaToJsonText meta
 
-groupedInlinesPandocTreeToPMTree :: Tree GroupedInlinesTree.DocNode -> Either String PMTree
+groupedInlinesPandocTreeToPMTree :: Tree GroupedInlinesTree.DocNode -> Either PMConversionError PMTree
 groupedInlinesPandocTreeToPMTree (Node (GroupedInlinesTree.Root meta) childTrees) = do
   pmChildren <- traverse groupedInlinesPandocTreeToPMTree childTrees
   Right $ Node (PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = docWithMetaIfExists meta, PM.content = Nothing}) pmChildren
@@ -89,17 +91,20 @@ groupedInlinesPandocTreeToPMTree (Node (GroupedInlinesTree.TreeNode (GroupedInli
 -- the caption into a Caption sibling, body first. Both are optional in the result. The
 -- parser accepts those shapes and rejects anything else (multi-content, wrong order, unexpected child types).
 -- The at-most-one-image constraint is also enforced here (figure_content { image? }).
-parseFigureSubtrees :: [Tree GroupedInlinesTree.DocNode] -> Either String (Maybe (Tree GroupedInlinesTree.DocNode), Maybe (Tree GroupedInlinesTree.DocNode))
+parseFigureSubtrees :: [Tree GroupedInlinesTree.DocNode] -> Either PMConversionError (Maybe (Tree GroupedInlinesTree.DocNode), Maybe (Tree GroupedInlinesTree.DocNode))
 parseFigureSubtrees [] = Right (Nothing, Nothing)
 parseFigureSubtrees [c]
   | isCaptionTree c = Right (Nothing, Just c)
   | isFigureContentTree c, hasAtMostOneImage c = Right (Just c, Nothing)
-  | isFigureContentTree c = Left "The figure content must contain at most one image (no other inline content)"
-  | otherwise = Left "Figure child must be a FigureContent or a Caption"
+  | isFigureContentTree c = Left (NodeSpecViolationError figureContentErrorMessage)
+  | otherwise = Left (UnexpectedTreeShapeError "Figure child must be a FigureContent or a Caption")
 parseFigureSubtrees [c1, c2]
   | isFigureContentTree c1, isCaptionTree c2, hasAtMostOneImage c1 = Right (Just c1, Just c2)
-  | isFigureContentTree c1, isCaptionTree c2 = Left "The figure content must contain at most one image (no other inline content)"
-parseFigureSubtrees _ = Left "The figure must have at most one content block followed by at most one caption"
+  | isFigureContentTree c1, isCaptionTree c2 = Left (NodeSpecViolationError figureContentErrorMessage)
+parseFigureSubtrees _ = Left (UnexpectedTreeShapeError "The figure must have at most one content block followed by at most one caption")
+
+figureContentErrorMessage :: String
+figureContentErrorMessage = "The figure content must contain at most one image (no other inline content)"
 
 hasAtMostOneImage :: Tree GroupedInlinesTree.DocNode -> Bool
 hasAtMostOneImage (Node (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode (RichText.FigureContent _))) []) = True

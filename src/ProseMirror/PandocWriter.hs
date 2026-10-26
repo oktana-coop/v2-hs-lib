@@ -10,11 +10,12 @@ import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8)
 import Data.Tree (Tree)
 import qualified DocTree.GroupedInlines as GroupedInlinesTree (DocNode, toTree)
+import ProseMirror.Error (PMConversionError (..))
 import qualified ProseMirror.Model as PM (PMDoc (..))
 import ProseMirror.PandocTreeShape (dropUnrepresentableBlocks, findUnrepresentableBlocks, reconcileWithProseMirrorModel)
 import ProseMirror.PandocTreeShape.FigureContent.GroupedInlines (unwrapFigureContentParaOrPlain)
 import ProseMirror.Tree (groupedInlinesPandocTreeToPMTree, pmDocFromPMTree)
-import Text.Pandoc (PandocError (PandocParseError), WriterOptions)
+import Text.Pandoc (PandocError (PandocShouldNeverHappenError, PandocSomeError), WriterOptions)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition as Pandoc (Pandoc)
 import Text.Pandoc.Logging (LogMessage (BlockNotRendered))
@@ -36,10 +37,12 @@ writeProseMirror _ =
     buildDocTree = unwrapFigureContentParaOrPlain . GroupedInlinesTree.toTree
 
     convertTreeToPMDoc :: (PandocMonad m) => Tree GroupedInlinesTree.DocNode -> m PM.PMDoc
-    convertTreeToPMDoc = either handlePMConversionErrorMessage pure . (pmDocFromPMTree <=< groupedInlinesPandocTreeToPMTree)
+    convertTreeToPMDoc = either (throwError . toPandocError) pure . (pmDocFromPMTree <=< groupedInlinesPandocTreeToPMTree)
 
-    handlePMConversionErrorMessage :: (PandocMonad m) => String -> m a
-    handlePMConversionErrorMessage = throwError . PandocParseError . T.pack
+    toPandocError :: PMConversionError -> PandocError
+    toPandocError (NodeSpecViolationError message) = PandocSomeError (T.pack message)
+    toPandocError (UnexpectedTreeShapeError message) = PandocShouldNeverHappenError (T.pack message)
+    toPandocError (InvariantError message) = PandocShouldNeverHappenError (T.pack message)
 
 pmDocToJSONText :: PM.PMDoc -> T.Text
 pmDocToJSONText = decodeUtf8 . BSL8.toStrict . encode

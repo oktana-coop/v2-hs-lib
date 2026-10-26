@@ -45,6 +45,7 @@ library
       ProseMirror.Model.Slice
       ProseMirror.Model.Indexing
       ProseMirror.Decoration
+      ProseMirror.Error
       ProseMirror.Tree
       ProseMirror.PandocTreeShape.HeadingAttrs
       ProseMirror.PandocTreeShape.HtmlComments

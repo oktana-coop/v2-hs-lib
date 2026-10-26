@@ -1,4 +1,4 @@
-module Conversion (convertFromAutomerge, convertToAutomerge, convertToBinary, convertToText, readFrom, readDocument, readDocuments, toUnrepresentableContentError, pandocReaderOptions, pandocWriterOptions, Format (..)) where
+module Conversion (convertFromAutomerge, convertToAutomerge, convertToBinary, convertToText, readFrom, readDocument, readDocuments, toUnrepresentableContentError, toWriteError, pandocReaderOptions, pandocWriterOptions, Format (..)) where
 
 import Control.Monad.Catch (MonadMask)
 import Control.Monad.Except (throwError)
@@ -19,7 +19,7 @@ import PandocWriter as AutomergePandoc.PandocWriter (writeAutomerge)
 import ProseMirror.PandocReader (readProseMirror)
 import ProseMirror.PandocTreeShape (UnrepresentableContent, maybeUnrepresentableContent)
 import ProseMirror.PandocWriter (writeProseMirror)
-import Text.Pandoc (Pandoc, PandocError (PandocParseError, PandocSomeError, PandocUnknownReaderError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readNative, readerExtensions, writerExtensions, writerTemplate)
+import Text.Pandoc (Pandoc, PandocError (PandocParseError, PandocShouldNeverHappenError, PandocSomeError, PandocUnknownReaderError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readNative, readerExtensions, writerExtensions, writerTemplate)
 import Text.Pandoc.Class (runIO, setResourcePath)
 import qualified Text.Pandoc.Definition as PandocDef
 import Text.Pandoc.Error (renderError)
@@ -145,11 +145,8 @@ addTemplate format opts = case format of
 writeDocument :: Format -> Maybe FilePath -> Pandoc -> IO (Either Error BL.ByteString)
 writeDocument format maybeResourcePath doc = do
   result <- runIO (withLog (writeTo format maybeResourcePath doc))
-  pure (first toWriteError result >>= checkLogForUnrepresentableContent)
+  pure (first (toWriteError format) result >>= checkLogForUnrepresentableContent)
   where
-    toWriteError :: PandocError -> Error
-    toWriteError = WriteError format . renderError
-
     -- Pandoc's writers leave out the blocks their format can't hold, and only report them in the log.
     -- The ProseMirror writer does the same, and here we produce an error in the case of unrepresentable 
     -- content.
@@ -157,6 +154,14 @@ writeDocument format maybeResourcePath doc = do
     checkLogForUnrepresentableContent (bytes, messages) = case (format, nonEmpty (findUnrepresentableContentInLog messages)) of
       (ProseMirror, Just unrepresentableContent) -> Left (toUnrepresentableContentError unrepresentableContent)
       _ -> Right bytes
+
+toWriteError :: Format -> PandocError -> Error
+toWriteError format = WriteError format . writeErrorMessage format
+  where
+    writeErrorMessage :: Format -> PandocError -> T.Text
+    -- The ProseMirror writer is the library's own, so its broken invariants are the library's bugs.
+    writeErrorMessage ProseMirror (PandocShouldNeverHappenError message) = message
+    writeErrorMessage _ pandocError = renderError pandocError
 
 findUnrepresentableContentInLog :: [LogMessage] -> [UnrepresentableContent]
 findUnrepresentableContentInLog messages = mapMaybe maybeUnrepresentableContent [block | BlockNotRendered block <- messages]
