@@ -23,6 +23,11 @@ tests = do
             goldenCase $ "adding-and-removing-paragraphs" </> "join-paragraphs"
           ],
         testGroup
+          "code-blocks"
+          [ goldenCase $ "code-blocks" </> "add-empty-code-block",
+            goldenCase $ "code-blocks" </> "type-into-empty-code-block"
+          ],
+        testGroup
           "headings"
           [ goldenCase $ "headings" </> "change-heading-level"
           ],

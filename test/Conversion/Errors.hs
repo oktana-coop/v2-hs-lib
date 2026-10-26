@@ -57,6 +57,10 @@ spec = do
       result <- convertToText Markdown Html Nothing "| a | b |\n|---|---|\n| 1 | 2 |\n"
       result `shouldSatisfy` isRight
 
+    it "doesn't fail for an empty code block" $ do
+      result <- convertToText ProseMirror Markdown Nothing "{\"type\":\"doc\",\"content\":[{\"type\":\"code_block\"}]}"
+      result `shouldSatisfy` isRight
+
     it "fails with a write error, with the writer's message, for a figure ProseMirror can't hold" $
       (convertToText Html ProseMirror Nothing "<figure><img src=\"a.png\"><img src=\"b.png\"></figure>" >>= errorsOf)
         `shouldReturn` [WriteError ProseMirror "The figure content must contain at most one image (no other inline content)"]

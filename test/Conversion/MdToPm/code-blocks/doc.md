@@ -28,3 +28,8 @@ bar
   }
 ]
 ```
+
+## Empty, language set to Haskell
+
+``` haskell
+```

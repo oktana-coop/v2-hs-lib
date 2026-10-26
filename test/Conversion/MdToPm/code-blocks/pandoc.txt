@@ -42,4 +42,18 @@
 , CodeBlock
     ( "" , [ "json" ] , [] )
     "\"publish\": [\n  {\n    \"provider\": \"github\",\n    \"owner\": \"oktana-coop\",\n    \"repo\": \"v2\"\n  }\n]"
+, Header
+    2
+    ( "empty-language-set-to-haskell" , [] , [] )
+    [ Str "Empty,"
+    , Space
+    , Str "language"
+    , Space
+    , Str "set"
+    , Space
+    , Str "to"
+    , Space
+    , Str "Haskell"
+    ]
+, CodeBlock ( "" , [ "haskell" ] , [] ) ""
 ]

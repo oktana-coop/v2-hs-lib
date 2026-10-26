@@ -1,0 +1,55 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "A Heading 1",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "A paragraph",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "language": "haskell"
+        },
+        "content": [
+          {
+            "text": "x = 1",
+            "type": "text"
+          }
+        ],
+        "type": "code_block"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "from": 27,
+      "slice": {
+        "content": [
+          {
+            "text": "x = 1",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 27
+    }
+  ]
+}

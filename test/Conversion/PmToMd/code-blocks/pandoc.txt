@@ -10,4 +10,7 @@
 , CodeBlock
     ( "" , [ "json" ] , [] )
     "\"publish\": [\n  {\n    \"provider\": \"github\",\n    \"owner\": \"oktana-coop\",\n    \"repo\": \"v2\"\n  }\n]"
+, Header
+    2 ( "" , [] , [] ) [ Str "Empty, language set to Haskell" ]
+, CodeBlock ( "" , [ "haskell" ] , [] ) ""
 ]

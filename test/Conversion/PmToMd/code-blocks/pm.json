@@ -80,6 +80,25 @@
         }
       ],
       "type": "code_block"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "text": "Empty, language set to Haskell",
+          "type": "text"
+        }
+      ],
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "language": "haskell"
+      },
+      "content": [],
+      "type": "code_block"
     }
   ],
   "type": "doc"
