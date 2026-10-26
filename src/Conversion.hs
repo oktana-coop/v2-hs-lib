@@ -17,14 +17,14 @@ import Metadata.KeyOutline (stripTempMetaOutlineKey)
 import PandocReader as AutomergePandoc.PandocReader (readAutomerge)
 import PandocWriter as AutomergePandoc.PandocWriter (writeAutomerge)
 import ProseMirror.PandocReader (readProseMirror)
-import ProseMirror.PandocTreeShape (UnrepresentableContent, maybeUnrepresentableContent)
+import ProseMirror.PandocTreeShape (UnrepresentableContent, maybeUnrepresentableBlockContent, maybeUnrepresentableInlineContent)
 import ProseMirror.PandocWriter (writeProseMirror)
 import Text.Pandoc (Pandoc, PandocError (PandocParseError, PandocShouldNeverHappenError, PandocSomeError, PandocUnknownReaderError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readNative, readerExtensions, writerExtensions, writerTemplate)
 import Text.Pandoc.Class (runIO, setResourcePath)
 import qualified Text.Pandoc.Definition as PandocDef
 import Text.Pandoc.Error (renderError)
 import Text.Pandoc.Extensions (Extension (Ext_fenced_code_blocks, Ext_footnotes, Ext_yaml_metadata_block), enableExtension, pandocExtensions)
-import Text.Pandoc.Logging (LogMessage (BlockNotRendered))
+import Text.Pandoc.Logging (LogMessage (BlockNotRendered, InlineNotRendered))
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.Templates (compileDefaultTemplate)
@@ -164,7 +164,9 @@ toWriteError format = WriteError format . writeErrorMessage format
     writeErrorMessage _ pandocError = renderError pandocError
 
 findUnrepresentableContentInLog :: [LogMessage] -> [UnrepresentableContent]
-findUnrepresentableContentInLog messages = mapMaybe maybeUnrepresentableContent [block | BlockNotRendered block <- messages]
+findUnrepresentableContentInLog messages =
+  mapMaybe maybeUnrepresentableBlockContent [block | BlockNotRendered block <- messages]
+    <> mapMaybe maybeUnrepresentableInlineContent [inline | InlineNotRendered inline <- messages]
 
 toUnrepresentableContentError :: NonEmpty UnrepresentableContent -> Error
 toUnrepresentableContentError = UnrepresentableContentError . nub

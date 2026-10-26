@@ -6,7 +6,7 @@ module ProseMirror.PandocTreeShape
     module ProseMirror.PandocTreeShape.ImplicitFigure,
     module ProseMirror.PandocTreeShape.OrderedListAttrs,
     module ProseMirror.PandocTreeShape.ListSpacing,
-    module ProseMirror.PandocTreeShape.UnrepresentableBlocks,
+    module ProseMirror.PandocTreeShape.UnrepresentableContent,
     reconcileWithProseMirrorModel,
     dropDetailsLostInProseMirror,
   )
@@ -18,7 +18,7 @@ import ProseMirror.PandocTreeShape.ImageAlt
 import ProseMirror.PandocTreeShape.ImplicitFigure
 import ProseMirror.PandocTreeShape.OrderedListAttrs
 import ProseMirror.PandocTreeShape.ListSpacing
-import ProseMirror.PandocTreeShape.UnrepresentableBlocks
+import ProseMirror.PandocTreeShape.UnrepresentableContent
 import Text.Pandoc.Definition (Pandoc)
 
 -- What a Pandoc document goes through before it is mapped to ProseMirror nodes, by the conversion and by

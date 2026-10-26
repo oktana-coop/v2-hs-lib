@@ -139,6 +139,7 @@ pmNodeFromInlineSpan :: InlineSpan -> PMTreeNode
 pmNodeFromInlineSpan (InlineText textSpan) = PMNode (PM.InlineNode (PM.InlineText (treeTextSpanNodeToPMTextNode textSpan)))
 pmNodeFromInlineSpan (NoteRef (NoteId noteId)) = PMNode $ PM.InlineNode $ PM.NoteRef $ PM.NoteId noteId
 pmNodeFromInlineSpan (InlineImage image) = PMNode $ PM.InlineNode $ PM.InlineImage $ treeImageToPMImage image
+pmNodeFromInlineSpan (PandocInline _) = UnrepresentableNode
 
 treeImageToPMImage :: RichText.Image -> PM.Image
 treeImageToPMImage (RichText.Image _attr alts (imgUrl, imgTtl)) =

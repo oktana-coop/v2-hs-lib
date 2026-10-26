@@ -26,6 +26,15 @@ contentName TableContent = "tables"
 contentName DefinitionListContent = "definitionLists"
 contentName LineBlockContent = "lineBlocks"
 contentName RawBlockContent = "rawBlocks"
+contentName StrikeoutContent = "strikeout"
+contentName UnderlineContent = "underline"
+contentName SmallCapsContent = "smallCaps"
+contentName SuperscriptContent = "superscript"
+contentName SubscriptContent = "subscript"
+contentName SpanContent = "spans"
+contentName MathContent = "math"
+contentName CitationContent = "citations"
+contentName RawInlineContent = "rawInlines"
 
 data Response a
   = Success a

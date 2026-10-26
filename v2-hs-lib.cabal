@@ -52,7 +52,7 @@ library
       ProseMirror.PandocTreeShape.ImageAlt
       ProseMirror.PandocTreeShape.ImplicitFigure
       ProseMirror.PandocTreeShape.OrderedListAttrs
-      ProseMirror.PandocTreeShape.UnrepresentableBlocks
+      ProseMirror.PandocTreeShape.UnrepresentableContent
       ProseMirror.PandocTreeShape.ListSpacing
       ProseMirror.PandocTreeShape.FigureContent.GroupedInlines
       ProseMirror.PandocTreeShape.FigureContent.LeafTextSpans

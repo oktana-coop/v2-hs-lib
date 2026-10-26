@@ -49,6 +49,14 @@ spec = do
       (convertToText Markdown ProseMirror Nothing "Term\n: Definition\n\n| a | b |\n|---|---|\n| 1 | 2 |\n\n| a line\n\n```{=html}\n<b>x</b>\n```\n\nTerm\n: Definition\n" >>= errorsOf)
         `shouldReturn` [UnrepresentableContentError (fromList [DefinitionListContent, TableContent, LineBlockContent, RawBlockContent])]
 
+    it "fails with an unrepresentable content error, naming each kind once in document order, for inlines ProseMirror can't hold" $
+      (convertToText Markdown ProseMirror Nothing "~~a~~ [b]{.underline} [c]{.smallcaps} d^2^ H~2~O [e]{.note} $x$ [@doe] <b>f</b> $y$\n" >>= errorsOf)
+        `shouldReturn` [UnrepresentableContentError (fromList [StrikeoutContent, UnderlineContent, SmallCapsContent, SuperscriptContent, SubscriptContent, SpanContent, MathContent, CitationContent, RawInlineContent])]
+
+    it "doesn't fail for an HTML comment within a paragraph" $ do
+      result <- convertToText Markdown ProseMirror Nothing "Text <!-- note --> more\n"
+      result `shouldSatisfy` isRight
+
     it "finds the blocks ProseMirror can't hold inside other blocks" $
       (convertToText Markdown ProseMirror Nothing "> | a | b |\n> |---|---|\n> | 1 | 2 |\n" >>= errorsOf)
         `shouldReturn` [UnrepresentableContentError (fromList [TableContent])]

@@ -31,6 +31,10 @@ spec = do
       (proseMirrorDiff Markdown "Before.\n" "| a | b |\n|---|---|\n| 1 | 2 |\n" >>= errorsOf)
         `shouldReturn` [UnrepresentableContentError (fromList [TableContent])]
 
+    it "fails with an unrepresentable content error for inlines ProseMirror can't represent" $
+      (proseMirrorDiff Markdown "Before.\n" "Energy $E = mc^2$.\n" >>= errorsOf)
+        `shouldReturn` [UnrepresentableContentError (fromList [MathContent])]
+
   describe "proseMirrorSteps" $ do
     it "fails with an unrepresentable content error for blocks ProseMirror can't represent" $
       (proseMirrorSteps ProseMirror Markdown proseMirrorHello "Hello\n\n| a | b |\n|---|---|\n| 1 | 2 |\n" >>= errorsOf)
