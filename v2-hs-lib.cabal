@@ -110,6 +110,7 @@ test-suite v2-hs-lib-test
       Conversion.Golden
       Conversion.MdToPm.Golden
       Conversion.MetaKeyOrder
+      Conversion.Normalization.Golden
       Conversion.PmToMd.Golden
       Conversion.ReaderAgreement
       Conversion.RoundTrip
