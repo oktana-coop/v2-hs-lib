@@ -74,6 +74,10 @@ groupedInlinesPandocTreeToPMTree :: Tree GroupedInlinesTree.DocNode -> Either PM
 groupedInlinesPandocTreeToPMTree (Node (GroupedInlinesTree.Root meta) childTrees) = do
   pmChildren <- traverse groupedInlinesPandocTreeToPMTree childTrees
   Right $ Node (PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = docWithMetaIfExists meta, PM.content = Nothing}) pmChildren
+-- The body has no node in ProseMirror: its blocks are the doc's content.
+groupedInlinesPandocTreeToPMTree (Node GroupedInlinesTree.Body childTrees) = do
+  pmChildren <- traverse groupedInlinesPandocTreeToPMTree childTrees
+  Right $ Node WrapperBlockNode pmChildren
 -- Figure is special-cased: PM's `figure { figure_content { image? }, caption? }` shape
 -- constrains its children, which the generic block clause below can't validate.
 groupedInlinesPandocTreeToPMTree (Node (GroupedInlinesTree.RichTextNode (GroupedInlinesTree.BlockNode blockNode@(RichText.PandocBlock (Pandoc.Figure _ _ _)))) childTrees) = do
@@ -128,6 +132,7 @@ isFigureContentTree _ = False
 
 leafTextSpansPandocTreeNodeToPMNode :: LeafTextSpansTree.DocNode -> PMTreeNode
 leafTextSpansPandocTreeNodeToPMNode (LeafTextSpansTree.Root meta) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = docWithMetaIfExists meta, PM.content = Nothing}
+leafTextSpansPandocTreeNodeToPMNode LeafTextSpansTree.Body = WrapperBlockNode
 leafTextSpansPandocTreeNodeToPMNode (LeafTextSpansTree.RichTextNode (LeafTextSpansTree.BlockNode node)) = treeBlockNodeToPMBlockNode node
 leafTextSpansPandocTreeNodeToPMNode (LeafTextSpansTree.RichTextNode (LeafTextSpansTree.InlineNode)) = WrapperInlineNode
 leafTextSpansPandocTreeNodeToPMNode (LeafTextSpansTree.RichTextNode (LeafTextSpansTree.InlineContent inlineSpan)) = pmNodeFromInlineSpan inlineSpan
@@ -212,10 +217,10 @@ pmNodeToGroupedInlinesNodeFolder pmTreeNode eitherSubtrees = do
     pmNodeToGroupedInlinesNode :: PMTreeNode -> [Tree GroupedInlinesTree.DocNode] -> Either String (Tree GroupedInlinesTree.DocNode)
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.Doc maybeMeta) _))) childTrees =
       case maybeMeta of
-        Nothing -> Right $ Node (GroupedInlinesTree.Root Pandoc.nullMeta) childTrees
+        Nothing -> Right $ Node (GroupedInlinesTree.Root Pandoc.nullMeta) [Node GroupedInlinesTree.Body childTrees]
         Just pmMeta -> case metaFromJsonText pmMeta of
           (Left err) -> Left err
-          (Right pandocMeta) -> Right $ Node (GroupedInlinesTree.Root pandocMeta) childTrees
+          (Right pandocMeta) -> Right $ Node (GroupedInlinesTree.Root pandocMeta) [Node GroupedInlinesTree.Body childTrees]
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.Paragraph) _))) childTrees =
       Right $ Node (GroupedInlinesTree.RichTextNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.Para []) (concatAdjacentInlineNodes childTrees)
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.Heading (PM.HeadingLevel level)) _))) childTrees =
