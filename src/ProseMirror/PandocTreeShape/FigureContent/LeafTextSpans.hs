@@ -22,9 +22,9 @@ unwrapFigureContentParaOrPlain extract = unwrapTree
       | isPlainOrPara (extract n) = map unwrapTree ch
       | otherwise = [unwrapTree nodeTree]
 
-    isFigureContent (LeafTextSpansTree.TreeNode (LeafTextSpansTree.BlockNode (RichText.FigureContent _))) = True
+    isFigureContent (LeafTextSpansTree.RichTextNode (LeafTextSpansTree.BlockNode (RichText.FigureContent _))) = True
     isFigureContent _ = False
 
-    isPlainOrPara (LeafTextSpansTree.TreeNode (LeafTextSpansTree.BlockNode (RichText.PandocBlock (Pandoc.Plain _)))) = True
-    isPlainOrPara (LeafTextSpansTree.TreeNode (LeafTextSpansTree.BlockNode (RichText.PandocBlock (Pandoc.Para _)))) = True
+    isPlainOrPara (LeafTextSpansTree.RichTextNode (LeafTextSpansTree.BlockNode (RichText.PandocBlock (Pandoc.Plain _)))) = True
+    isPlainOrPara (LeafTextSpansTree.RichTextNode (LeafTextSpansTree.BlockNode (RichText.PandocBlock (Pandoc.Para _)))) = True
     isPlainOrPara _ = False

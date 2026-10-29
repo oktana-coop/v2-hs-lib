@@ -23,8 +23,8 @@ unwrapFigureContentParaOrPlain (Node node children)
       | isPlainOrPara n = map unwrapFigureContentParaOrPlain ch
       | otherwise = [unwrapFigureContentParaOrPlain nodeTree]
 
-    isPlainOrPara (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode (RichText.PandocBlock (Pandoc.Plain _)))) = True
-    isPlainOrPara (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode (RichText.PandocBlock (Pandoc.Para _)))) = True
+    isPlainOrPara (GroupedInlinesTree.RichTextNode (GroupedInlinesTree.BlockNode (RichText.PandocBlock (Pandoc.Plain _)))) = True
+    isPlainOrPara (GroupedInlinesTree.RichTextNode (GroupedInlinesTree.BlockNode (RichText.PandocBlock (Pandoc.Para _)))) = True
     isPlainOrPara _ = False
 
 -- Insert a `Plain []` block between FigureContent and its inline child.
@@ -38,12 +38,12 @@ wrapFigureContentInlinesToPlain (Node node children)
       | otherwise = wrapFigureContentInlinesToPlain nodeTree
 
     plainBlockNode :: GroupedInlinesTree.DocNode
-    plainBlockNode = GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode (RichText.PandocBlock (Pandoc.Plain [])))
+    plainBlockNode = GroupedInlinesTree.RichTextNode (GroupedInlinesTree.BlockNode (RichText.PandocBlock (Pandoc.Plain [])))
 
 isFigureContent :: GroupedInlinesTree.DocNode -> Bool
-isFigureContent (GroupedInlinesTree.TreeNode (GroupedInlinesTree.BlockNode (RichText.FigureContent _))) = True
+isFigureContent (GroupedInlinesTree.RichTextNode (GroupedInlinesTree.BlockNode (RichText.FigureContent _))) = True
 isFigureContent _ = False
 
 isInline :: GroupedInlinesTree.DocNode -> Bool
-isInline (GroupedInlinesTree.TreeNode (GroupedInlinesTree.InlineNode _)) = True
+isInline (GroupedInlinesTree.RichTextNode (GroupedInlinesTree.InlineNode _)) = True
 isInline _ = False
