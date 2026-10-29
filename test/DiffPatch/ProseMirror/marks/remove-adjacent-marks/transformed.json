@@ -1,0 +1,54 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Diff Playground",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "Some really important advice",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "from": 23,
+      "mark": {
+        "type": "em"
+      },
+      "stepType": "removeMark",
+      "to": 39
+    },
+    {
+      "from": 23,
+      "mark": {
+        "type": "strong"
+      },
+      "stepType": "removeMark",
+      "to": 39
+    },
+    {
+      "from": 39,
+      "mark": {
+        "type": "em"
+      },
+      "stepType": "removeMark",
+      "to": 46
+    }
+  ]
+}

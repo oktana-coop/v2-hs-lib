@@ -76,6 +76,7 @@ tests = do
           "marks"
           [ goldenCase $ "marks" </> "add-strong-emphasis-to-word",
             goldenCase $ "marks" </> "remove-strong-emphasis-from-word",
+            goldenCase $ "marks" </> "remove-adjacent-marks",
             goldenCase $ "marks" </> "replace-strong-emphasis-with-emphasis"
           ],
         testGroup
