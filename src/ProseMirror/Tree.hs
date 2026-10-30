@@ -11,9 +11,7 @@ import DocTree.Common as RichText (BlockNode (..), Image (..), InlineSpan (..), 
 import qualified DocTree.GroupedInlines as GroupedInlinesTree
 import qualified DocTree.LeafTextSpans as LeafTextSpansTree
 import GHC.Base (NonEmpty)
-import Metadata.KeyOutline (stripTempMetaOutlineKey)
 import ProseMirror.Error (PMConversionError (..))
-import ProseMirror.Metadata (metaFromJsonText, metaToJsonText)
 import ProseMirror.Model (CodeBlockLanguage)
 import qualified ProseMirror.Model as PM (Block (..), BlockNode (..), CodeBlockLanguage (..), HeadingLevel (..), Image (..), InlineNode (..), Link (..), Mark (..), Node (..), NoteId (..), OrderedListStart (..), PMDoc (..), TextNode (..), assertRootNodeIsDoc, wrapChildrenToBlock)
 import qualified Text.Pandoc.Builder as Pandoc
@@ -23,11 +21,8 @@ import qualified Text.Pandoc.Builder as Pandoc
     Inline (..),
     ListNumberDelim (DefaultDelim),
     ListNumberStyle (DefaultStyle),
-    Meta,
     emptyCaption,
-    isNullMeta,
     nullAttr,
-    nullMeta,
   )
 import qualified Text.Pandoc.Shared as Pandoc (stringify)
 
@@ -64,16 +59,14 @@ pmTreeNodeFolder pmTreeNode eitherChildNodes = do
 unrepresentableNodeErrorMessage :: String
 unrepresentableNodeErrorMessage = "Found content with no ProseMirror representation."
 
-docWithMetaIfExists :: Pandoc.Meta -> PM.Block
-docWithMetaIfExists meta =
-  if Pandoc.isNullMeta (stripTempMetaOutlineKey meta)
-    then PM.Doc Nothing
-    else PM.Doc $ Just $ metaToJsonText meta
-
 groupedInlinesPandocTreeToPMTree :: Tree GroupedInlinesTree.DocNode -> Either PMConversionError PMTree
-groupedInlinesPandocTreeToPMTree (Node (GroupedInlinesTree.Root meta) childTrees) = do
+-- The doc's metadata isn't read from the tree.
+groupedInlinesPandocTreeToPMTree (Node GroupedInlinesTree.Root childTrees) = do
   pmChildren <- traverse groupedInlinesPandocTreeToPMTree childTrees
-  Right $ Node (PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = docWithMetaIfExists meta, PM.content = Nothing}) pmChildren
+  Right $ Node (PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Doc Nothing, PM.content = Nothing}) pmChildren
+-- The metadata has no nodes in ProseMirror, so the tree must have no metadata subtree.
+groupedInlinesPandocTreeToPMTree (Node GroupedInlinesTree.Metadata _) = Left (UnexpectedTreeShapeError metadataNodeErrorMessage)
+groupedInlinesPandocTreeToPMTree (Node (GroupedInlinesTree.MetaNode _) _) = Left (UnexpectedTreeShapeError metadataNodeErrorMessage)
 -- The body has no node in ProseMirror: its blocks are the doc's content.
 groupedInlinesPandocTreeToPMTree (Node GroupedInlinesTree.Body childTrees) = do
   pmChildren <- traverse groupedInlinesPandocTreeToPMTree childTrees
@@ -107,6 +100,9 @@ parseFigureSubtrees [c1, c2]
   | isFigureContentTree c1, isCaptionTree c2 = Left (NodeSpecViolationError figureContentErrorMessage)
 parseFigureSubtrees _ = Left (UnexpectedTreeShapeError "The figure must have at most one content block followed by at most one caption")
 
+metadataNodeErrorMessage :: String
+metadataNodeErrorMessage = "Found a metadata node: the metadata subtree is left out before the conversion."
+
 figureContentErrorMessage :: String
 figureContentErrorMessage = "The figure content must contain at most one image (no other inline content)"
 
@@ -131,7 +127,11 @@ isFigureContentTree (Node (GroupedInlinesTree.RichTextNode (GroupedInlinesTree.B
 isFigureContentTree _ = False
 
 leafTextSpansPandocTreeNodeToPMNode :: LeafTextSpansTree.DocNode -> PMTreeNode
-leafTextSpansPandocTreeNodeToPMNode (LeafTextSpansTree.Root meta) = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = docWithMetaIfExists meta, PM.content = Nothing}
+-- The doc's metadata isn't read from the tree.
+leafTextSpansPandocTreeNodeToPMNode LeafTextSpansTree.Root = PMNode $ PM.BlockNode $ PM.PMBlock {PM.block = PM.Doc Nothing, PM.content = Nothing}
+-- The metadata has no nodes in ProseMirror, so the tree must have no metadata subtree.
+leafTextSpansPandocTreeNodeToPMNode LeafTextSpansTree.Metadata = UnrepresentableNode
+leafTextSpansPandocTreeNodeToPMNode (LeafTextSpansTree.MetaNode _) = UnrepresentableNode
 leafTextSpansPandocTreeNodeToPMNode LeafTextSpansTree.Body = WrapperBlockNode
 leafTextSpansPandocTreeNodeToPMNode (LeafTextSpansTree.RichTextNode (LeafTextSpansTree.BlockNode node)) = treeBlockNodeToPMBlockNode node
 leafTextSpansPandocTreeNodeToPMNode (LeafTextSpansTree.RichTextNode (LeafTextSpansTree.InlineNode)) = WrapperInlineNode
@@ -215,12 +215,9 @@ pmNodeToGroupedInlinesNodeFolder pmTreeNode eitherSubtrees = do
   pmNodeToGroupedInlinesNode pmTreeNode childTrees
   where
     pmNodeToGroupedInlinesNode :: PMTreeNode -> [Tree GroupedInlinesTree.DocNode] -> Either String (Tree GroupedInlinesTree.DocNode)
-    pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.Doc maybeMeta) _))) childTrees =
-      case maybeMeta of
-        Nothing -> Right $ Node (GroupedInlinesTree.Root Pandoc.nullMeta) [Node GroupedInlinesTree.Body childTrees]
-        Just pmMeta -> case metaFromJsonText pmMeta of
-          (Left err) -> Left err
-          (Right pandocMeta) -> Right $ Node (GroupedInlinesTree.Root pandocMeta) [Node GroupedInlinesTree.Body childTrees]
+    -- The doc's metadata isn't read into the tree.
+    pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.Doc _) _))) childTrees =
+      Right $ Node GroupedInlinesTree.Root [Node GroupedInlinesTree.Metadata [], Node GroupedInlinesTree.Body childTrees]
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.Paragraph) _))) childTrees =
       Right $ Node (GroupedInlinesTree.RichTextNode $ GroupedInlinesTree.BlockNode $ RichText.PandocBlock $ Pandoc.Para []) (concatAdjacentInlineNodes childTrees)
     pmNodeToGroupedInlinesNode (PMNode (PM.BlockNode (PM.PMBlock (PM.Heading (PM.HeadingLevel level)) _))) childTrees =

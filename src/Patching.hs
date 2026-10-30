@@ -12,7 +12,7 @@ import Format (Format)
 import ProseMirror.Transform.FromDiff (TransformedPMDoc, toTransformedPMDoc)
 import RichTextDiff (DiffOptions (..))
 import RichTextDiffOp (RichTextDiffOp)
-import Text.Pandoc (Pandoc (..))
+import Text.Pandoc (Meta, Pandoc (..))
 
 proseMirrorSteps :: Format -> Format -> String -> String -> IO (Either (NonEmpty Error) TransformedPMDoc)
 proseMirrorSteps beforeFormat afterFormat beforeStr afterStr = do
@@ -32,5 +32,5 @@ proseMirrorSteps beforeFormat afterFormat beforeStr afterStr = do
     metaDiffers :: (Pandoc, Pandoc) -> Bool
     metaDiffers (Pandoc beforeMeta _, Pandoc afterMeta _) = beforeMeta /= afterMeta
 
-    diffToPMSteps :: Bool -> Tree (RichTextDiffOp PandocTree.DocNode) -> Either (NonEmpty Error) TransformedPMDoc
-    diffToPMSteps updatesMeta diff = first (pure . PatchError . T.pack) (toTransformedPMDoc updatesMeta diff)
+    diffToPMSteps :: Bool -> (Meta, Tree (RichTextDiffOp PandocTree.DocNode)) -> Either (NonEmpty Error) TransformedPMDoc
+    diffToPMSteps updatesMeta (docMeta, diff) = first (pure . PatchError . T.pack) (toTransformedPMDoc updatesMeta docMeta diff)

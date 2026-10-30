@@ -6,12 +6,13 @@ import qualified Data.Text as T
 import Data.Tree (Tree (..))
 import DocTree.Error (MalformedTreeError (..))
 import qualified DocTree.GroupedInlines as GroupedInlinesTree
+import ProseMirror.Metadata (metaFromPMDoc)
 import ProseMirror.Model (PMDoc, parseProseMirrorText)
 import ProseMirror.PandocTreeShape.FigureContent.GroupedInlines (wrapFigureContentInlinesToPlain)
 import ProseMirror.PandocTreeShape.ImplicitFigure (addCaptionEqualToAlt, unwrapCaptionlessFigure)
 import ProseMirror.Tree (pmTreeFromPMDoc, pmTreeToGroupedInlinesTree)
 import Text.Pandoc (PandocError (PandocParseError), ReaderOptions)
-import Text.Pandoc.Builder as Pandoc (Pandoc)
+import Text.Pandoc.Builder as Pandoc (Pandoc (..))
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Sources (ToSources, sourcesToText, toSources)
 
@@ -19,8 +20,16 @@ import Text.Pandoc.Sources (ToSources, sourcesToText, toSources)
 readProseMirror :: (PandocMonad m, ToSources a) => ReaderOptions -> a -> m Pandoc
 readProseMirror _ =
   -- Using Kleisli composition to compose the functions in the monadic context (PandocMonad)
-  parsePMJSONAndConvertToGroupedInlinesTree >=> pure . wrapFigureContentInlinesToPlain >=> treeToPandoc >=> pure . postprocessPandoc
+  toPandocMonad . parsePMJSON >=> pmDocToPandoc >=> pure . postprocessPandoc
   where
+    -- The doc's metadata is read from its attribute, apart from the tree.
+    pmDocToPandoc :: (PandocMonad m) => PMDoc -> m Pandoc
+    pmDocToPandoc pmDoc = do
+      meta <- toPandocMonad (metaFromPMDoc pmDoc)
+      tree <- toPandocMonad (pmDocToGroupedInlinesTree pmDoc)
+      Pandoc _ blocks <- treeToPandoc (wrapFigureContentInlinesToPlain tree)
+      pure (Pandoc meta blocks)
+
     postprocessPandoc :: Pandoc -> Pandoc
     postprocessPandoc = unwrapCaptionlessFigure . addCaptionEqualToAlt
 
@@ -30,17 +39,12 @@ readProseMirror _ =
     toPandocError :: MalformedTreeError -> PandocError
     toPandocError (MalformedTreeError message) = PandocParseError message
 
-    -- Parse ProseMirror JSON and convert to GroupedInlines tree.
-    -- Lifts the Either-based computation into the PandocMonad, wrapping errors as PandocParseError
-    parsePMJSONAndConvertToGroupedInlinesTree :: (ToSources a, PandocMonad m) => a -> m (Tree GroupedInlinesTree.DocNode)
-    parsePMJSONAndConvertToGroupedInlinesTree = toPandocMonad . (parsePMJSON >=> pmDocToGroupedInlinesTree)
-      where
-        pmDocToGroupedInlinesTree :: PMDoc -> Either String (Tree GroupedInlinesTree.DocNode)
-        pmDocToGroupedInlinesTree = pmTreeToGroupedInlinesTree . pmTreeFromPMDoc
+    pmDocToGroupedInlinesTree :: PMDoc -> Either String (Tree GroupedInlinesTree.DocNode)
+    pmDocToGroupedInlinesTree = pmTreeToGroupedInlinesTree . pmTreeFromPMDoc
 
-        -- Parses ProseMirror JSON text to PMDoc
-        parsePMJSON :: (ToSources a) => a -> Either String PMDoc
-        parsePMJSON = parseProseMirrorText . sourcesToText . toSources
+    -- Parses ProseMirror JSON text to PMDoc
+    parsePMJSON :: (ToSources a) => a -> Either String PMDoc
+    parsePMJSON = parseProseMirrorText . sourcesToText . toSources
 
-        toPandocMonad :: (PandocMonad m) => Either String a -> m a
-        toPandocMonad = either (throwError . PandocParseError . T.pack) pure
+    toPandocMonad :: (PandocMonad m) => Either String a -> m a
+    toPandocMonad = either (throwError . PandocParseError . T.pack) pure

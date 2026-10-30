@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.Metadata (metaFromJsonText, metaToJsonText) where
+module ProseMirror.Metadata (addDocMeta, metaFromPMDoc, metaFromJsonText, metaToJsonText) where
 
 import Data.Aeson (eitherDecodeStrictText, pairs, toEncoding, (.=))
 import Data.Aeson.Decoding.Text (textToTokens)
@@ -11,8 +11,24 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
-import Metadata.KeyOutline (KeyOutline (..), addKeyOutline, listItemsWithOutlines, mapEntriesInOutlineOrder, takeKeyOutline)
-import Text.Pandoc.Definition (Meta (..), MetaValue (..))
+import Metadata.KeyOutline (KeyOutline (..), addKeyOutline, listItemsWithOutlines, mapEntriesInOutlineOrder, stripTempMetaOutlineKey, takeKeyOutline)
+import qualified ProseMirror.Model as PM (Block (..), BlockNode (..), Node (..), PMDoc (..))
+import Text.Pandoc.Definition (Meta (..), MetaValue (..), isNullMeta, nullMeta)
+
+-- The doc node with the metadata in its attribute, or none for empty metadata. Other nodes are left as they are.
+addDocMeta :: Meta -> PM.Node -> PM.Node
+addDocMeta meta (PM.BlockNode (PM.PMBlock (PM.Doc _) content)) = PM.BlockNode (PM.PMBlock docWithMeta content)
+  where
+    docWithMeta :: PM.Block
+    docWithMeta
+      | isNullMeta (stripTempMetaOutlineKey meta) = PM.Doc Nothing
+      | otherwise = PM.Doc (Just (metaToJsonText meta))
+addDocMeta _ node = node
+
+-- The metadata in the doc's attribute, or empty metadata if it has none.
+metaFromPMDoc :: PM.PMDoc -> Either String Meta
+metaFromPMDoc (PM.PMDoc (PM.BlockNode (PM.PMBlock (PM.Doc (Just pmMeta)) _))) = metaFromJsonText pmMeta
+metaFromPMDoc _ = Right nullMeta
 
 -- Pandoc's metadata parsed from its JSON text, with an extra temporary key that holds the order of the keys.
 metaFromJsonText :: T.Text -> Either String Meta

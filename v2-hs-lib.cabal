@@ -56,6 +56,8 @@ library
       ProseMirror.PandocTreeShape.ListSpacing
       ProseMirror.PandocTreeShape.FigureContent.GroupedInlines
       ProseMirror.PandocTreeShape.FigureContent.LeafTextSpans
+      ProseMirror.PandocTreeShape.Metadata.GroupedInlines
+      ProseMirror.PandocTreeShape.Metadata.LeafTextSpans
       ProseMirror.Utils.Debug
       ProseMirror.Utils.Json
       Utils.Either

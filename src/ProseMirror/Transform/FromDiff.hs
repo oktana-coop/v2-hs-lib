@@ -9,35 +9,40 @@ import Data.Tree (Tree, foldTree)
 import qualified DocTree.Common as RichText (Mark)
 import qualified DocTree.LeafTextSpans as PandocTree
 import ProseMirror.Diff (PositionedDiffNode, addPositionsToDiffTree)
+import ProseMirror.Metadata (addDocMeta)
 import ProseMirror.Model (Positioned (..), closedSlice, emptySlice, isEmptySlice)
 import qualified ProseMirror.Model as PM (Block (..), BlockNode (..), InlineNode (..), Meta, Node (..), TextNode (..), isRootBlockNode, nodeSize, wrapChildrenToBlock)
 import ProseMirror.Transform.Step (AttrStep (..), DocAttrStep (..), MarkRangeStep (..), ReplaceStep (..), Step (..))
 import ProseMirror.Tree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode, treeMarkToPMMark)
 import RichTextDiffOp (HeadingLevelDiff (..), MarkDiff (..), RichTextDiffOp (..), getDiffOp, unpackDiffOpValue)
+import Text.Pandoc.Definition as Pandoc (Meta)
 
 data TransformedPMDoc = TransformedPMDoc {doc :: PM.Node, steps :: [Step]} deriving (Show, Eq)
 
 instance ToJSON TransformedPMDoc where
   toJSON transformed = object ["doc" .= doc transformed, "steps" .= steps transformed]
 
--- With `updatesMeta`, the steps also update the editor's metadata.
-toTransformedPMDoc :: Bool -> Tree (RichTextDiffOp PandocTree.DocNode) -> Either String TransformedPMDoc
-toTransformedPMDoc updatesMeta = foldTree transformSubtree . addPositionsToDiffTree >=> toDocWithSteps
+-- With `updatesMeta`, the steps also update the editor's metadata. The doc's attribute holds the given metadata.
+toTransformedPMDoc :: Bool -> Pandoc.Meta -> Tree (RichTextDiffOp PandocTree.DocNode) -> Either String TransformedPMDoc
+toTransformedPMDoc updatesMeta docMeta = foldTree transformSubtree . addPositionsToDiffTree >=> toDocWithSteps
   where
     toDocWithSteps :: TransformedSubtree -> Either String TransformedPMDoc
-    toDocWithSteps rootSubtree = case afterNodes rootSubtree of
+    toDocWithSteps rootSubtree = case afterNodesWithMeta of
       [root@(PM.BlockNode (PM.PMBlock (PM.Doc meta) _))] -> Right TransformedPMDoc {doc = root, steps = transactionSteps meta}
       _ -> Left "Cannot emit steps: the diff tree does not have a single doc root."
       where
+        afterNodesWithMeta :: [PM.Node]
+        afterNodesWithMeta = map (addDocMeta docMeta) (afterNodes rootSubtree)
+
         transactionSteps :: Maybe PM.Meta -> [Step]
         transactionSteps meta = collapseDeleteInsertIntoReplace (docMetaSteps meta <> subtreeSteps rootSubtree)
 
-    -- Document metadata is an attribute of the editor's doc node, set by a step of its own.
-    docMetaSteps :: Maybe PM.Meta -> [Step]
-    docMetaSteps meta =
-      if updatesMeta
-        then [DocAttrStep PMDocAttrStep {docAttrName = "pandocMeta", docAttrValue = toJSON meta}]
-        else []
+        -- Document metadata is an attribute of the editor's doc node, set by a step of its own.
+        docMetaSteps :: Maybe PM.Meta -> [Step]
+        docMetaSteps meta =
+          if updatesMeta
+            then [DocAttrStep PMDocAttrStep {docAttrName = "pandocMeta", docAttrValue = toJSON meta}]
+            else []
 
 -- A subtree transformed to ProseMirror: its nodes in the "after" document, the same nodes with the deleted
 -- ones still in place (a deleted ancestor is sized from them) and the steps that produce it.
@@ -78,10 +83,6 @@ transformSubtree positionedNodeWithDiff transformedChildren = do
 transformPMNode :: PositionedDiffNode -> PM.Node -> PM.Node -> [Step] -> Either String TransformedSubtree
 transformPMNode positionedNodeWithDiff afterNode nodeWithDeletedChildren childSteps = case getDiffOp (value positionedNodeWithDiff) of
   Copy () -> Right (nodeSubtree afterNode childSteps)
-  -- The metadata step does not follow this op (see `toTransformedPMDoc`).
-  UpdateMeta _ ()
-    | PM.isRootBlockNode afterNode -> Right (nodeSubtree afterNode childSteps)
-    | otherwise -> Left "Cannot emit steps: a metadata update on a node that is not the doc."
   -- An inserted node's descendants are inserted too, and inserting the node inserts them all at once, so
   -- the single step here replaces the children's steps. Likewise for deletions below.
   Insert ()

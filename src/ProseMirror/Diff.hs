@@ -8,11 +8,14 @@ import qualified Data.Text as T
 import Data.Tree (Tree (..), foldTree)
 import qualified DocTree.LeafTextSpans as PandocTree
 import ProseMirror.Decoration (Decoration (..), DecorationAttrs (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), undecorate)
+import ProseMirror.Metadata (addDocMeta)
 import ProseMirror.Model (PMPosition, Positioned (..), addNodePositionsRenderedBy)
 import qualified ProseMirror.Model as PM (InlineNode (..), Node (..), isLeafBlockNode, wrapChildrenToBlock)
 import ProseMirror.PandocTreeShape.FigureContent.LeafTextSpans (unwrapFigureContentParaOrPlain)
+import ProseMirror.PandocTreeShape.Metadata.LeafTextSpans (withoutMetadataSubtree)
 import ProseMirror.Tree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode)
 import RichTextDiffOp (RichTextDiffOp (..), unpackDiffOpValue)
+import Text.Pandoc.Definition as Pandoc (Meta)
 
 -- Alias to the function exposed from the PMTree module
 pandocTreeNodeToPMNode :: PandocTree.DocNode -> PMTreeNode
@@ -27,11 +30,18 @@ data DecoratedPMDoc = DecoratedPMDoc {doc :: PM.Node, decorations :: [Decoration
 instance ToJSON DecoratedPMDoc where
   toJSON decoratedPMDoc = object ["doc" .= doc decoratedPMDoc, "decorations" .= decorations decoratedPMDoc]
 
-toDecoratedPMDoc :: Tree (RichTextDiffOp PandocTree.DocNode) -> DecoratedPMDoc
-toDecoratedPMDoc = pmDocFromPMTree . fmap decorate . addPositionsToDiffTree
+-- The doc's attribute holds the given metadata.
+toDecoratedPMDoc :: Pandoc.Meta -> Tree (RichTextDiffOp PandocTree.DocNode) -> DecoratedPMDoc
+toDecoratedPMDoc meta = addMeta . pmDocFromPMTree . fmap decorate . addPositionsToDiffTree
+  where
+    addMeta :: DecoratedPMDoc -> DecoratedPMDoc
+    addMeta decoratedPMDoc = decoratedPMDoc {doc = addDocMeta meta (doc decoratedPMDoc)}
 
 addPositionsToDiffTree :: Tree (RichTextDiffOp PandocTree.DocNode) -> Tree PositionedDiffNode
-addPositionsToDiffTree = addNodePositionsRenderedBy unpackAndRenderPMNode . unwrapFigureContentParaOrPlain unpackDiffOpValue
+addPositionsToDiffTree =
+  addNodePositionsRenderedBy unpackAndRenderPMNode
+    . unwrapFigureContentParaOrPlain unpackDiffOpValue
+    . withoutMetadataSubtree unpackDiffOpValue
   where
     -- The ProseMirror node a diff node renders to, if any: deleted content is not part of the document and
     -- wrapper nodes have no ProseMirror counterpart, so neither takes positions.
@@ -50,9 +60,6 @@ diffModifyClass = "diff-modify"
 decorate :: PositionedDiffNode -> Either PMTreeNode (Decoration PMTreeNode)
 decorate positionedNodeWithDiff = case nodeWithDiff of
   Copy _ -> Left node
-  -- We currently ignore meta diffs.
-  -- TODO: Handle meta diffs in ProseMirror.
-  UpdateMeta _ _ -> Left node
   Insert _ -> case node of
     -- Inserted leaf blocks (e.g. horizontal rule) have no inline children to carry an insert
     -- decoration, so we wrap the block itself in a node decoration instead.
