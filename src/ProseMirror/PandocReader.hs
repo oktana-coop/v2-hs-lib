@@ -6,26 +6,27 @@ import qualified Data.Text as T
 import Data.Tree (Tree (..))
 import DocTree.Error (MalformedTreeError (..))
 import qualified DocTree.GroupedInlines as GroupedInlinesTree
-import ProseMirror.Metadata (metaFromPMDoc)
+import Markdown.PandocReader (readFrontMatter)
+import ProseMirror.Metadata (docFrontMatter)
 import ProseMirror.Model (PMDoc, parseProseMirrorText)
 import ProseMirror.PandocTreeShape.FigureContent.GroupedInlines (wrapFigureContentInlinesToPlain)
 import ProseMirror.PandocTreeShape.ImplicitFigure (addCaptionEqualToAlt, unwrapCaptionlessFigure)
 import ProseMirror.Tree (pmTreeFromPMDoc, pmTreeToGroupedInlinesTree)
 import Text.Pandoc (PandocError (PandocParseError), ReaderOptions)
-import Text.Pandoc.Builder as Pandoc (Pandoc (..))
+import Text.Pandoc.Builder as Pandoc (Pandoc (..), nullMeta)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Sources (ToSources, sourcesToText, toSources)
 
--- Although ReaderOptions are not used, the function is written like this so that it's consistent with the other Pandoc reader functions.
+-- The options are the ones the doc's front matter is read with.
 readProseMirror :: (PandocMonad m, ToSources a) => ReaderOptions -> a -> m Pandoc
-readProseMirror _ =
+readProseMirror opts =
   -- Using Kleisli composition to compose the functions in the monadic context (PandocMonad)
   toPandocMonad . parsePMJSON >=> pmDocToPandoc >=> pure . postprocessPandoc
   where
-    -- The doc's metadata is read from its attribute, apart from the tree.
+    -- The doc's metadata is read from the front matter in its attribute, apart from the tree.
     pmDocToPandoc :: (PandocMonad m) => PMDoc -> m Pandoc
     pmDocToPandoc pmDoc = do
-      meta <- toPandocMonad (metaFromPMDoc pmDoc)
+      meta <- maybe (pure nullMeta) (readFrontMatter opts) (docFrontMatter pmDoc)
       tree <- toPandocMonad (pmDocToGroupedInlinesTree pmDoc)
       Pandoc _ blocks <- treeToPandoc (wrapFigureContentInlinesToPlain tree)
       pure (Pandoc meta blocks)

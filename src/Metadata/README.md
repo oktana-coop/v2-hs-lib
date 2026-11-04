@@ -46,7 +46,7 @@ This key-value pair is temporary and internal:
 A reader whose format exposes the order reads it from the input text, separately from Pandoc's parse of the values, and stores the outline under the temporary key:
 
 - Markdown: the YAML block the document starts with.
-- ProseMirror: the JSON of the document's metadata.
+- ProseMirror: the front matter in the document's attribute, read as Markdown's.
 
 For other formats, the library reads no order, so their keys follow Pandoc's sorted order.
 
@@ -54,7 +54,7 @@ For other formats, the library reads no order, so their keys follow Pandoc's sor
 
 Two writers take the outline out of the metadata and apply it:
 
-- ProseMirror: the document's metadata is written with its keys in the outline's order.
+- ProseMirror: the document's metadata is written as front matter in the document's attribute, as for Markdown.
 - Markdown: Pandoc writes the document, and the entries of its front matter are rearranged to follow the outline. The library only changes where each entry is, and writes the YAML the way Pandoc does.
 
 For the front matter above, Pandoc writes:

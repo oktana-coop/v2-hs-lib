@@ -1,6 +1,6 @@
 {
   "attrs": {
-    "pandocMeta": "{\"title\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"A\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"history\"}]},\"history\":{\"t\":\"MetaMap\",\"c\":{\"2024\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"Second\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"edition\"}]},\"2023\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"First\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"edition\"}]}}}}"
+    "frontMatter": "title: A history\nhistory:\n  2024: Second edition\n  2023: First edition\n"
   },
   "content": [
     {

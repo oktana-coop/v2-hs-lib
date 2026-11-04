@@ -10,9 +10,10 @@ import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8)
 import Data.Tree (Tree)
 import qualified DocTree.GroupedInlines as GroupedInlinesTree (DocNode, toTree)
+import Markdown.PandocWriter (writeFrontMatter)
 import ProseMirror.Error (PMConversionError (..))
-import ProseMirror.Metadata (addDocMeta)
-import qualified ProseMirror.Model as PM (PMDoc (..))
+import ProseMirror.Metadata (addDocFrontMatter)
+import qualified ProseMirror.Model as PM (FrontMatter, PMDoc (..))
 import ProseMirror.PandocTreeShape (dropUnrepresentableContent, findUnrepresentableBlocks, findUnrepresentableInlines, reconcileWithProseMirrorModel)
 import ProseMirror.PandocTreeShape.FigureContent.GroupedInlines (unwrapFigureContentParaOrPlain)
 import ProseMirror.PandocTreeShape.Metadata.GroupedInlines (withoutMetadataSubtree)
@@ -24,7 +25,7 @@ import Text.Pandoc.Logging (LogMessage (BlockNotRendered, InlineNotRendered))
 
 writeProseMirror :: (PandocMonad m) => WriterOptions -> Pandoc.Pandoc -> m T.Text
 -- Some steps yield their result inside the Pandoc monad, so we compose with Kleisli (`<=<`).
-writeProseMirror _ =
+writeProseMirror opts =
   pure . pmDocToJSONText
     <=< convertToPMDoc
     <=< reportAndDropUnrepresentableContent . reconcileWithProseMirrorModel
@@ -36,12 +37,14 @@ writeProseMirror _ =
       mapM_ (report . InlineNotRendered) (findUnrepresentableInlines doc)
       pure (dropUnrepresentableContent doc)
 
-    -- The doc's metadata is the document's, not the tree's.
+    -- The doc's metadata is the document's, not the tree's, written as front matter with the given options.
     convertToPMDoc :: (PandocMonad m) => Pandoc.Pandoc -> m PM.PMDoc
-    convertToPMDoc doc@(Pandoc.Pandoc meta _) = fmap addMeta (convertTreeToPMDoc (buildDocTree doc))
+    convertToPMDoc doc@(Pandoc.Pandoc meta _) = do
+      frontMatter <- writeFrontMatter opts meta
+      fmap (addFrontMatter frontMatter) (convertTreeToPMDoc (buildDocTree doc))
       where
-        addMeta :: PM.PMDoc -> PM.PMDoc
-        addMeta (PM.PMDoc root) = PM.PMDoc (addDocMeta meta root)
+        addFrontMatter :: Maybe PM.FrontMatter -> PM.PMDoc -> PM.PMDoc
+        addFrontMatter frontMatter (PM.PMDoc root) = PM.PMDoc (addDocFrontMatter frontMatter root)
 
     buildDocTree :: Pandoc.Pandoc -> Tree GroupedInlinesTree.DocNode
     buildDocTree = withoutMetadataSubtree . unwrapFigureContentParaOrPlain . GroupedInlinesTree.toTree

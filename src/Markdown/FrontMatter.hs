@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Markdown.FrontMatter (frontMatterKeyOutline, orderFrontMatter) where
+module Markdown.FrontMatter (frontMatterKeyOutline, frontMatterText, orderFrontMatter) where
 
 import Data.Char (isSpace)
 import qualified Data.Map as M

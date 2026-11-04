@@ -109,6 +109,7 @@ test-suite v2-hs-lib-test
   other-modules:
       Conversion.Embed
       Conversion.Errors
+      Conversion.FrontMatter
       Conversion.Golden
       Conversion.MdToPm.Golden
       Conversion.MetaKeyOrder

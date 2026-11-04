@@ -10,38 +10,37 @@ import qualified DocTree.Common as RichText (Mark)
 import NodeDiff.Common (DiffOpType (..), HeadingLevelDiff (..), InlineContentDiff (..), MarkDiff (..))
 import NodeDiff.LeafTextSpans (DocNodeDiff (..), RichTextNodeDiff (..), toDiffOpType, toDocNode)
 import ProseMirror.Diff (PositionedDiffNode, addPositionsToDiffTree)
-import ProseMirror.Metadata (addDocMeta)
+import ProseMirror.Metadata (addDocFrontMatter)
 import ProseMirror.Model (Positioned (..), closedSlice, emptySlice, isEmptySlice)
-import qualified ProseMirror.Model as PM (Block (..), BlockNode (..), InlineNode (..), Meta, Node (..), TextNode (..), nodeSize, wrapChildrenToBlock)
+import qualified ProseMirror.Model as PM (Block (..), BlockNode (..), FrontMatter, InlineNode (..), Node (..), TextNode (..), nodeSize, wrapChildrenToBlock)
 import ProseMirror.Transform.Step (AttrStep (..), DocAttrStep (..), MarkRangeStep (..), ReplaceStep (..), Step (..))
 import ProseMirror.Tree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode, treeMarkToPMMark)
-import Text.Pandoc.Definition as Pandoc (Meta)
 
 data TransformedPMDoc = TransformedPMDoc {doc :: PM.Node, steps :: [Step]} deriving (Show, Eq)
 
 instance ToJSON TransformedPMDoc where
   toJSON transformed = object ["doc" .= doc transformed, "steps" .= steps transformed]
 
--- With `updatesMeta`, the steps also update the editor's metadata. The doc's attribute holds the given metadata.
-toTransformedPMDoc :: Bool -> Pandoc.Meta -> Tree DocNodeDiff -> Either String TransformedPMDoc
-toTransformedPMDoc updatesMeta docMeta = foldTree transformSubtree . addPositionsToDiffTree >=> toDocWithSteps
+-- With `updatesMeta`, the steps also update the editor's metadata. The doc's attribute holds the given front matter.
+toTransformedPMDoc :: Bool -> Maybe PM.FrontMatter -> Tree DocNodeDiff -> Either String TransformedPMDoc
+toTransformedPMDoc updatesMeta docFrontMatter = foldTree transformSubtree . addPositionsToDiffTree >=> toDocWithSteps
   where
     toDocWithSteps :: TransformedSubtree -> Either String TransformedPMDoc
-    toDocWithSteps rootSubtree = case afterNodesWithMeta of
-      [root@(PM.BlockNode (PM.PMBlock (PM.Doc meta) _))] -> Right TransformedPMDoc {doc = root, steps = transactionSteps meta}
+    toDocWithSteps rootSubtree = case afterNodesWithFrontMatter of
+      [root@(PM.BlockNode (PM.PMBlock (PM.Doc frontMatter) _))] -> Right TransformedPMDoc {doc = root, steps = transactionSteps frontMatter}
       _ -> Left "Cannot emit steps: the diff tree does not have a single doc root."
       where
-        afterNodesWithMeta :: [PM.Node]
-        afterNodesWithMeta = map (addDocMeta docMeta) (afterNodes rootSubtree)
+        afterNodesWithFrontMatter :: [PM.Node]
+        afterNodesWithFrontMatter = map (addDocFrontMatter docFrontMatter) (afterNodes rootSubtree)
 
-        transactionSteps :: Maybe PM.Meta -> [Step]
-        transactionSteps meta = collapseDeleteInsertIntoReplace (docMetaSteps meta <> subtreeSteps rootSubtree)
+        transactionSteps :: Maybe PM.FrontMatter -> [Step]
+        transactionSteps frontMatter = collapseDeleteInsertIntoReplace (docMetaSteps frontMatter <> subtreeSteps rootSubtree)
 
         -- Document metadata is an attribute of the editor's doc node, set by a step of its own.
-        docMetaSteps :: Maybe PM.Meta -> [Step]
-        docMetaSteps meta =
+        docMetaSteps :: Maybe PM.FrontMatter -> [Step]
+        docMetaSteps frontMatter =
           if updatesMeta
-            then [DocAttrStep PMDocAttrStep {docAttrName = "pandocMeta", docAttrValue = toJSON meta}]
+            then [DocAttrStep PMDocAttrStep {docAttrName = "frontMatter", docAttrValue = toJSON frontMatter}]
             else []
 
 -- A subtree transformed to ProseMirror: its nodes in the "after" document, the same nodes with the deleted

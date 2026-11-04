@@ -81,6 +81,10 @@ spec = do
       errors <- convertToText Markdown ProseMirror Nothing "---\ntitle: Notes\n---\n\nText.\n\n---\nauthor Ada: x: y\n---\n\nMore text.\n" >>= errorsOf
       errors `shouldSatisfy` all isYamlMetadataError
 
+    it "fails with a metadata error for a ProseMirror doc whose front matter isn't valid YAML" $ do
+      errors <- convertToText ProseMirror Markdown Nothing "{\"type\":\"doc\",\"attrs\":{\"frontMatter\":\"title: Notes\\nauthor Ada: x: y\\n\"},\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Text.\"}]}]}" >>= errorsOf
+      errors `shouldSatisfy` all isYamlMetadataError
+
   describe "toWriteError" $ do
     it "keeps only the message of the ProseMirror writer's broken invariants" $
       toWriteError ProseMirror (PandocShouldNeverHappenError "No root node found.")

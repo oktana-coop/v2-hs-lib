@@ -1,7 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.Model.Node (Node (..), BlockNode (..), Block (..), InlineNode (..), TextNode (..), NodeType (..), HeadingLevel (..), OrderedListStart (..), CodeBlockLanguage (..), NoteId (..), Image (..), Meta, nodeType, isRootBlockNode, isAtomNode, isLeafBlockNode, isLeafNode, nodeSize, contentSize, textLength, wrapChildrenToBlock) where
+module ProseMirror.Model.Node (Node (..), BlockNode (..), Block (..), InlineNode (..), TextNode (..), NodeType (..), HeadingLevel (..), OrderedListStart (..), CodeBlockLanguage (..), NoteId (..), Image (..), FrontMatter, nodeType, isRootBlockNode, isAtomNode, isLeafBlockNode, isLeafNode, nodeSize, contentSize, textLength, wrapChildrenToBlock) where
 
 import Data.Aeson (FromJSON (parseJSON), Object, ToJSON (toJSON), Value (..), object, withObject, withScientific, withText, (.:), (.:?), (.=))
 import Data.Aeson.Types (Parser)
@@ -12,7 +12,7 @@ import qualified Data.Text as T
 import ProseMirror.Model.Mark (Mark)
 import ProseMirror.Utils.Json (parseNonEmpty)
 
-type Meta = T.Text
+type FrontMatter = T.Text
 
 data Image = Image {src :: T.Text, alt :: Maybe T.Text, imageTitle :: Maybe T.Text} deriving (Show, Eq)
 
@@ -124,7 +124,7 @@ instance ToJSON NodeType where
     NoteRefType -> String "note_ref"
     NoteContentType -> String "note_content"
 
-data Block = Doc (Maybe Meta) | Paragraph | Heading HeadingLevel | CodeBlock (Maybe CodeBlockLanguage) | BlockQuote | BulletList | OrderedList OrderedListStart | ListItem | HorizontalRule | Figure | FigureContent | Caption | NoteContent NoteId deriving (Show, Eq)
+data Block = Doc (Maybe FrontMatter) | Paragraph | Heading HeadingLevel | CodeBlock (Maybe CodeBlockLanguage) | BlockQuote | BulletList | OrderedList OrderedListStart | ListItem | HorizontalRule | Figure | FigureContent | Caption | NoteContent NoteId deriving (Show, Eq)
 
 data BlockNode = PMBlock {block :: Block, content :: Maybe [Node]} deriving (Show, Eq)
 
@@ -200,8 +200,8 @@ instance FromJSON Node where
         nAttrs <- (v .:? "attrs" :: Parser (Maybe Object))
         case nAttrs of
           Just attrs -> do
-            meta <- (attrs .:? "pandocMeta" :: Parser (Maybe Meta))
-            pure $ BlockNode $ PMBlock {block = Doc meta, content = children}
+            frontMatter <- (attrs .:? "frontMatter" :: Parser (Maybe FrontMatter))
+            pure $ BlockNode $ PMBlock {block = Doc frontMatter, content = children}
           Nothing -> pure $ BlockNode $ PMBlock {block = Doc Nothing, content = children}
       TextType -> do
         nText <- v .: "text" >>= parseNonEmpty "text"
@@ -257,7 +257,7 @@ instance ToJSON Node where
   toJSON (InlineNode inlineNode) = toJSON inlineNode
   toJSON (BlockNode (PMBlock bl children)) = case bl of
     Doc Nothing -> object ["type" .= toJSON DocType, "content" .= children]
-    Doc meta -> object ["type" .= toJSON DocType, "content" .= children, "attrs" .= object ["pandocMeta" .= toJSON meta]]
+    Doc frontMatter -> object ["type" .= toJSON DocType, "content" .= children, "attrs" .= object ["frontMatter" .= toJSON frontMatter]]
     Paragraph -> object ["type" .= toJSON ParagraphType, "content" .= children]
     Heading (HeadingLevel level) -> object ["type" .= toJSON HeadingType, "content" .= children, "attrs" .= object ["level" .= toJSON level]]
     CodeBlock Nothing -> object ["type" .= toJSON CodeBlockType, "content" .= children]

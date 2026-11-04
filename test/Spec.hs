@@ -1,5 +1,6 @@
 import Conversion.Embed as ConversionEmbed (tests)
 import Conversion.Errors as ConversionErrors (tests)
+import Conversion.FrontMatter as ConversionFrontMatter (tests)
 import Conversion.Golden as ConversionGolden (tests)
 import Conversion.MetaKeyOrder as ConversionMetaKeyOrder (tests)
 import Conversion.ReaderAgreement as ConversionReaderAgreement (tests)
@@ -19,9 +20,10 @@ main = do
   conversionUnsupportedTests <- ConversionUnsupported.tests
   conversionEmbedTests <- ConversionEmbed.tests
   conversionErrorsTests <- ConversionErrors.tests
+  conversionFrontMatterTests <- ConversionFrontMatter.tests
   conversionReaderAgreementTests <- ConversionReaderAgreement.tests
   diffPatchGoldenTests <- DiffPatchGolden.tests
   diffPatchMetaKeyOrderTests <- DiffPatchMetaKeyOrder.tests
   diffPatchErrorsTests <- DiffPatchErrors.tests
   queryTests <- QuerySpec.tests
-  defaultMain $ testGroup "Tests" [conversionGoldenTests, conversionRoundTripTests, conversionMetaKeyOrderTests, conversionUnsupportedTests, conversionEmbedTests, conversionErrorsTests, conversionReaderAgreementTests, diffPatchGoldenTests, diffPatchMetaKeyOrderTests, diffPatchErrorsTests, queryTests]
+  defaultMain $ testGroup "Tests" [conversionGoldenTests, conversionRoundTripTests, conversionMetaKeyOrderTests, conversionUnsupportedTests, conversionEmbedTests, conversionErrorsTests, conversionFrontMatterTests, conversionReaderAgreementTests, diffPatchGoldenTests, diffPatchMetaKeyOrderTests, diffPatchErrorsTests, queryTests]

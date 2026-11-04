@@ -1,6 +1,6 @@
 {
   "attrs": {
-    "pandocMeta": "{\"b\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"1\"}]},\"a\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"2\"}]},\"c\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"3\"}]},\"d\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"4\"}]}}"
+    "frontMatter": "b: 1\na: 2\nc: 3\nd: 4\n"
   },
   "content": [
     {

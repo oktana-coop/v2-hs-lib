@@ -1,6 +1,6 @@
 {
   "attrs": {
-    "pandocMeta": "{\"zeta\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"1\"}]},\"alpha\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"2\"}]}}"
+    "frontMatter": "zeta: 1\nalpha: 2\n"
   },
   "content": [
     {

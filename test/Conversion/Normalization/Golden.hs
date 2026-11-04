@@ -1,10 +1,17 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Conversion.Normalization.Golden (tests) where
 
-import Conversion.Utils (readFileAndConvert)
+import Conversion.Utils (readFileAndConvert, toTextFormat)
+import Data.Aeson (Value (..), decodeStrictText)
+import qualified Data.Aeson.KeyMap as KeyMap
+import qualified Data.Text as T
+import qualified Data.Text.IO as TIO
 import Format (Format (..))
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden (goldenVsString)
+import Test.Tasty.Golden.Advanced (goldenTest)
 
 tests :: IO TestTree
 tests = do
@@ -45,10 +52,43 @@ goldenCase inputFormat caseSubFolderPath =
           goldenVsString
             "idempotence"
             normalizedGolden
-            (readFileAndConvert Markdown Markdown id normalizedGolden)
+            (readFileAndConvert Markdown Markdown id normalizedGolden),
+          -- The ProseMirror doc's attribute holds the front matter of the normalized document. The golden is the
+          -- normalization's, so accepting leaves it as it is.
+          goldenTest
+            "prosemirror front matter"
+            (frontMatterOf <$> TIO.readFile normalizedGolden)
+            (proseMirrorFrontMatter inputFormat input)
+            compareFrontMatter
+            (const (pure ()))
         ]
   where
     inputFileName :: FilePath
     inputFileName = case inputFormat of
       Json -> "doc.json"
       _ -> "doc.md"
+
+-- The YAML between the delimiters of a Markdown document's front matter.
+frontMatterOf :: T.Text -> Maybe T.Text
+frontMatterOf markdown = case T.lines markdown of
+  "---" : rest -> Just (T.unlines (takeWhile (/= "---") rest))
+  _ -> Nothing
+
+-- The front matter in the doc's attribute of the input converted to ProseMirror.
+proseMirrorFrontMatter :: Format -> FilePath -> IO (Maybe T.Text)
+proseMirrorFrontMatter inputFormat inputFilePath = do
+  input <- TIO.readFile inputFilePath
+  pmJson <- toTextFormat inputFormat ProseMirror input
+  pure (docFrontMatter pmJson)
+  where
+    docFrontMatter :: T.Text -> Maybe T.Text
+    docFrontMatter pmJson = do
+      Object doc <- decodeStrictText pmJson
+      Object attrs <- KeyMap.lookup "attrs" doc
+      String frontMatter <- KeyMap.lookup "frontMatter" attrs
+      pure frontMatter
+
+compareFrontMatter :: Maybe T.Text -> Maybe T.Text -> IO (Maybe String)
+compareFrontMatter expected actual
+  | expected == actual = pure Nothing
+  | otherwise = pure (Just ("expected " <> show expected <> ", got " <> show actual))

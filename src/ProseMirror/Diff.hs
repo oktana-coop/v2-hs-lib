@@ -10,13 +10,12 @@ import qualified DocTree.LeafTextSpans as PandocTree
 import NodeDiff.Common (DiffOpType (..))
 import NodeDiff.LeafTextSpans (DocNodeDiff, toDiffOpType, toDocNode)
 import ProseMirror.Decoration (Decoration (..), DecorationAttrs (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), undecorate)
-import ProseMirror.Metadata (addDocMeta)
+import ProseMirror.Metadata (addDocFrontMatter)
 import ProseMirror.Model (PMPosition, Positioned (..), addNodePositionsRenderedBy)
-import qualified ProseMirror.Model as PM (InlineNode (..), Node (..), isLeafBlockNode, wrapChildrenToBlock)
+import qualified ProseMirror.Model as PM (FrontMatter, InlineNode (..), Node (..), isLeafBlockNode, wrapChildrenToBlock)
 import ProseMirror.PandocTreeShape.FigureContent.LeafTextSpans (unwrapFigureContentParaOrPlain)
 import ProseMirror.PandocTreeShape.Metadata.LeafTextSpans (withoutMetadataSubtree)
 import ProseMirror.Tree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode)
-import Text.Pandoc.Definition as Pandoc (Meta)
 
 -- Alias to the function exposed from the PMTree module
 pandocTreeNodeToPMNode :: PandocTree.DocNode -> PMTreeNode
@@ -31,12 +30,12 @@ data DecoratedPMDoc = DecoratedPMDoc {doc :: PM.Node, decorations :: [Decoration
 instance ToJSON DecoratedPMDoc where
   toJSON decoratedPMDoc = object ["doc" .= doc decoratedPMDoc, "decorations" .= decorations decoratedPMDoc]
 
--- The doc's attribute holds the given metadata.
-toDecoratedPMDoc :: Pandoc.Meta -> Tree DocNodeDiff -> DecoratedPMDoc
-toDecoratedPMDoc meta = addMeta . pmDocFromPMTree . fmap decorate . addPositionsToDiffTree
+-- The doc's attribute holds the given front matter.
+toDecoratedPMDoc :: Maybe PM.FrontMatter -> Tree DocNodeDiff -> DecoratedPMDoc
+toDecoratedPMDoc frontMatter = addFrontMatter . pmDocFromPMTree . fmap decorate . addPositionsToDiffTree
   where
-    addMeta :: DecoratedPMDoc -> DecoratedPMDoc
-    addMeta decoratedPMDoc = decoratedPMDoc {doc = addDocMeta meta (doc decoratedPMDoc)}
+    addFrontMatter :: DecoratedPMDoc -> DecoratedPMDoc
+    addFrontMatter decoratedPMDoc = decoratedPMDoc {doc = addDocFrontMatter frontMatter (doc decoratedPMDoc)}
 
 addPositionsToDiffTree :: Tree DocNodeDiff -> Tree PositionedDiffNode
 addPositionsToDiffTree =

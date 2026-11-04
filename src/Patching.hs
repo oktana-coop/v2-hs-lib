@@ -9,9 +9,10 @@ import Diffing (diffForProseMirror)
 import Error (Error (PatchError))
 import Format (Format)
 import NodeDiff.LeafTextSpans (DocNodeDiff)
+import qualified ProseMirror.Model as PM (FrontMatter)
 import ProseMirror.Transform.FromDiff (TransformedPMDoc, toTransformedPMDoc)
 import RichTextDiff (DiffOptions (..))
-import Text.Pandoc (Meta, Pandoc (..))
+import Text.Pandoc (Pandoc (..))
 
 proseMirrorSteps :: Format -> Format -> String -> String -> IO (Either (NonEmpty Error) TransformedPMDoc)
 proseMirrorSteps beforeFormat afterFormat beforeStr afterStr = do
@@ -31,5 +32,5 @@ proseMirrorSteps beforeFormat afterFormat beforeStr afterStr = do
     metaDiffers :: (Pandoc, Pandoc) -> Bool
     metaDiffers (Pandoc beforeMeta _, Pandoc afterMeta _) = beforeMeta /= afterMeta
 
-    diffToPMSteps :: Bool -> (Meta, Tree DocNodeDiff) -> Either (NonEmpty Error) TransformedPMDoc
-    diffToPMSteps updatesMeta (docMeta, diff) = first (pure . PatchError . T.pack) (toTransformedPMDoc updatesMeta docMeta diff)
+    diffToPMSteps :: Bool -> (Maybe PM.FrontMatter, Tree DocNodeDiff) -> Either (NonEmpty Error) TransformedPMDoc
+    diffToPMSteps updatesMeta (docFrontMatter, diff) = first (pure . PatchError . T.pack) (toTransformedPMDoc updatesMeta docFrontMatter diff)

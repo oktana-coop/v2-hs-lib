@@ -1,7 +1,7 @@
 {
   "doc": {
     "attrs": {
-      "pandocMeta": "{\"title\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"A\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"title\"}]}}"
+      "frontMatter": "title: A title\n"
     },
     "content": [
       {

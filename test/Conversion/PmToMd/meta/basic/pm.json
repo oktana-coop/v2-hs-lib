@@ -1,6 +1,6 @@
 {
   "attrs": {
-    "pandocMeta": "{\"createdAt\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"2025-09-04\"}]},\"description\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"A\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"simple\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"document\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"with\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"a\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"heading\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"and\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"two\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"paragraphs.\"}]},\"slug\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"headings-and-paragraphs\"}]},\"status\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"draft\"}]},\"title\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"Headings\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"and\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"Paragraphs\"}]},\"updatedAt\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"2025-09-07\"}]}}"
+    "frontMatter": "createdAt: 2025-09-04\ndescription: A simple document with a heading and two paragraphs.\nslug: headings-and-paragraphs\nstatus: draft\ntitle: Headings and Paragraphs\nupdatedAt: 2025-09-07\n"
   },
   "content": [
     {

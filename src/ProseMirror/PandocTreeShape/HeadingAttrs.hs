@@ -9,7 +9,7 @@ import Text.Pandoc.Walk (Walkable, walk)
 -- identifier from the heading text (via `Ext_auto_identifiers`). Stripping the attributes makes a heading read
 -- from either side compare equal.
 --
--- TODO: carry Pandoc attributes on ProseMirror nodes (an opaque `pandocAttr`, like `pandocMeta` on the doc) and
+-- TODO: carry Pandoc attributes on ProseMirror nodes (an opaque `pandocAttr`) and
 -- read Markdown without auto identifiers, so explicit attributes round-trip; this walk then retires.
 stripHeadingAttrs :: (Walkable Block t) => t -> t
 stripHeadingAttrs = walk strip

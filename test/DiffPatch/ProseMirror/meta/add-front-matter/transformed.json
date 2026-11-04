@@ -1,7 +1,7 @@
 {
   "doc": {
     "attrs": {
-      "pandocMeta": "{\"title\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"A\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"title\"}]}}"
+      "frontMatter": "title: A title\n"
     },
     "content": [
       {
@@ -18,9 +18,9 @@
   },
   "steps": [
     {
-      "attr": "pandocMeta",
+      "attr": "frontMatter",
       "stepType": "docAttr",
-      "value": "{\"title\":{\"t\":\"MetaInlines\",\"c\":[{\"t\":\"Str\",\"c\":\"A\"},{\"t\":\"Space\"},{\"t\":\"Str\",\"c\":\"title\"}]}}"
+      "value": "title: A title\n"
     }
   ]
 }
