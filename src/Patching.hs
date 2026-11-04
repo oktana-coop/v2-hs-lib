@@ -6,12 +6,11 @@ import Data.List.NonEmpty (NonEmpty)
 import qualified Data.Text as T
 import Data.Tree (Tree)
 import Diffing (diffForProseMirror)
-import qualified DocTree.LeafTextSpans as PandocTree
 import Error (Error (PatchError))
 import Format (Format)
+import NodeDiff.LeafTextSpans (DocNodeDiff)
 import ProseMirror.Transform.FromDiff (TransformedPMDoc, toTransformedPMDoc)
 import RichTextDiff (DiffOptions (..))
-import RichTextDiffOp (RichTextDiffOp)
 import Text.Pandoc (Meta, Pandoc (..))
 
 proseMirrorSteps :: Format -> Format -> String -> String -> IO (Either (NonEmpty Error) TransformedPMDoc)
@@ -32,5 +31,5 @@ proseMirrorSteps beforeFormat afterFormat beforeStr afterStr = do
     metaDiffers :: (Pandoc, Pandoc) -> Bool
     metaDiffers (Pandoc beforeMeta _, Pandoc afterMeta _) = beforeMeta /= afterMeta
 
-    diffToPMSteps :: Bool -> (Meta, Tree (RichTextDiffOp PandocTree.DocNode)) -> Either (NonEmpty Error) TransformedPMDoc
+    diffToPMSteps :: Bool -> (Meta, Tree DocNodeDiff) -> Either (NonEmpty Error) TransformedPMDoc
     diffToPMSteps updatesMeta (docMeta, diff) = first (pure . PatchError . T.pack) (toTransformedPMDoc updatesMeta docMeta diff)

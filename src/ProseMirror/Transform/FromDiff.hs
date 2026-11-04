@@ -7,14 +7,14 @@ import Data.Aeson (ToJSON, object, toJSON, (.=))
 import Data.List ((\\))
 import Data.Tree (Tree, foldTree)
 import qualified DocTree.Common as RichText (Mark)
-import qualified DocTree.LeafTextSpans as PandocTree
+import NodeDiff.Common (DiffOpType (..), HeadingLevelDiff (..), InlineContentDiff (..), MarkDiff (..))
+import NodeDiff.LeafTextSpans (DocNodeDiff (..), RichTextNodeDiff (..), toDiffOpType, toDocNode)
 import ProseMirror.Diff (PositionedDiffNode, addPositionsToDiffTree)
 import ProseMirror.Metadata (addDocMeta)
 import ProseMirror.Model (Positioned (..), closedSlice, emptySlice, isEmptySlice)
-import qualified ProseMirror.Model as PM (Block (..), BlockNode (..), InlineNode (..), Meta, Node (..), TextNode (..), isRootBlockNode, nodeSize, wrapChildrenToBlock)
+import qualified ProseMirror.Model as PM (Block (..), BlockNode (..), InlineNode (..), Meta, Node (..), TextNode (..), nodeSize, wrapChildrenToBlock)
 import ProseMirror.Transform.Step (AttrStep (..), DocAttrStep (..), MarkRangeStep (..), ReplaceStep (..), Step (..))
 import ProseMirror.Tree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode, treeMarkToPMMark)
-import RichTextDiffOp (HeadingLevelDiff (..), MarkDiff (..), RichTextDiffOp (..), getDiffOp, unpackDiffOpValue)
 import Text.Pandoc.Definition as Pandoc (Meta)
 
 data TransformedPMDoc = TransformedPMDoc {doc :: PM.Node, steps :: [Step]} deriving (Show, Eq)
@@ -23,7 +23,7 @@ instance ToJSON TransformedPMDoc where
   toJSON transformed = object ["doc" .= doc transformed, "steps" .= steps transformed]
 
 -- With `updatesMeta`, the steps also update the editor's metadata. The doc's attribute holds the given metadata.
-toTransformedPMDoc :: Bool -> Pandoc.Meta -> Tree (RichTextDiffOp PandocTree.DocNode) -> Either String TransformedPMDoc
+toTransformedPMDoc :: Bool -> Pandoc.Meta -> Tree DocNodeDiff -> Either String TransformedPMDoc
 toTransformedPMDoc updatesMeta docMeta = foldTree transformSubtree . addPositionsToDiffTree >=> toDocWithSteps
   where
     toDocWithSteps :: TransformedSubtree -> Either String TransformedPMDoc
@@ -70,33 +70,28 @@ transformSubtree positionedNodeWithDiff transformedChildren = do
     WrapperInlineNode -> Right childrenSubtree
     UnrepresentableNode -> Left "Cannot emit steps: the document contains content with no ProseMirror representation."
     PMNode nodeWithoutChildren ->
-      transformPMNode
-        positionedNodeWithDiff
-        (wrapChildrenToNode nodeWithoutChildren (afterNodes childrenSubtree))
-        (wrapChildrenToNode nodeWithoutChildren (withDeletedNodes childrenSubtree))
-        (subtreeSteps childrenSubtree)
+      Right $
+        transformPMNode
+          positionedNodeWithDiff
+          (wrapChildrenToNode nodeWithoutChildren (afterNodes childrenSubtree))
+          (wrapChildrenToNode nodeWithoutChildren (withDeletedNodes childrenSubtree))
+          (subtreeSteps childrenSubtree)
   where
-    pmTreeNode = leafTextSpansPandocTreeNodeToPMNode (unpackDiffOpValue (value positionedNodeWithDiff))
+    pmTreeNode = leafTextSpansPandocTreeNodeToPMNode (toDocNode (value positionedNodeWithDiff))
 
 -- Transforms a ProseMirror node given its diff op and positions, the node as rendered in the "after"
 -- document, the node with its deleted descendants still in place, and the steps of its children.
-transformPMNode :: PositionedDiffNode -> PM.Node -> PM.Node -> [Step] -> Either String TransformedSubtree
-transformPMNode positionedNodeWithDiff afterNode nodeWithDeletedChildren childSteps = case getDiffOp (value positionedNodeWithDiff) of
-  Copy () -> Right (nodeSubtree afterNode childSteps)
-  -- An inserted node's descendants are inserted too, and inserting the node inserts them all at once, so
-  -- the single step here replaces the children's steps. Likewise for deletions below.
-  Insert ()
-    | PM.isRootBlockNode afterNode -> Left "Cannot emit steps: the document root cannot be inserted."
-    | otherwise -> Right (nodeSubtree afterNode [insertStep afterNode])
-  Delete ()
-    | PM.isRootBlockNode nodeWithDeletedChildren -> Left "Cannot emit steps: the document root cannot be deleted."
-    | otherwise -> Right (deletedNodeSubtree nodeWithDeletedChildren [deleteStep nodeWithDeletedChildren])
-  UpdateMarks (MarkDiff oldMarks newMarks) () -> case afterNode of
-    PM.InlineNode (PM.InlineText _) -> Right (nodeSubtree afterNode (markSteps oldMarks newMarks))
-    _ -> Left "Cannot emit steps: a mark update on a node that is not text."
-  UpdateHeadingLevel (HeadingLevelDiff _ level) () -> case afterNode of
-    PM.BlockNode (PM.PMBlock (PM.Heading _) _) -> Right (nodeSubtree afterNode (headingLevelStep level : childSteps))
-    _ -> Left "Cannot emit steps: a heading level update on a node that is not a heading."
+transformPMNode :: PositionedDiffNode -> PM.Node -> PM.Node -> [Step] -> TransformedSubtree
+transformPMNode positionedNodeWithDiff afterNode nodeWithDeletedChildren childSteps = case value positionedNodeWithDiff of
+  RichTextNodeDiff (InlineContentDiff (MarksUpdate (MarkDiff oldMarks newMarks) _)) -> nodeSubtree afterNode (markSteps oldMarks newMarks)
+  RichTextNodeDiff (HeadingLevelUpdate (HeadingLevelDiff _ level) _) -> nodeSubtree afterNode (headingLevelStep level : childSteps)
+  nodeWithDiff -> case toDiffOpType nodeWithDiff of
+    -- An inserted node's descendants are inserted too, and inserting the node inserts them all at once, so
+    -- the single step here replaces the children's steps. Likewise for deletions below.
+    InsertType -> nodeSubtree afterNode [insertStep afterNode]
+    DeleteType -> deletedNodeSubtree nodeWithDeletedChildren [deleteStep nodeWithDeletedChildren]
+    -- Copies. The rich text's updates are matched above, and the metadata's is left out before the positions.
+    _ -> nodeSubtree afterNode childSteps
   where
     start = startPos positionedNodeWithDiff
     end = endPos positionedNodeWithDiff

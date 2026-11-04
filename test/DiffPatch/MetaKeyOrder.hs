@@ -6,10 +6,10 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Data.Tree (Tree (..))
 import Diffing (diffForProseMirror)
-import qualified DocTree.LeafTextSpans as PandocTree
 import Format (Format (Markdown))
+import NodeDiff.Common (DiffOpType (CopyType))
+import NodeDiff.LeafTextSpans (DocNodeDiff (MetadataDiff), toDiffOpType)
 import RichTextDiff (defaultDiffOptions)
-import RichTextDiffOp (RichTextDiffOp, RichTextDiffOpType (CopyType), getDiffOpType, unpackDiffOpValue)
 import System.FilePath ((</>))
 import Test.Hspec (Spec, describe, it, shouldBe)
 import Test.Tasty (TestTree)
@@ -22,7 +22,7 @@ tests = testSpec "Metadata Key Order in Diffs" spec
 casesDir :: FilePath
 casesDir = "test/DiffPatch/ProseMirror/meta"
 
-caseDiff :: FilePath -> IO (Tree (RichTextDiffOp PandocTree.DocNode))
+caseDiff :: FilePath -> IO (Tree DocNodeDiff)
 caseDiff caseName = do
   doc1 <- TIO.readFile (casesDir </> caseName </> "doc1.md")
   doc2 <- TIO.readFile (casesDir </> caseName </> "doc2.md")
@@ -30,19 +30,19 @@ caseDiff caseName = do
   either (fail . show) (pure . snd) (eitherDocs >>= diffForProseMirror defaultDiffOptions)
 
 -- The diff of a case's metadata.
-caseMetadataDiff :: FilePath -> IO (Tree (RichTextDiffOp PandocTree.DocNode))
+caseMetadataDiff :: FilePath -> IO (Tree DocNodeDiff)
 caseMetadataDiff caseName = do
   diff <- caseDiff caseName
   maybe (fail "Found no metadata in the diff") pure (findMetadataDiff diff)
 
-findMetadataDiff :: Tree (RichTextDiffOp PandocTree.DocNode) -> Maybe (Tree (RichTextDiffOp PandocTree.DocNode))
+findMetadataDiff :: Tree DocNodeDiff -> Maybe (Tree DocNodeDiff)
 findMetadataDiff diff = find isMetadata (subForest diff)
   where
-    isMetadata subtree = unpackDiffOpValue (rootLabel subtree) == PandocTree.Metadata
+    isMetadata subtree = rootLabel subtree == MetadataDiff
 
 -- Whether any node of a diff has an op other than `Copy`: a `Copy` node can hold changes in its subtree.
-hasChanges :: Tree (RichTextDiffOp a) -> Bool
-hasChanges = any (\diffOp -> getDiffOpType diffOp /= CopyType)
+hasChanges :: Tree DocNodeDiff -> Bool
+hasChanges = any (\nodeDiff -> toDiffOpType nodeDiff /= CopyType)
 
 spec :: Spec
 spec =

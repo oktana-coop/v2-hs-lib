@@ -7,6 +7,8 @@ import Data.Maybe (listToMaybe)
 import qualified Data.Text as T
 import Data.Tree (Tree (..), foldTree)
 import qualified DocTree.LeafTextSpans as PandocTree
+import NodeDiff.Common (DiffOpType (..))
+import NodeDiff.LeafTextSpans (DocNodeDiff, toDiffOpType, toDocNode)
 import ProseMirror.Decoration (Decoration (..), DecorationAttrs (..), InlineDecoration (..), NodeDecoration (..), WidgetDecoration (..), undecorate)
 import ProseMirror.Metadata (addDocMeta)
 import ProseMirror.Model (PMPosition, Positioned (..), addNodePositionsRenderedBy)
@@ -14,14 +16,13 @@ import qualified ProseMirror.Model as PM (InlineNode (..), Node (..), isLeafBloc
 import ProseMirror.PandocTreeShape.FigureContent.LeafTextSpans (unwrapFigureContentParaOrPlain)
 import ProseMirror.PandocTreeShape.Metadata.LeafTextSpans (withoutMetadataSubtree)
 import ProseMirror.Tree (PMTreeNode (..), leafTextSpansPandocTreeNodeToPMNode)
-import RichTextDiffOp (RichTextDiffOp (..), unpackDiffOpValue)
 import Text.Pandoc.Definition as Pandoc (Meta)
 
 -- Alias to the function exposed from the PMTree module
 pandocTreeNodeToPMNode :: PandocTree.DocNode -> PMTreeNode
 pandocTreeNodeToPMNode = leafTextSpansPandocTreeNodeToPMNode
 
-type PositionedDiffNode = Positioned (RichTextDiffOp PandocTree.DocNode)
+type PositionedDiffNode = Positioned DocNodeDiff
 
 type DecoratedPMTree = Tree (Either PMTreeNode (Decoration PMTreeNode))
 
@@ -31,25 +32,26 @@ instance ToJSON DecoratedPMDoc where
   toJSON decoratedPMDoc = object ["doc" .= doc decoratedPMDoc, "decorations" .= decorations decoratedPMDoc]
 
 -- The doc's attribute holds the given metadata.
-toDecoratedPMDoc :: Pandoc.Meta -> Tree (RichTextDiffOp PandocTree.DocNode) -> DecoratedPMDoc
+toDecoratedPMDoc :: Pandoc.Meta -> Tree DocNodeDiff -> DecoratedPMDoc
 toDecoratedPMDoc meta = addMeta . pmDocFromPMTree . fmap decorate . addPositionsToDiffTree
   where
     addMeta :: DecoratedPMDoc -> DecoratedPMDoc
     addMeta decoratedPMDoc = decoratedPMDoc {doc = addDocMeta meta (doc decoratedPMDoc)}
 
-addPositionsToDiffTree :: Tree (RichTextDiffOp PandocTree.DocNode) -> Tree PositionedDiffNode
+addPositionsToDiffTree :: Tree DocNodeDiff -> Tree PositionedDiffNode
 addPositionsToDiffTree =
   addNodePositionsRenderedBy unpackAndRenderPMNode
-    . unwrapFigureContentParaOrPlain unpackDiffOpValue
-    . withoutMetadataSubtree unpackDiffOpValue
+    . unwrapFigureContentParaOrPlain toDocNode
+    . withoutMetadataSubtree toDocNode
   where
     -- The ProseMirror node a diff node renders to, if any: deleted content is not part of the document and
     -- wrapper nodes have no ProseMirror counterpart, so neither takes positions.
-    unpackAndRenderPMNode :: RichTextDiffOp PandocTree.DocNode -> Maybe PM.Node
-    unpackAndRenderPMNode (Delete _) = Nothing
-    unpackAndRenderPMNode nodeWithDiff = case pandocTreeNodeToPMNode (unpackDiffOpValue nodeWithDiff) of
-      PMNode node -> Just node
-      _ -> Nothing
+    unpackAndRenderPMNode :: DocNodeDiff -> Maybe PM.Node
+    unpackAndRenderPMNode nodeWithDiff
+      | toDiffOpType nodeWithDiff == DeleteType = Nothing
+      | otherwise = case pandocTreeNodeToPMNode (toDocNode nodeWithDiff) of
+          PMNode node -> Just node
+          _ -> Nothing
 
 diffInsertClass :: T.Text
 diffInsertClass = "diff-insert"
@@ -58,9 +60,9 @@ diffModifyClass :: T.Text
 diffModifyClass = "diff-modify"
 
 decorate :: PositionedDiffNode -> Either PMTreeNode (Decoration PMTreeNode)
-decorate positionedNodeWithDiff = case nodeWithDiff of
-  Copy _ -> Left node
-  Insert _ -> case node of
+decorate positionedNodeWithDiff = case toDiffOpType nodeWithDiff of
+  CopyType -> Left node
+  InsertType -> case node of
     -- Inserted leaf blocks (e.g. horizontal rule) have no inline children to carry an insert
     -- decoration, so we wrap the block itself in a node decoration instead.
     PMNode pm@(PM.BlockNode _) | PM.isLeafBlockNode pm -> Right $ NodeDecoration $ wrapInNodeDecoration node start end diffInsertClass
@@ -68,15 +70,17 @@ decorate positionedNodeWithDiff = case nodeWithDiff of
     -- Other nodes (blocks, wrappers) are left undecorated: their changed children carry the decoration.
     _ -> Left node
   -- Deleted content is not part of the document; it is shown as a widget at the position it was removed from.
-  Delete _ -> Right $ WidgetDecoration $ wrapInWidgetDecoration node start
-  UpdateMarks _ _ -> case node of
+  DeleteType -> Right $ WidgetDecoration $ wrapInWidgetDecoration node start
+  MarksUpdateType -> case node of
     PMNode (PM.InlineNode inlineNode) -> Right $ decorateInlineNode inlineNode diffModifyClass
-    -- We shouldn't really get this diff op for block nodes. TODO: Express this in the type system.
+    -- A marks update is on a text span, which renders to an inline node.
     _ -> Left node
-  UpdateHeadingLevel _ _ -> Right $ NodeDecoration $ wrapInNodeDecoration node start end diffModifyClass
+  HeadingLevelUpdateType -> Right $ NodeDecoration $ wrapInNodeDecoration node start end diffModifyClass
+  -- Left out before the positions: the doc's attribute holds the metadata.
+  MetaValueUpdateType -> Left node
   where
     nodeWithDiff = value positionedNodeWithDiff
-    node = pandocTreeNodeToPMNode $ unpackDiffOpValue nodeWithDiff
+    node = pandocTreeNodeToPMNode $ toDocNode nodeWithDiff
     start = startPos positionedNodeWithDiff
     end = endPos positionedNodeWithDiff
 

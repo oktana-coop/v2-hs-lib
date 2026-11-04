@@ -1,5 +1,3 @@
-{-# LANGUAGE RankNTypes #-}
-
 module ProseMirror.PandocTreeShape.FigureContent.LeafTextSpans (unwrapFigureContentParaOrPlain) where
 
 import Data.Tree (Tree (..))
@@ -8,10 +6,10 @@ import qualified DocTree.LeafTextSpans as LeafTextSpansTree
 import qualified Text.Pandoc.Builder as Pandoc (Block (..))
 
 -- Strip the Plain/Para wrapper inside FigureContent (mapping a leaf-text-spans tree to another).
--- The mapping is defined given an extractor function (w x -> x).
--- In practice we need this function in the diffing modules, where tree nodes are wrapped in the RichTextDiffOp structure.
--- In the case of figure content (where we remove the node and spread its children), the wrapping structure (e.g. diff op) is discarded too.
-unwrapFigureContentParaOrPlain :: (forall x. w x -> x) -> Tree (w LeafTextSpansTree.DocNode) -> Tree (w LeafTextSpansTree.DocNode)
+-- The mapping is defined given how to get the node from a label (a -> DocNode).
+-- In practice we need this function in the diffing modules, where the tree's labels are diff nodes.
+-- In the case of figure content (where we remove the node and spread its children), the removed node's label (e.g. its diff) is discarded too.
+unwrapFigureContentParaOrPlain :: (a -> LeafTextSpansTree.DocNode) -> Tree a -> Tree a
 unwrapFigureContentParaOrPlain extract = unwrapTree
   where
     unwrapTree (Node node children)
