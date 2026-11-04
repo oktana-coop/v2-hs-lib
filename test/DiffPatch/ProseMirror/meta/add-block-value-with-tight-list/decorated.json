@@ -1,0 +1,20 @@
+{
+  "decorations": [],
+  "doc": {
+    "attrs": {
+      "frontMatter": "title: A title\nabstract: |\n  - One\n  - Two\n"
+    },
+    "content": [
+      {
+        "content": [
+          {
+            "text": "A paragraph.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  }
+}

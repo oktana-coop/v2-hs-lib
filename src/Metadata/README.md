@@ -87,7 +87,7 @@ tags:
 
 The library diffs two documents for the history and for the steps that bring an editor up to date with another version of a document. Both take the temporary key out of the two documents before diffing them, so the diff compares only the metadata values, and a change in the order alone is no metadata change. The order still reaches the output:
 
-- The diff holds the metadata of the "after" document, which gets its outline back. The ProseMirror document of the diff is written with its keys in that order.
+- The ProseMirror document of the diff gets the front matter of the "after" document, outline included, so its keys are in order.
 - The step that updates the editor's metadata is emitted whenever the metadata of the two documents differ, outline included. A change in the order alone has the step too: without it, the editor would keep the old order and write it back with its next change.
 
 ## Limitations

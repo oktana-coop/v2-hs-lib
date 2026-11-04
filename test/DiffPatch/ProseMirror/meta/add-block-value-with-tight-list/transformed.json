@@ -1,0 +1,26 @@
+{
+  "doc": {
+    "attrs": {
+      "frontMatter": "title: A title\nabstract: |\n  - One\n  - Two\n"
+    },
+    "content": [
+      {
+        "content": [
+          {
+            "text": "A paragraph.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "attr": "frontMatter",
+      "stepType": "docAttr",
+      "value": "title: A title\nabstract: |\n  - One\n  - Two\n"
+    }
+  ]
+}
