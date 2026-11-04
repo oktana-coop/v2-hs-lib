@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module DiffPatch.MetaKeyOrder (tests) where
 
 import Conversion (readDocuments)
@@ -7,8 +9,8 @@ import qualified Data.Text.IO as TIO
 import Data.Tree (Tree (..))
 import Diffing (diffForProseMirror)
 import Format (Format (Markdown))
-import NodeDiff.Common (DiffOpType (CopyType))
-import NodeDiff.LeafTextSpans (DocNodeDiff (MetadataDiff), toDiffOpType)
+import NodeDiff.Common (DiffOpType (CopyType), MetaNodeDiff (MetaKeyDiff), toNode)
+import NodeDiff.LeafTextSpans (DocNodeDiff (MetaNodeDiff, MetadataDiff), toDiffOpType)
 import RichTextDiff (defaultDiffOptions)
 import System.FilePath ((</>))
 import Test.Hspec (Spec, describe, it, shouldBe)
@@ -44,6 +46,10 @@ findMetadataDiff diff = find isMetadata (subForest diff)
 hasChanges :: Tree DocNodeDiff -> Bool
 hasChanges = any (\nodeDiff -> toDiffOpType nodeDiff /= CopyType)
 
+-- The keys of a metadata diff whose subtree has changes.
+changedKeys :: Tree DocNodeDiff -> [T.Text]
+changedKeys metadataDiff = [toNode keyOp | keyDiff@(Node (MetaNodeDiff (MetaKeyDiff keyOp)) _) <- subForest metadataDiff, hasChanges keyDiff]
+
 spec :: Spec
 spec =
   describe "Markdown diff" $ do
@@ -59,3 +65,7 @@ spec =
     it "has a metadata change for a changed value" $ do
       metadataDiff <- caseMetadataDiff "change-metadata-value"
       hasChanges metadataDiff `shouldBe` True
+
+    it "has changes only in the changed key's subtree for a reorder with a changed value" $ do
+      metadataDiff <- caseMetadataDiff "reorder-metadata-keys-and-change-value"
+      changedKeys metadataDiff `shouldBe` ["status"]
