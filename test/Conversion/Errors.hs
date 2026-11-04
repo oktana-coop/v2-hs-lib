@@ -53,6 +53,14 @@ spec = do
       (convertToText Markdown ProseMirror Nothing "~~a~~ [b]{.underline} [c]{.smallcaps} d^2^ H~2~O [e]{.note} $x$ [@doe] <b>f</b> $y$\n" >>= errorsOf)
         `shouldReturn` [UnrepresentableContentError (fromList [StrikeoutContent, UnderlineContent, SmallCapsContent, SuperscriptContent, SubscriptContent, SpanContent, MathContent, CitationContent, RawInlineContent])]
 
+    it "fails with an unrepresentable content error for a note in the metadata" $
+      (convertToText Markdown ProseMirror Nothing "---\ntitle: A title[^1]\n---\n\nText.\n\n[^1]: A note.\n" >>= errorsOf)
+        `shouldReturn` [UnrepresentableContentError (fromList [MetadataNoteContent])]
+
+    it "doesn't fail an export for a note in the metadata" $ do
+      result <- convertToText Markdown Html Nothing "---\ntitle: A title[^1]\n---\n\nText.\n\n[^1]: A note.\n"
+      result `shouldSatisfy` isRight
+
     it "doesn't fail for an HTML comment within a paragraph" $ do
       result <- convertToText Markdown ProseMirror Nothing "Text <!-- note --> more\n"
       result `shouldSatisfy` isRight

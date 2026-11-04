@@ -35,6 +35,10 @@ spec = do
       (proseMirrorDiff Markdown "Before.\n" "Energy $E = mc^2$.\n" >>= errorsOf)
         `shouldReturn` [UnrepresentableContentError (fromList [MathContent])]
 
+    it "fails with an unrepresentable content error for a note in the metadata" $
+      (proseMirrorDiff Markdown "Before.\n" "---\ntitle: A title[^1]\n---\n\nText.\n\n[^1]: A note.\n" >>= errorsOf)
+        `shouldReturn` [UnrepresentableContentError (fromList [MetadataNoteContent])]
+
   describe "proseMirrorSteps" $ do
     it "fails with an unrepresentable content error for blocks ProseMirror can't represent" $
       (proseMirrorSteps ProseMirror Markdown proseMirrorHello "Hello\n\n| a | b |\n|---|---|\n| 1 | 2 |\n" >>= errorsOf)

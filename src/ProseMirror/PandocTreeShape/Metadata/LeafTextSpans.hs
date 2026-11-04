@@ -1,4 +1,3 @@
--- TODO: Leave out the contents of the metadata's notes too (see `ProseMirror.PandocTreeShape.Metadata.GroupedInlines`).
 module ProseMirror.PandocTreeShape.Metadata.LeafTextSpans (withoutMetadataSubtree) where
 
 import Data.Tree (Tree (..))

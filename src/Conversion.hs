@@ -17,7 +17,7 @@ import Metadata.KeyOutline (stripTempMetaOutlineKey)
 import PandocReader as AutomergePandoc.PandocReader (readAutomerge)
 import PandocWriter as AutomergePandoc.PandocWriter (writeAutomerge)
 import ProseMirror.PandocReader (readProseMirror)
-import ProseMirror.PandocTreeShape (UnrepresentableContent, maybeUnrepresentableBlockContent, maybeUnrepresentableInlineContent)
+import ProseMirror.PandocTreeShape (UnrepresentableContent, findUnrepresentableMetadataContent, maybeUnrepresentableBlockContent, maybeUnrepresentableInlineContent)
 import ProseMirror.PandocWriter (writeProseMirror)
 import Text.Pandoc (Pandoc, PandocError (PandocParseError, PandocShouldNeverHappenError, PandocSomeError, PandocUnknownReaderError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readNative, readerExtensions, writerExtensions, writerTemplate)
 import Text.Pandoc.Class (runIO, setResourcePath)
@@ -143,15 +143,15 @@ addTemplate format opts = case format of
       return options {writerTemplate = Just tmpl}
 
 writeDocument :: Format -> Maybe FilePath -> Pandoc -> IO (Either Error BL.ByteString)
-writeDocument format maybeResourcePath doc = do
+writeDocument format maybeResourcePath doc@(PandocDef.Pandoc meta _) = do
   result <- runIO (withLog (writeTo format maybeResourcePath doc))
-  pure (first (toWriteError format) result >>= checkLogForUnrepresentableContent)
+  pure (first (toWriteError format) result >>= checkForUnrepresentableContent)
   where
     -- Pandoc's writers leave out the blocks their format can't hold, and only report them in the log.
     -- The ProseMirror writer does the same, and here we produce an error in the case of unrepresentable 
     -- content.
-    checkLogForUnrepresentableContent :: (BL.ByteString, [LogMessage]) -> Either Error BL.ByteString
-    checkLogForUnrepresentableContent (bytes, messages) = case (format, nonEmpty (findUnrepresentableContentInLog messages)) of
+    checkForUnrepresentableContent :: (BL.ByteString, [LogMessage]) -> Either Error BL.ByteString
+    checkForUnrepresentableContent (bytes, messages) = case (format, nonEmpty (findUnrepresentableContentInLog messages <> findUnrepresentableMetadataContent meta)) of
       (ProseMirror, Just unrepresentableContent) -> Left (toUnrepresentableContentError unrepresentableContent)
       _ -> Right bytes
 

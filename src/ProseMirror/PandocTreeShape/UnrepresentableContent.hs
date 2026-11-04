@@ -1,7 +1,7 @@
-module ProseMirror.PandocTreeShape.UnrepresentableContent (UnrepresentableContent (..), maybeUnrepresentableBlockContent, maybeUnrepresentableInlineContent, findUnrepresentableContent, findUnrepresentableBlocks, findUnrepresentableInlines, dropUnrepresentableContent) where
+module ProseMirror.PandocTreeShape.UnrepresentableContent (UnrepresentableContent (..), maybeUnrepresentableBlockContent, maybeUnrepresentableInlineContent, findUnrepresentableContent, findUnrepresentableMetadataContent, findUnrepresentableBlocks, findUnrepresentableInlines, dropUnrepresentableContent) where
 
 import Data.Maybe (isJust, maybeToList)
-import Text.Pandoc.Definition as Pandoc (Block (..), Inline (..), Pandoc)
+import Text.Pandoc.Definition as Pandoc (Block (..), Inline (..), Meta, Pandoc (..))
 import Text.Pandoc.Walk (query, walk)
 
 data UnrepresentableContent
@@ -18,6 +18,7 @@ data UnrepresentableContent
   | MathContent
   | CitationContent
   | RawInlineContent
+  | MetadataNoteContent
   deriving (Show, Eq, Ord)
 
 maybeUnrepresentableBlockContent :: Pandoc.Block -> Maybe UnrepresentableContent
@@ -42,7 +43,18 @@ maybeUnrepresentableInlineContent inline = case inline of
   _ -> Nothing
 
 findUnrepresentableContent :: Pandoc.Pandoc -> [UnrepresentableContent]
-findUnrepresentableContent doc = query (maybeToList . maybeUnrepresentableBlockContent) doc <> query (maybeToList . maybeUnrepresentableInlineContent) doc
+findUnrepresentableContent doc@(Pandoc.Pandoc meta _) =
+  query (maybeToList . maybeUnrepresentableBlockContent) doc
+    <> query (maybeToList . maybeUnrepresentableInlineContent) doc
+    <> findUnrepresentableMetadataContent meta
+
+findUnrepresentableMetadataContent :: Meta -> [UnrepresentableContent]
+findUnrepresentableMetadataContent = query metadataNoteContent
+  where
+    metadataNoteContent :: Pandoc.Inline -> [UnrepresentableContent]
+    -- ProseMirror's doc keeps the metadata as front matter, which can't hold the contents of notes.
+    metadataNoteContent (Pandoc.Note _) = [MetadataNoteContent]
+    metadataNoteContent _ = []
 
 findUnrepresentableBlocks :: Pandoc.Pandoc -> [Pandoc.Block]
 findUnrepresentableBlocks = query (\block -> [block | isUnrepresentableBlock block])

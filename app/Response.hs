@@ -35,6 +35,7 @@ contentName SpanContent = "spans"
 contentName MathContent = "math"
 contentName CitationContent = "citations"
 contentName RawInlineContent = "rawInlines"
+contentName MetadataNoteContent = "metadataNotes"
 
 data Response a
   = Success a
