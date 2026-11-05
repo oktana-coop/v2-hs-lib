@@ -1,114 +1,63 @@
-{-# LANGUAGE OverloadedStrings #-}
+module Conversion.Normalization.Golden (NormalizationCase (..), inputPath, metaNormalizationCases, normalizedPath, tests) where
 
-module Conversion.Normalization.Golden (tests) where
-
-import Conversion.Utils (readFileAndConvert, toTextFormat)
-import Data.Aeson (Value (..), decodeStrictText)
-import qualified Data.Aeson.KeyMap as KeyMap
-import qualified Data.Text as T
-import qualified Data.Text.IO as TIO
+import Conversion.Utils (readFileAndConvert)
 import Format (Format (..))
-import Normalization (normalizeFrontMatterForProseMirror)
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden (goldenVsString)
-import Test.Tasty.Golden.Advanced (goldenTest)
+
+-- A folder with an input document and the golden of its normalization.
+data NormalizationCase = NormalizationCase {inputFormat :: Format, caseSubFolderPath :: FilePath}
+
+metaNormalizationCases :: [NormalizationCase]
+metaNormalizationCases =
+  [ NormalizationCase Markdown $ "meta" </> "pandoc-meta-types" </> "map",
+    NormalizationCase Markdown $ "meta" </> "pandoc-meta-types" </> "list",
+    NormalizationCase Markdown $ "meta" </> "pandoc-meta-types" </> "bool",
+    -- Markdown front matter never gives a non-empty `MetaString`: Pandoc parses text values,
+    -- quoted or not, into `MetaInlines` or `MetaBlocks`. So this case reads Pandoc JSON.
+    NormalizationCase Json $ "meta" </> "pandoc-meta-types" </> "string",
+    NormalizationCase Markdown $ "meta" </> "pandoc-meta-types" </> "inlines",
+    NormalizationCase Markdown $ "meta" </> "pandoc-meta-types" </> "blocks",
+    NormalizationCase Markdown $ "meta" </> "quoting",
+    NormalizationCase Markdown $ "meta" </> "empty-values"
+  ]
+
+inputPath :: NormalizationCase -> FilePath
+inputPath normalizationCase = caseFolder normalizationCase </> inputFileName
+  where
+    inputFileName :: FilePath
+    inputFileName = case inputFormat normalizationCase of
+      Json -> "doc.json"
+      _ -> "doc.md"
+
+normalizedPath :: NormalizationCase -> FilePath
+normalizedPath normalizationCase = caseFolder normalizationCase </> "normalized.md"
+
+caseFolder :: NormalizationCase -> FilePath
+caseFolder normalizationCase = "test/Conversion/Normalization" </> caseSubFolderPath normalizationCase
 
 tests :: IO TestTree
 tests = do
   return $
     testGroup
       "Normalization (Golden)"
-      [ testGroup
-          "meta"
-          [ testGroup
-              "pandoc meta types"
-              [ goldenCase Markdown $ "meta" </> "pandoc-meta-types" </> "map",
-                goldenCase Markdown $ "meta" </> "pandoc-meta-types" </> "list",
-                goldenCase Markdown $ "meta" </> "pandoc-meta-types" </> "bool",
-                -- Markdown front matter never gives a non-empty `MetaString`: Pandoc parses text values,
-                -- quoted or not, into `MetaInlines` or `MetaBlocks`. So this case reads Pandoc JSON.
-                goldenCase Json $ "meta" </> "pandoc-meta-types" </> "string",
-                goldenCase Markdown $ "meta" </> "pandoc-meta-types" </> "inlines",
-                goldenCase Markdown $ "meta" </> "pandoc-meta-types" </> "blocks"
-              ],
-            goldenCase Markdown $ "meta" </> "quoting",
-            goldenCase Markdown $ "meta" </> "empty-values"
-          ]
-      ]
+      [testGroup "meta" (map goldenCase metaNormalizationCases)]
 
-goldenCase :: Format -> FilePath -> TestTree
-goldenCase inputFormat caseSubFolderPath =
-  let baseDir = "test/Conversion/Normalization" </> caseSubFolderPath
-      input = baseDir </> inputFileName
-      normalizedGolden = baseDir </> "normalized.md"
-   in testGroup caseSubFolderPath $
+goldenCase :: NormalizationCase -> TestTree
+goldenCase normalizationCase =
+  let input = inputPath normalizationCase
+      normalizedGolden = normalizedPath normalizationCase
+   in testGroup
+        (caseSubFolderPath normalizationCase)
         [ -- Normalizing reads the input with Pandoc and writes it as Markdown.
           goldenVsString
             "normalization"
             normalizedGolden
-            (readFileAndConvert inputFormat Markdown id input),
+            (readFileAndConvert (inputFormat normalizationCase) Markdown id input),
           -- Normalizing the result again must change nothing.
           goldenVsString
             "idempotence"
             normalizedGolden
-            (readFileAndConvert Markdown Markdown id normalizedGolden),
-          -- The ProseMirror doc's attribute holds the front matter of the normalized document. The golden is the
-          -- normalization's, so accepting leaves it as it is.
-          goldenTest
-            "prosemirror front matter"
-            (frontMatterOf <$> TIO.readFile normalizedGolden)
-            (proseMirrorFrontMatter inputFormat input)
-            compareFrontMatter
-            (const (pure ()))
+            (readFileAndConvert Markdown Markdown id normalizedGolden)
         ]
-          <> frontMatterNormalization inputFormat input normalizedGolden
-  where
-    inputFileName :: FilePath
-    inputFileName = case inputFormat of
-      Json -> "doc.json"
-      _ -> "doc.md"
-
--- Normalizing the input's front matter alone gives the front matter of the normalized document. Only a Markdown
--- input has front matter.
-frontMatterNormalization :: Format -> FilePath -> FilePath -> [TestTree]
-frontMatterNormalization Markdown input normalizedGolden =
-  [ goldenTest
-      "front matter normalization"
-      (frontMatterOf <$> TIO.readFile normalizedGolden)
-      (normalizedFrontMatter input)
-      compareFrontMatter
-      (const (pure ()))
-  ]
-frontMatterNormalization _ _ _ = []
-
-normalizedFrontMatter :: FilePath -> IO (Maybe T.Text)
-normalizedFrontMatter inputFilePath = do
-  input <- TIO.readFile inputFilePath
-  inputFrontMatter <- maybe (fail "The input has no front matter") pure (frontMatterOf input)
-  either (fail . show) pure (normalizeFrontMatterForProseMirror inputFrontMatter)
-
--- The YAML between the delimiters of a Markdown document's front matter.
-frontMatterOf :: T.Text -> Maybe T.Text
-frontMatterOf markdown = case T.lines markdown of
-  "---" : rest -> Just (T.unlines (takeWhile (/= "---") rest))
-  _ -> Nothing
-
--- The front matter in the doc's attribute of the input converted to ProseMirror.
-proseMirrorFrontMatter :: Format -> FilePath -> IO (Maybe T.Text)
-proseMirrorFrontMatter inputFormat inputFilePath = do
-  input <- TIO.readFile inputFilePath
-  pmJson <- toTextFormat inputFormat ProseMirror input
-  pure (docFrontMatter pmJson)
-  where
-    docFrontMatter :: T.Text -> Maybe T.Text
-    docFrontMatter pmJson = do
-      Object doc <- decodeStrictText pmJson
-      Object attrs <- KeyMap.lookup "attrs" doc
-      String frontMatter <- KeyMap.lookup "frontMatter" attrs
-      pure frontMatter
-
-compareFrontMatter :: Maybe T.Text -> Maybe T.Text -> IO (Maybe String)
-compareFrontMatter expected actual
-  | expected == actual = pure Nothing
-  | otherwise = pure (Just ("expected " <> show expected <> ", got " <> show actual))
