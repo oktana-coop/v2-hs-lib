@@ -12,6 +12,7 @@ data Command
   | ProseMirrorDiff Format String String
   | ProseMirrorSteps Format Format String String
   | ExtractAssetUrls Format String
+  | NormalizeFrontMatterForProseMirror String
   deriving (Show)
 
 formatParser :: String -> Parser Format
@@ -78,6 +79,12 @@ commandParser =
           ( info
               (ExtractAssetUrls <$> formatParser "format" <*> argument str (metavar "INPUT_STRING"))
               (progDesc "Extract the URLs of asset references (e.g. images) from the input document")
+          )
+        <> command
+          "normalizeFrontMatterForProseMirror"
+          ( info
+              (NormalizeFrontMatterForProseMirror <$> argument str (metavar "FRONT_MATTER_YAML"))
+              (progDesc "Normalize front matter YAML, given without its delimiters, as the conversion to ProseMirror normalizes it")
           )
     )
 

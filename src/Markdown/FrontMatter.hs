@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Markdown.FrontMatter (frontMatterKeyOutline, frontMatterText, orderFrontMatter) where
+module Markdown.FrontMatter (frontMatterKeyOutline, frontMatterText, isClosingDelimiter, orderFrontMatter) where
 
 import Data.Char (isSpace)
 import qualified Data.Map as M
@@ -62,11 +62,12 @@ frontMatterText input = case withoutLeadingBlankLines (documentLines input) of
     isOpeningDelimiter :: T.Text -> Bool
     isOpeningDelimiter line = T.stripEnd line == "---"
 
-    isClosingDelimiter :: T.Text -> Bool
-    isClosingDelimiter line = T.stripEnd line `elem` ["---", "..."]
-
     isBlank :: T.Text -> Bool
     isBlank = T.all isSpace
+
+-- A line that ends a front matter block, following Pandoc's rules for metadata blocks.
+isClosingDelimiter :: T.Text -> Bool
+isClosingDelimiter line = T.stripEnd line `elem` ["---", "..."]
 
 -- Puts the front matter of Pandoc's Markdown output, which Pandoc writes with the keys sorted, in the order of the metadata's key outline.
 -- Only whole entries move, and yamlet writes the YAML the way Pandoc does.

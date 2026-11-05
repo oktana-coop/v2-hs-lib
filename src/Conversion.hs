@@ -1,4 +1,4 @@
-module Conversion (convertFromAutomerge, convertToAutomerge, convertToBinary, convertToText, readFrom, readDocument, readDocuments, toUnrepresentableContentError, toWriteError, pandocReaderOptions, pandocWriterOptions, Format (..)) where
+module Conversion (convertFromAutomerge, convertToAutomerge, convertToBinary, convertToText, readFrom, readDocument, readDocuments, toReadError, toUnrepresentableContentError, toWriteError, pandocReaderOptions, pandocWriterOptions, Format (..)) where
 
 import Control.Monad.Catch (MonadMask)
 import Control.Monad.Except (throwError)
@@ -94,15 +94,15 @@ readFrom format = case format of
 readDocument :: Format -> T.Text -> IO (Either Error Pandoc)
 readDocument format input = do
   result <- runIO (readFrom format pandocReaderOptions input)
-  pure (first toReadError result)
+  pure (first (toReadError format) result)
+
+toReadError :: Format -> PandocError -> Error
+toReadError format pandocError
+  | isYamlMetadataError pandocError = InvalidMetadataError pandocErrorMessage
+  | otherwise = ReadError format pandocErrorMessage
   where
-    toReadError :: PandocError -> Error
-    toReadError pandocError
-      | isYamlMetadataError pandocError = InvalidMetadataError message
-      | otherwise = ReadError format message
-      where
-        message :: T.Text
-        message = renderError pandocError
+    pandocErrorMessage :: T.Text
+    pandocErrorMessage = renderError pandocError
 
     -- Pandoc says only in its error's text that a YAML metadata block isn't valid, wherever the block is in the
     -- document.

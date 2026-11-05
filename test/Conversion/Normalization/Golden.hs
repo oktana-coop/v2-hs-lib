@@ -8,6 +8,7 @@ import qualified Data.Aeson.KeyMap as KeyMap
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Format (Format (..))
+import Normalization (normalizeFrontMatterForProseMirror)
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden (goldenVsString)
@@ -41,8 +42,7 @@ goldenCase inputFormat caseSubFolderPath =
   let baseDir = "test/Conversion/Normalization" </> caseSubFolderPath
       input = baseDir </> inputFileName
       normalizedGolden = baseDir </> "normalized.md"
-   in testGroup
-        caseSubFolderPath
+   in testGroup caseSubFolderPath $
         [ -- Normalizing reads the input with Pandoc and writes it as Markdown.
           goldenVsString
             "normalization"
@@ -62,11 +62,31 @@ goldenCase inputFormat caseSubFolderPath =
             compareFrontMatter
             (const (pure ()))
         ]
+          <> frontMatterNormalization inputFormat input normalizedGolden
   where
     inputFileName :: FilePath
     inputFileName = case inputFormat of
       Json -> "doc.json"
       _ -> "doc.md"
+
+-- Normalizing the input's front matter alone gives the front matter of the normalized document. Only a Markdown
+-- input has front matter.
+frontMatterNormalization :: Format -> FilePath -> FilePath -> [TestTree]
+frontMatterNormalization Markdown input normalizedGolden =
+  [ goldenTest
+      "front matter normalization"
+      (frontMatterOf <$> TIO.readFile normalizedGolden)
+      (normalizedFrontMatter input)
+      compareFrontMatter
+      (const (pure ()))
+  ]
+frontMatterNormalization _ _ _ = []
+
+normalizedFrontMatter :: FilePath -> IO (Maybe T.Text)
+normalizedFrontMatter inputFilePath = do
+  input <- TIO.readFile inputFilePath
+  inputFrontMatter <- maybe (fail "The input has no front matter") pure (frontMatterOf input)
+  either (fail . show) pure (normalizeFrontMatterForProseMirror inputFrontMatter)
 
 -- The YAML between the delimiters of a Markdown document's front matter.
 frontMatterOf :: T.Text -> Maybe T.Text

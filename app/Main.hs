@@ -10,6 +10,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import Diffing (proseMirrorDiff)
 import Error (Error)
+import Normalization (normalizeFrontMatterForProseMirror)
 import Patching (proseMirrorSteps)
 import Query (extractAssetUrls)
 import Response (Response (..), errorOutput)
@@ -36,3 +37,4 @@ main = do
     ProseMirrorDiff format str1 str2 -> proseMirrorDiff format str1 str2 >>= wrapToReponseAndPrint
     ProseMirrorSteps beforeFormat afterFormat before after -> proseMirrorSteps beforeFormat afterFormat before after >>= wrapToReponseAndPrint
     ExtractAssetUrls format str -> extractAssetUrls format str >>= wrapToReponseAndPrint
+    NormalizeFrontMatterForProseMirror yaml -> wrapToReponseAndPrint (normalizeFrontMatterForProseMirror (T.pack yaml))

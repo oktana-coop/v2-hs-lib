@@ -30,6 +30,7 @@ library
       Diffing
       Error
       Format
+      Normalization
       Patching
       Query
   other-modules:
