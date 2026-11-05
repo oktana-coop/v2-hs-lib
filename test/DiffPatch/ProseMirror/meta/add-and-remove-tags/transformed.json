@@ -1,0 +1,26 @@
+{
+  "doc": {
+    "attrs": {
+      "frontMatter": "tags:\n- essay\n- history\n- published\n"
+    },
+    "content": [
+      {
+        "content": [
+          {
+            "text": "A paragraph.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "attr": "frontMatter",
+      "stepType": "docAttr",
+      "value": "tags:\n- essay\n- history\n- published\n"
+    }
+  ]
+}

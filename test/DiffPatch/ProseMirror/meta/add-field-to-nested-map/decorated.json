@@ -1,0 +1,56 @@
+{
+  "decorations": [],
+  "doc": {
+    "attrs": {
+      "frontMatter": "author:\n  name: Ada Lovelace\n  affiliation: Analytical Engines\n"
+    },
+    "content": [
+      {
+        "content": [
+          {
+            "text": "A paragraph.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "metadataDiff": [
+    {
+      "key": "author",
+      "op": "copy",
+      "values": [
+        {
+          "entries": [
+            {
+              "key": "affiliation",
+              "op": "insert",
+              "values": [
+                {
+                  "hasChanges": true,
+                  "op": "insert",
+                  "type": "MetaInlines"
+                }
+              ]
+            },
+            {
+              "key": "name",
+              "op": "copy",
+              "values": [
+                {
+                  "hasChanges": false,
+                  "op": "copy",
+                  "type": "MetaInlines"
+                }
+              ]
+            }
+          ],
+          "op": "copy",
+          "type": "MetaMap"
+        }
+      ]
+    }
+  ]
+}

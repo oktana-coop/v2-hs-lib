@@ -1,0 +1,54 @@
+{
+  "decorations": [],
+  "doc": {
+    "attrs": {
+      "frontMatter": "tags:\n- essay\n- history\n- published\n"
+    },
+    "content": [
+      {
+        "content": [
+          {
+            "text": "A paragraph.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "metadataDiff": [
+    {
+      "key": "tags",
+      "op": "copy",
+      "values": [
+        {
+          "items": [
+            {
+              "hasChanges": true,
+              "op": "delete",
+              "type": "MetaInlines"
+            },
+            {
+              "hasChanges": false,
+              "op": "copy",
+              "type": "MetaInlines"
+            },
+            {
+              "hasChanges": false,
+              "op": "copy",
+              "type": "MetaInlines"
+            },
+            {
+              "hasChanges": true,
+              "op": "insert",
+              "type": "MetaInlines"
+            }
+          ],
+          "op": "copy",
+          "type": "MetaList"
+        }
+      ]
+    }
+  ]
+}

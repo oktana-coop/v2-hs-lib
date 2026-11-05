@@ -16,5 +16,18 @@
       }
     ],
     "type": "doc"
-  }
+  },
+  "metadataDiff": [
+    {
+      "key": "title",
+      "op": "insert",
+      "values": [
+        {
+          "hasChanges": true,
+          "op": "insert",
+          "type": "MetaInlines"
+        }
+      ]
+    }
+  ]
 }

@@ -37,6 +37,7 @@ library
       Markdown.FrontMatter
       Markdown.PandocReader
       Markdown.PandocWriter
+      Metadata.Diff
       Metadata.KeyOutline
       ProseMirror.Metadata
       ProseMirror.Model
@@ -122,7 +123,6 @@ test-suite v2-hs-lib-test
       Conversion.Utils
       DiffPatch.Errors
       DiffPatch.Golden
-      DiffPatch.MetaKeyOrder
       DiffPatch.ProseMirror.Golden
       DiffPatch.Utils
       Query.Spec

@@ -1,0 +1,44 @@
+{
+  "decorations": [],
+  "doc": {
+    "attrs": {
+      "frontMatter": "title: A title\n"
+    },
+    "content": [
+      {
+        "content": [
+          {
+            "text": "A paragraph.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "metadataDiff": [
+    {
+      "key": "status",
+      "op": "delete",
+      "values": [
+        {
+          "hasChanges": true,
+          "op": "delete",
+          "type": "MetaInlines"
+        }
+      ]
+    },
+    {
+      "key": "title",
+      "op": "copy",
+      "values": [
+        {
+          "hasChanges": false,
+          "op": "copy",
+          "type": "MetaInlines"
+        }
+      ]
+    }
+  ]
+}

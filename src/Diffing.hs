@@ -1,14 +1,19 @@
-module Diffing (proseMirrorDiff, diffForProseMirror) where
+{-# LANGUAGE OverloadedStrings #-}
+
+module Diffing (ProseMirrorDiff, proseMirrorDiff, diffForProseMirror) where
 
 import Conversion (pandocWriterOptions, readDocuments, toUnrepresentableContentError, toWriteError)
+import Data.Aeson (ToJSON (..), object, (.=))
 import Data.Bifunctor (first)
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Data.Tree (Tree (..))
 import Error (Error)
 import Format (Format (ProseMirror))
+import Metadata.Diff (metadataDiffToJSON)
 import Metadata.KeyOutline (stripTempMetaOutlineKey)
 import NodeDiff.LeafTextSpans (DocNodeDiff)
 import ProseMirror.Diff (DecoratedPMDoc, toDecoratedPMDoc)
+import qualified ProseMirror.Diff as DecoratedPMDoc (DecoratedPMDoc (..))
 import ProseMirror.Metadata (writeDocFrontMatter)
 import qualified ProseMirror.Model as PM (FrontMatter)
 import ProseMirror.PandocTreeShape (dropDetailsLostInProseMirror, findUnrepresentableContent, reconcileWithProseMirrorModel)
@@ -16,13 +21,27 @@ import RichTextDiff (DiffOptions, defaultDiffOptions, getAnnotatedTree)
 import Text.Pandoc (Pandoc (..), PandocPure, runPure)
 import Utils.Either (bothOrErrors)
 
-proseMirrorDiff :: Format -> String -> String -> IO (Either (NonEmpty Error) DecoratedPMDoc)
+-- The diff as ProseMirror shows it, with the metadata's diff, which the doc doesn't hold.
+data ProseMirrorDiff = ProseMirrorDiff DecoratedPMDoc (Tree DocNodeDiff)
+
+instance ToJSON ProseMirrorDiff where
+  toJSON (ProseMirrorDiff decoratedPMDoc diff) =
+    object
+      [ "doc" .= DecoratedPMDoc.doc decoratedPMDoc,
+        "decorations" .= DecoratedPMDoc.decorations decoratedPMDoc,
+        "metadataDiff" .= metadataDiffToJSON diff
+      ]
+
+proseMirrorDiff :: Format -> String -> String -> IO (Either (NonEmpty Error) ProseMirrorDiff)
 proseMirrorDiff format beforeStr afterStr = do
   eitherDocs <- readDocuments format format beforeStr afterStr
   pure (eitherDocs >>= decoratedDiff)
   where
-    decoratedDiff :: (Pandoc, Pandoc) -> Either (NonEmpty Error) DecoratedPMDoc
-    decoratedDiff = fmap (uncurry toDecoratedPMDoc) . diffForProseMirror defaultDiffOptions
+    decoratedDiff :: (Pandoc, Pandoc) -> Either (NonEmpty Error) ProseMirrorDiff
+    decoratedDiff = fmap toProseMirrorDiff . diffForProseMirror defaultDiffOptions
+
+    toProseMirrorDiff :: (Maybe PM.FrontMatter, Tree DocNodeDiff) -> ProseMirrorDiff
+    toProseMirrorDiff (afterFrontMatter, diff) = ProseMirrorDiff (toDecoratedPMDoc afterFrontMatter diff) diff
 
 -- Diffs two documents as ProseMirror will show them: reconciled with its model, and without the details it
 -- cannot represent.

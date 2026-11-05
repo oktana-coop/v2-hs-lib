@@ -1,0 +1,26 @@
+{
+  "doc": {
+    "attrs": {
+      "frontMatter": "tags:\n- draft\n- notes\n"
+    },
+    "content": [
+      {
+        "content": [
+          {
+            "text": "A paragraph.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "attr": "frontMatter",
+      "stepType": "docAttr",
+      "value": "tags:\n- draft\n- notes\n"
+    }
+  ]
+}

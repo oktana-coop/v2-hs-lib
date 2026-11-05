@@ -19,7 +19,7 @@ import ProseMirror.PandocTreeShape.ImplicitFigure
 import ProseMirror.PandocTreeShape.OrderedListAttrs
 import ProseMirror.PandocTreeShape.ListSpacing
 import ProseMirror.PandocTreeShape.UnrepresentableContent
-import Text.Pandoc.Definition (Pandoc)
+import Text.Pandoc.Definition (Block, Pandoc (..))
 
 -- What a Pandoc document goes through before it is mapped to ProseMirror nodes, by the conversion and by
 -- the diff alike: implicit figures reconciled with ProseMirror's figure model, HTML comments dropped.
@@ -28,5 +28,10 @@ import Text.Pandoc.Definition (Pandoc)
 reconcileWithProseMirrorModel :: Pandoc -> Pandoc
 reconcileWithProseMirrorModel = dropHtmlComments . stripCaptionEqualToAlt . wrapLoneImageInFigure
 
+-- Only the body loses these details, as ProseMirror nodes. ProseMirror's doc holds the metadata as front matter
+-- text, which keeps them.
 dropDetailsLostInProseMirror :: Pandoc -> Pandoc
-dropDetailsLostInProseMirror = stringifyImageAlt . plainToPara . stripOrderedListAttrs . stripHeadingAttrs
+dropDetailsLostInProseMirror (Pandoc meta blocks) = Pandoc meta (dropDetails blocks)
+  where
+    dropDetails :: [Block] -> [Block]
+    dropDetails = stringifyImageAlt . plainToPara . stripOrderedListAttrs . stripHeadingAttrs

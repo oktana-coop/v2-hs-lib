@@ -1,0 +1,33 @@
+{
+  "decorations": [],
+  "doc": {
+    "attrs": {
+      "frontMatter": "abstract: |\n  First paragraph.\n\n  Second paragraph, edited.\n"
+    },
+    "content": [
+      {
+        "content": [
+          {
+            "text": "A paragraph.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "metadataDiff": [
+    {
+      "key": "abstract",
+      "op": "copy",
+      "values": [
+        {
+          "hasChanges": true,
+          "op": "copy",
+          "type": "MetaBlocks"
+        }
+      ]
+    }
+  ]
+}

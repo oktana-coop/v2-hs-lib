@@ -16,5 +16,29 @@
       }
     ],
     "type": "doc"
-  }
+  },
+  "metadataDiff": [
+    {
+      "key": "status",
+      "op": "copy",
+      "values": [
+        {
+          "hasChanges": true,
+          "op": "copy",
+          "type": "MetaInlines"
+        }
+      ]
+    },
+    {
+      "key": "title",
+      "op": "copy",
+      "values": [
+        {
+          "hasChanges": false,
+          "op": "copy",
+          "type": "MetaInlines"
+        }
+      ]
+    }
+  ]
 }

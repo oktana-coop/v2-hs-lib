@@ -1,0 +1,49 @@
+{
+  "decorations": [],
+  "doc": {
+    "attrs": {
+      "frontMatter": "tags:\n- draft\n- notes\n"
+    },
+    "content": [
+      {
+        "content": [
+          {
+            "text": "A paragraph.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "metadataDiff": [
+    {
+      "key": "tags",
+      "op": "copy",
+      "values": [
+        {
+          "hasChanges": true,
+          "op": "delete",
+          "type": "MetaInlines"
+        },
+        {
+          "items": [
+            {
+              "hasChanges": true,
+              "op": "insert",
+              "type": "MetaInlines"
+            },
+            {
+              "hasChanges": true,
+              "op": "insert",
+              "type": "MetaInlines"
+            }
+          ],
+          "op": "insert",
+          "type": "MetaList"
+        }
+      ]
+    }
+  ]
+}

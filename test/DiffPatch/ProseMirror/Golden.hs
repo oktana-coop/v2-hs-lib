@@ -89,7 +89,14 @@ tests = do
             goldenCase $ "meta" </> "change-metadata-and-body",
             goldenCase $ "meta" </> "reorder-metadata-keys-and-change-body",
             goldenCase $ "meta" </> "reorder-metadata-keys-and-change-value",
-            goldenCase $ "meta" </> "add-block-value-with-tight-list"
+            goldenCase $ "meta" </> "add-block-value-with-tight-list",
+            goldenCase $ "meta" </> "remove-metadata-key",
+            goldenCase $ "meta" </> "change-metadata-boolean",
+            goldenCase $ "meta" </> "add-and-remove-tags",
+            goldenCase $ "meta" </> "change-metadata-value-kind",
+            goldenCase $ "meta" </> "add-field-to-nested-map",
+            goldenCase $ "meta" </> "edit-multi-paragraph-value",
+            goldenCase $ "meta" </> "make-list-in-value-loose"
           ],
         testGroup
           "notes"

@@ -1,8 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module ProseMirror.Diff (toDecoratedPMDoc, DecoratedPMDoc, PositionedDiffNode, addPositionsToDiffTree) where
+module ProseMirror.Diff (toDecoratedPMDoc, DecoratedPMDoc (..), PositionedDiffNode, addPositionsToDiffTree) where
 
-import Data.Aeson (ToJSON, object, toJSON, (.=))
 import Data.Maybe (listToMaybe)
 import qualified Data.Text as T
 import Data.Tree (Tree (..), foldTree)
@@ -26,9 +25,6 @@ type PositionedDiffNode = Positioned DocNodeDiff
 type DecoratedPMTree = Tree (Either PMTreeNode (Decoration PMTreeNode))
 
 data DecoratedPMDoc = DecoratedPMDoc {doc :: PM.Node, decorations :: [Decoration PM.Node]} deriving (Show, Eq)
-
-instance ToJSON DecoratedPMDoc where
-  toJSON decoratedPMDoc = object ["doc" .= doc decoratedPMDoc, "decorations" .= decorations decoratedPMDoc]
 
 -- The doc's attribute holds the given front matter.
 toDecoratedPMDoc :: Maybe PM.FrontMatter -> Tree DocNodeDiff -> DecoratedPMDoc
