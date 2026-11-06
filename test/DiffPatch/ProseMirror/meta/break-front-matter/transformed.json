@@ -1,0 +1,26 @@
+{
+  "doc": {
+    "attrs": {
+      "frontMatter": "title: Notes\nauthor Ada: x: y\n"
+    },
+    "content": [
+      {
+        "content": [
+          {
+            "text": "A paragraph.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "attr": "frontMatter",
+      "stepType": "docAttr",
+      "value": "title: Notes\nauthor Ada: x: y\n"
+    }
+  ]
+}

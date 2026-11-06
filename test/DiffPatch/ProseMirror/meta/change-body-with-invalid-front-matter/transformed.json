@@ -1,0 +1,34 @@
+{
+  "doc": {
+    "attrs": {
+      "frontMatter": "title: Notes\nauthor Ada: x: y\n"
+    },
+    "content": [
+      {
+        "content": [
+          {
+            "text": "A changed paragraph.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "steps": [
+    {
+      "from": 3,
+      "slice": {
+        "content": [
+          {
+            "text": "changed ",
+            "type": "text"
+          }
+        ]
+      },
+      "stepType": "replace",
+      "to": 3
+    }
+  ]
+}

@@ -96,7 +96,10 @@ tests = do
             goldenCase $ "meta" </> "change-metadata-value-kind",
             goldenCase $ "meta" </> "add-field-to-nested-map",
             goldenCase $ "meta" </> "edit-multi-paragraph-value",
-            goldenCase $ "meta" </> "make-list-in-value-loose"
+            goldenCase $ "meta" </> "make-list-in-value-loose",
+            goldenCase $ "meta" </> "break-front-matter",
+            goldenCase $ "meta" </> "fix-front-matter",
+            goldenCase $ "meta" </> "change-body-with-invalid-front-matter"
           ],
         testGroup
           "notes"

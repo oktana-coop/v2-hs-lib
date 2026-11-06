@@ -1,0 +1,21 @@
+{
+  "decorations": [],
+  "doc": {
+    "attrs": {
+      "frontMatter": "title: Notes\nauthor: Ada\n"
+    },
+    "content": [
+      {
+        "content": [
+          {
+            "text": "A paragraph.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "metadataDiff": null
+}

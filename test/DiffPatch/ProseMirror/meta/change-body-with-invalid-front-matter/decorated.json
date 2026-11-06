@@ -1,0 +1,40 @@
+{
+  "decorations": [
+    {
+      "attrs": {
+        "class": "diff-insert",
+        "nodeName": null,
+        "style": null
+      },
+      "from": 3,
+      "to": 11,
+      "type": "inline"
+    }
+  ],
+  "doc": {
+    "attrs": {
+      "frontMatter": "title: Notes\nauthor Ada: x: y\n"
+    },
+    "content": [
+      {
+        "content": [
+          {
+            "text": "A ",
+            "type": "text"
+          },
+          {
+            "text": "changed ",
+            "type": "text"
+          },
+          {
+            "text": "paragraph.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "metadataDiff": null
+}

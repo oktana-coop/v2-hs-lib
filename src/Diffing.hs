@@ -6,9 +6,11 @@ import Conversion (pandocWriterOptions, readDocuments, toUnrepresentableContentE
 import Data.Aeson (ToJSON (..), object, (.=))
 import Data.Bifunctor (first)
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
+import Data.Maybe (isJust)
 import Data.Tree (Tree (..))
 import Error (Error)
 import Format (Format (ProseMirror))
+import Markdown.FrontMatter (invalidFrontMatter)
 import Metadata.Diff (metadataDiffToJSON)
 import Metadata.KeyOutline (stripTempMetaOutlineKey)
 import NodeDiff.LeafTextSpans (DocNodeDiff)
@@ -21,15 +23,16 @@ import RichTextDiff (DiffOptions, defaultDiffOptions, getAnnotatedTree)
 import Text.Pandoc (Pandoc (..), PandocPure, runPure)
 import Utils.Either (bothOrErrors)
 
--- The diff as ProseMirror shows it, with the metadata's diff, which the doc doesn't hold.
-data ProseMirrorDiff = ProseMirrorDiff DecoratedPMDoc (Tree DocNodeDiff)
+-- The diff as ProseMirror shows it, with the metadata's diff, which the doc doesn't hold. There is no metadata diff
+-- when either document's front matter is invalid.
+data ProseMirrorDiff = ProseMirrorDiff DecoratedPMDoc (Maybe (Tree DocNodeDiff))
 
 instance ToJSON ProseMirrorDiff where
-  toJSON (ProseMirrorDiff decoratedPMDoc diff) =
+  toJSON (ProseMirrorDiff decoratedPMDoc maybeDiff) =
     object
       [ "doc" .= DecoratedPMDoc.doc decoratedPMDoc,
         "decorations" .= DecoratedPMDoc.decorations decoratedPMDoc,
-        "metadataDiff" .= metadataDiffToJSON diff
+        "metadataDiff" .= fmap metadataDiffToJSON maybeDiff
       ]
 
 proseMirrorDiff :: Format -> String -> String -> IO (Either (NonEmpty Error) ProseMirrorDiff)
@@ -38,10 +41,19 @@ proseMirrorDiff format beforeStr afterStr = do
   pure (eitherDocs >>= decoratedDiff)
   where
     decoratedDiff :: (Pandoc, Pandoc) -> Either (NonEmpty Error) ProseMirrorDiff
-    decoratedDiff = fmap toProseMirrorDiff . diffForProseMirror defaultDiffOptions
+    decoratedDiff docs = do
+      (afterFrontMatter, diff) <- diffForProseMirror defaultDiffOptions docs
+      pure (ProseMirrorDiff (toDecoratedPMDoc afterFrontMatter diff) (metadataDiffFor docs diff))
 
-    toProseMirrorDiff :: (Maybe PM.FrontMatter, Tree DocNodeDiff) -> ProseMirrorDiff
-    toProseMirrorDiff (afterFrontMatter, diff) = ProseMirrorDiff (toDecoratedPMDoc afterFrontMatter diff) diff
+    -- Front matter Pandoc couldn't read has no metadata to compare, so either side's makes the metadata diff
+    -- meaningless.
+    metadataDiffFor :: (Pandoc, Pandoc) -> Tree DocNodeDiff -> Maybe (Tree DocNodeDiff)
+    metadataDiffFor (beforeDoc, afterDoc) diff
+      | any hasInvalidFrontMatter [beforeDoc, afterDoc] = Nothing
+      | otherwise = Just diff
+
+    hasInvalidFrontMatter :: Pandoc -> Bool
+    hasInvalidFrontMatter (Pandoc meta _) = isJust (invalidFrontMatter meta)
 
 -- Diffs two documents as ProseMirror will show them: reconciled with its model, and without the details it
 -- cannot represent.
