@@ -81,16 +81,25 @@ spec = do
       (convertToText Html ProseMirror Nothing "<figure><img src=\"a.png\"><img src=\"b.png\"></figure>" >>= errorsOf)
         `shouldReturn` [WriteError ProseMirror "The figure content must contain at most one image (no other inline content)"]
 
-    it "fails with a metadata error, with Pandoc's message, for front matter that isn't valid YAML" $ do
-      errors <- convertToText Markdown ProseMirror Nothing "---\ntitle: Notes\nauthor Ada: x: y\n---\n\nText.\n" >>= errorsOf
+    it "fails with a metadata error, with Pandoc's message, for an HTML export of front matter that isn't valid YAML" $ do
+      errors <- convertToText Markdown Html Nothing "---\ntitle: Notes\nauthor Ada: x: y\n---\n\nText.\n" >>= errorsOf
       errors `shouldSatisfy` all isYamlMetadataError
 
     it "fails with a metadata error for a YAML block further down the document" $ do
       errors <- convertToText Markdown ProseMirror Nothing "---\ntitle: Notes\n---\n\nText.\n\n---\nauthor Ada: x: y\n---\n\nMore text.\n" >>= errorsOf
       errors `shouldSatisfy` all isYamlMetadataError
 
-    it "fails with a metadata error for a ProseMirror doc whose front matter isn't valid YAML" $ do
-      errors <- convertToText ProseMirror Markdown Nothing "{\"type\":\"doc\",\"attrs\":{\"frontMatter\":\"title: Notes\\nauthor Ada: x: y\\n\"},\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Text.\"}]}]}" >>= errorsOf
+    it "fails with a metadata error for front matter that isn't valid YAML and a YAML block further down that isn't either" $ do
+      errors <- convertToText Markdown ProseMirror Nothing "---\ntitle: Notes\nauthor Ada: x: y\n---\n\nText.\n\n---\nstatus Ada: x: y\n---\n\nMore text.\n" >>= errorsOf
+      errors `shouldSatisfy` all isYamlMetadataError
+
+    -- The raw text of the front matter would leave out the metadata of the block further down.
+    it "fails with a metadata error for front matter that isn't valid YAML and a YAML block further down with metadata" $ do
+      errors <- convertToText Markdown ProseMirror Nothing "---\ntitle: Notes\nauthor Ada: x: y\n---\n\nText.\n\n---\nstatus: draft\n---\n\nMore text.\n" >>= errorsOf
+      errors `shouldSatisfy` all isYamlMetadataError
+
+    it "fails with a metadata error for an HTML export of a ProseMirror doc whose front matter isn't valid YAML" $ do
+      errors <- convertToText ProseMirror Html Nothing "{\"type\":\"doc\",\"attrs\":{\"frontMatter\":\"title: Notes\\nauthor Ada: x: y\\n\"},\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Text.\"}]}]}" >>= errorsOf
       errors `shouldSatisfy` all isYamlMetadataError
 
   describe "toWriteError" $ do

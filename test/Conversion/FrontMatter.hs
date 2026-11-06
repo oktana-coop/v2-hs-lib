@@ -13,7 +13,7 @@ import qualified Data.Text.IO as TIO
 import Error (Error (..), UnrepresentableContent (..))
 import Format (Format (Json, Markdown, ProseMirror))
 import Normalization (normalizeFrontMatterForProseMirror)
-import Test.Hspec (Spec, describe, it, shouldBe, shouldNotSatisfy, shouldSatisfy)
+import Test.Hspec (Spec, describe, it, shouldBe, shouldNotSatisfy, shouldReturn, shouldSatisfy)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hspec (testSpec)
 
@@ -31,6 +31,20 @@ spec = do
     it "writes no front matter for metadata whose values are all empty" $ do
       output <- toTextFormat Json ProseMirror "{\"pandoc-api-version\":[1,23,1],\"meta\":{\"tags\":{\"t\":\"MetaList\",\"c\":[]}},\"blocks\":[{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"Text.\"}]}]}"
       output `shouldNotSatisfy` T.isInfixOf "frontMatter"
+
+  describe "Markdown whose front matter isn't valid YAML -> ProseMirror" $ do
+    it "keeps the front matter's raw text in the doc's attribute" $ do
+      pmJson <- toTextFormat Markdown ProseMirror documentWithInvalidYaml
+      pmDocFrontMatter pmJson `shouldBe` Just invalidYaml
+
+    it "converts the body as it converts without the front matter" $ do
+      pmJson <- toTextFormat Markdown ProseMirror documentWithInvalidYaml
+      bodyOnlyPmJson <- toTextFormat Markdown ProseMirror "A paragraph.\n"
+      pmDocContent pmJson `shouldBe` pmDocContent bodyOnlyPmJson
+
+    it "gives the document back verbatim, through ProseMirror" $ do
+      pmJson <- toTextFormat Markdown ProseMirror documentWithInvalidYaml
+      toTextFormat ProseMirror Markdown pmJson `shouldReturn` documentWithInvalidYaml
 
   describe "Normalization cases -> ProseMirror" $
     forM_ metaNormalizationCases $ \normalizationCase ->
@@ -65,19 +79,30 @@ spec = do
         expected <- normalizedDocumentFrontMatter normalizationCase
         fmap normalizeFrontMatterForProseMirror (frontMatterOf input) `shouldBe` Just (Right expected)
 
+invalidYaml :: T.Text
+invalidYaml = "title: Notes\nauthor Ada: x: y\n"
+
+documentWithInvalidYaml :: T.Text
+documentWithInvalidYaml = "---\n" <> invalidYaml <> "---\n\nA paragraph.\n"
+
 -- The front matter in the doc's attribute of the case's input converted to ProseMirror.
 convertedPMDocFrontMatter :: NormalizationCase -> IO (Maybe T.Text)
 convertedPMDocFrontMatter normalizationCase = do
   input <- TIO.readFile (inputPath normalizationCase)
   pmJson <- toTextFormat (inputFormat normalizationCase) ProseMirror input
-  pure (docFrontMatter pmJson)
-  where
-    docFrontMatter :: T.Text -> Maybe T.Text
-    docFrontMatter pmJson = do
-      Object doc <- decodeStrictText pmJson
-      Object attrs <- KeyMap.lookup "attrs" doc
-      String frontMatter <- KeyMap.lookup "frontMatter" attrs
-      pure frontMatter
+  pure (pmDocFrontMatter pmJson)
+
+pmDocFrontMatter :: T.Text -> Maybe T.Text
+pmDocFrontMatter pmJson = do
+  Object doc <- decodeStrictText pmJson
+  Object attrs <- KeyMap.lookup "attrs" doc
+  String frontMatter <- KeyMap.lookup "frontMatter" attrs
+  pure frontMatter
+
+pmDocContent :: T.Text -> Maybe Value
+pmDocContent pmJson = do
+  Object doc <- decodeStrictText pmJson
+  KeyMap.lookup "content" doc
 
 normalizedDocumentFrontMatter :: NormalizationCase -> IO (Maybe T.Text)
 normalizedDocumentFrontMatter normalizationCase = frontMatterOf <$> TIO.readFile (normalizedPath normalizationCase)

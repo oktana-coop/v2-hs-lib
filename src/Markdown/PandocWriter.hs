@@ -2,11 +2,12 @@
 
 module Markdown.PandocWriter (writeNormalizedMarkdown, writeFrontMatter) where
 
+import Data.Maybe (isJust)
 import qualified Data.Text as T
-import Markdown.FrontMatter (frontMatterText, orderFrontMatter)
+import Markdown.FrontMatter (frontMatterText, invalidFrontMatter, orderFrontMatter, wrapInFrontMatterDelimiters)
 import Metadata.KeyOutline (takeKeyOutline)
 import Text.Pandoc (PandocMonad, WriterOptions (writerExtensions, writerTemplate), writeMarkdown)
-import Text.Pandoc.Definition (Block (HorizontalRule, Para), Format (..), Inline (RawInline), Meta, Pandoc (..))
+import Text.Pandoc.Definition (Block (HorizontalRule, Para), Format (..), Inline (RawInline), Meta, Pandoc (..), nullMeta)
 import Text.Pandoc.Extensions (Extension (Ext_yaml_metadata_block), enableExtension)
 import Text.Pandoc.Templates (compileDefaultTemplate)
 import Text.Pandoc.Walk (walk)
@@ -14,11 +15,27 @@ import Text.Pandoc.Walk (walk)
 -- Wraps Pandoc's Markdown writer to canonicalize the output via project-local AST tweaks
 -- applied just before serialization, and to keep the order of the metadata keys.
 writeNormalizedMarkdown :: (PandocMonad m) => WriterOptions -> Pandoc -> m T.Text
-writeNormalizedMarkdown opts (Pandoc meta blocks) = do
-  markdown <- writeMarkdown opts (walk shortHr (Pandoc metaWithoutKeyOutline blocks))
-  pure (orderFrontMatter keyOutline markdown)
+writeNormalizedMarkdown opts (Pandoc meta blocks) = case invalidFrontMatter meta of
+  Just yaml -> writeKeepingInvalidFrontMatter yaml
+  Nothing -> writeInKeyOrder
   where
-    (keyOutline, metaWithoutKeyOutline) = takeKeyOutline meta
+    -- The keys of the front matter Pandoc writes are put back in the order of the key outline.
+    writeInKeyOrder :: (PandocMonad m) => m T.Text
+    writeInKeyOrder = orderFrontMatter keyOutline <$> writeWithMeta metaWithoutKeyOutline
+      where
+        (keyOutline, metaWithoutKeyOutline) = takeKeyOutline meta
+
+    writeKeepingInvalidFrontMatter :: (PandocMonad m) => T.Text -> m T.Text
+    writeKeepingInvalidFrontMatter yaml = withRawFrontMatter yaml <$> writeWithMeta nullMeta
+
+    withRawFrontMatter :: T.Text -> T.Text -> T.Text
+    withRawFrontMatter yaml body
+      -- Only with a template, as Pandoc writes metadata only with one.
+      | isJust (writerTemplate opts) = wrapInFrontMatterDelimiters yaml <> "\n" <> body
+      | otherwise = body
+
+    writeWithMeta :: (PandocMonad m) => Meta -> m T.Text
+    writeWithMeta documentMeta = writeMarkdown opts (walk shortHr (Pandoc documentMeta blocks))
 
     -- Emit `---` instead of `writerColumns` dashes (default 72) without touching
     -- `writerColumns`, which also drives table layout and image alt-text wrapping.

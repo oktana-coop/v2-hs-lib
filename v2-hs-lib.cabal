@@ -35,6 +35,9 @@ library
       Query
   other-modules:
       Markdown.FrontMatter
+      Markdown.FrontMatter.Invalid
+      Markdown.FrontMatter.KeyOrder
+      Markdown.FrontMatter.Text
       Markdown.PandocReader
       Markdown.PandocWriter
       Metadata.Diff

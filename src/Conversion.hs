@@ -11,7 +11,8 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import Error (Error (..))
 import Format (Format (..))
-import Markdown.PandocReader (readMarkdown)
+import Markdown.FrontMatter (invalidFrontMatter)
+import Markdown.PandocReader (readFrontMatter, readMarkdown)
 import Markdown.PandocWriter (writeNormalizedMarkdown)
 import Metadata.KeyOutline (stripTempMetaOutlineKey)
 import PandocReader as AutomergePandoc.PandocReader (readAutomerge)
@@ -19,8 +20,8 @@ import PandocWriter as AutomergePandoc.PandocWriter (writeAutomerge)
 import ProseMirror.PandocReader (readProseMirror)
 import ProseMirror.PandocTreeShape (UnrepresentableContent, findUnrepresentableMetadataContent, maybeUnrepresentableBlockContent, maybeUnrepresentableInlineContent)
 import ProseMirror.PandocWriter (writeProseMirror)
-import Text.Pandoc (Pandoc, PandocError (PandocParseError, PandocShouldNeverHappenError, PandocSomeError, PandocUnknownReaderError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readNative, readerExtensions, writerExtensions, writerTemplate)
-import Text.Pandoc.Class (runIO, setResourcePath)
+import Text.Pandoc (Pandoc, PandocError (PandocShouldNeverHappenError, PandocSomeError, PandocUnknownReaderError), PandocIO, PandocMonad, ReaderOptions, WrapOption (WrapPreserve), WriterOptions (writerWrapText), def, readHtml, readJSON, readNative, readerExtensions, writerExtensions, writerTemplate)
+import Text.Pandoc.Class (runIO, runPure, setResourcePath)
 import qualified Text.Pandoc.Definition as PandocDef
 import Text.Pandoc.Error (renderError)
 import Text.Pandoc.Extensions (Extension (Ext_fenced_code_blocks, Ext_footnotes, Ext_yaml_metadata_block), enableExtension, pandocExtensions)
@@ -30,7 +31,7 @@ import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.Templates (compileDefaultTemplate)
 import Text.Pandoc.Writers (writeDocx, writeHtml5String, writeJSON, writeLaTeX, writeNative)
 import Utils.Either (bothOrErrors)
-import Utils.Pandoc (withLog)
+import Utils.Pandoc (isYamlMetadataError, withLog)
 
 writeToBytes :: (PandocMonad m, MonadIO m, MonadMask m) => Bool -> Format -> WriterOptions -> Pandoc -> m BL.ByteString
 writeToBytes embedResources format opts = writer opts . (if keepsMetaOrder format then id else stripFromDocument)
@@ -104,12 +105,6 @@ toReadError format pandocError
     pandocErrorMessage :: T.Text
     pandocErrorMessage = renderError pandocError
 
-    -- Pandoc says only in its error's text that a YAML metadata block isn't valid, wherever the block is in the
-    -- document.
-    isYamlMetadataError :: PandocError -> Bool
-    isYamlMetadataError (PandocParseError message) = T.pack "Error parsing YAML metadata" `T.isPrefixOf` message
-    isYamlMetadataError _ = False
-
 -- Explicitly enabling the fenced code blocks and footnotes extensions. For some reason they aren't included when
 -- we're just using `def` in the reader/writer options.
 -- TODO: Investigate why, in theory `def` includes fenced code blocks too,
@@ -143,10 +138,23 @@ addTemplate format opts = case format of
       return options {writerTemplate = Just tmpl}
 
 writeDocument :: Format -> Maybe FilePath -> Pandoc -> IO (Either Error BL.ByteString)
-writeDocument format maybeResourcePath doc@(PandocDef.Pandoc meta _) = do
-  result <- runIO (withLog (writeTo format maybeResourcePath doc))
-  pure (first (toWriteError format) result >>= checkForUnrepresentableContent)
+writeDocument format maybeResourcePath doc@(PandocDef.Pandoc meta _) = case invalidFrontMatter meta of
+  Just yaml | shouldFailOnInvalidFrontMatter -> pure (Left (invalidFrontMatterError yaml))
+  _ -> do
+    result <- runIO (withLog (writeTo format maybeResourcePath doc))
+    pure (first (toWriteError format) result >>= checkForUnrepresentableContent)
   where
+    -- Markdown and ProseMirror are lenient, keeping the raw text, so that front matter Pandoc can't read can still
+    -- be fixed. The other formats fail on it.
+    shouldFailOnInvalidFrontMatter :: Bool
+    shouldFailOnInvalidFrontMatter = format `notElem` [Markdown, ProseMirror, Automerge]
+
+    -- The metadata keeps only the raw text, not Pandoc's error for it, so it's read again to get that error back.
+    invalidFrontMatterError :: T.Text -> Error
+    invalidFrontMatterError yaml = case runPure (readFrontMatter pandocReaderOptions yaml) of
+      Left readError -> toReadError Markdown readError
+      Right _ -> InvalidMetadataError (T.pack "The front matter isn't valid YAML.")
+
     -- Pandoc's writers leave out the blocks their format can't hold, and only report them in the log.
     -- The ProseMirror writer does the same, and here we produce an error in the case of unrepresentable 
     -- content.

@@ -6,7 +6,7 @@ import qualified Data.Text as T
 import Data.Tree (Tree (..))
 import DocTree.Error (MalformedTreeError (..))
 import qualified DocTree.GroupedInlines as GroupedInlinesTree
-import Markdown.PandocReader (readFrontMatter)
+import Markdown.PandocReader (readFrontMatterKeepingInvalid)
 import ProseMirror.Metadata (docFrontMatter)
 import ProseMirror.Model (PMDoc, parseProseMirrorText)
 import ProseMirror.PandocTreeShape.FigureContent.GroupedInlines (wrapFigureContentInlinesToPlain)
@@ -26,7 +26,7 @@ readProseMirror opts =
     -- The doc's metadata is read from the front matter in its attribute, apart from the tree.
     pmDocToPandoc :: (PandocMonad m) => PMDoc -> m Pandoc
     pmDocToPandoc pmDoc = do
-      meta <- maybe (pure nullMeta) (readFrontMatter opts) (docFrontMatter pmDoc)
+      meta <- maybe (pure nullMeta) (readFrontMatterKeepingInvalid opts) (docFrontMatter pmDoc)
       tree <- toPandocMonad (pmDocToGroupedInlinesTree pmDoc)
       Pandoc _ blocks <- treeToPandoc (wrapFigureContentInlinesToPlain tree)
       pure (Pandoc meta blocks)
